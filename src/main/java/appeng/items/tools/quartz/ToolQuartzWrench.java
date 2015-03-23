@@ -35,6 +35,10 @@ public class ToolQuartzWrench extends AEBaseItem implements IAEWrench, IToolWren
 		{
 			if (Platform.isClient()) return !world.isRemote;
 
+			// TODO gamerforEA code start
+			if (callBlockBreakEvent(x, y, z, world, player)) return false;
+			// TODO gamerforEA code end
+
 			ForgeDirection mySide = ForgeDirection.getOrientation(side);
 			if (b.rotateBlock(world, x, y, z, mySide))
 			{
@@ -56,13 +60,13 @@ public class ToolQuartzWrench extends AEBaseItem implements IAEWrench, IToolWren
 	@Override
 	public boolean canWrench(ItemStack is, EntityPlayer player, int x, int y, int z)
 	{
-		return !callBlockBreakEvent(x, y, z, player.worldObj, player);
+		return !callBlockBreakEvent(x, y, z, player.worldObj, player); // TODO gamerforEA call event
 	}
 
 	@Override
 	public boolean canWrench(EntityPlayer player, int x, int y, int z)
 	{
-		return !callBlockBreakEvent(x, y, z, player.worldObj, player);
+		return !callBlockBreakEvent(x, y, z, player.worldObj, player); // TODO gamerforEA call event
 	}
 
 	@Override
@@ -71,6 +75,7 @@ public class ToolQuartzWrench extends AEBaseItem implements IAEWrench, IToolWren
 		player.swingItem();
 	}
 
+	// TODO gamerforEA code start
 	/**
 	 * 
 	 * @param x - X coord
@@ -85,4 +90,5 @@ public class ToolQuartzWrench extends AEBaseItem implements IAEWrench, IToolWren
 		BreakEvent event = new BreakEvent(x, y, z, w, w.getBlock(x, y, z), w.getBlockMetadata(x, y, z), p);
 		return MinecraftForge.EVENT_BUS.post(event);
 	}
+	// TODO gamerforEA code end
 }

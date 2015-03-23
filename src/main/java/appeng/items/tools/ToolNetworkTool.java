@@ -115,6 +115,10 @@ public class ToolNetworkTool extends AEBaseItem implements IGuiItem, IAEWrench, 
 			Block b = w.getBlock(x, y, z);
 			if (b != null && !p.isSneaking())
 			{
+				// TODO gamerforEA code start
+				if (ToolQuartzWrench.callBlockBreakEvent(x, y, z, w, p)) return false;
+				// TODO gamerforEA code end
+
 				TileEntity te = w.getTileEntity(x, y, z);
 				if (!(te instanceof IGridHost))
 				{
@@ -154,13 +158,13 @@ public class ToolNetworkTool extends AEBaseItem implements IGuiItem, IAEWrench, 
 	@Override
 	public boolean canWrench(ItemStack is, EntityPlayer player, int x, int y, int z)
 	{
-		return !ToolQuartzWrench.callBlockBreakEvent(x, y, z, player.worldObj, player);
+		return !ToolQuartzWrench.callBlockBreakEvent(x, y, z, player.worldObj, player); // TODO gamerforEA call event
 	}
 
 	@Override
 	public boolean canWrench(EntityPlayer player, int x, int y, int z)
 	{
-		return !ToolQuartzWrench.callBlockBreakEvent(x, y, z, player.worldObj, player);
+		return !ToolQuartzWrench.callBlockBreakEvent(x, y, z, player.worldObj, player); // TODO gamerforEA call event
 	}
 
 	@Override
