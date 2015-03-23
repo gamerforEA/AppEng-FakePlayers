@@ -35,11 +35,6 @@ public class ToolQuartzWrench extends AEBaseItem implements IAEWrench, IToolWren
 		{
 			if (Platform.isClient()) return !world.isRemote;
 
-			// TODO gamerforEA code start
-			BreakEvent event = new BreakEvent(x, y, z, world, b, world.getBlockMetadata(x, y, z), player);
-			if (MinecraftForge.EVENT_BUS.post(event)) return false;
-			// TODO gamerforEA code end
-
 			ForgeDirection mySide = ForgeDirection.getOrientation(side);
 			if (b.rotateBlock(world, x, y, z, mySide))
 			{
@@ -61,18 +56,33 @@ public class ToolQuartzWrench extends AEBaseItem implements IAEWrench, IToolWren
 	@Override
 	public boolean canWrench(ItemStack is, EntityPlayer player, int x, int y, int z)
 	{
-		return true;
+		return !callBlockBreakEvent(x, y, z, player.worldObj, player);
 	}
 
 	@Override
 	public boolean canWrench(EntityPlayer player, int x, int y, int z)
 	{
-		return true;
+		return !callBlockBreakEvent(x, y, z, player.worldObj, player);
 	}
 
 	@Override
 	public void wrenchUsed(EntityPlayer player, int x, int y, int z)
 	{
 		player.swingItem();
+	}
+
+	/**
+	 * 
+	 * @param x - X coord
+	 * @param y - Y coord
+	 * @param z - Z coord
+	 * @param w - World
+	 * @param p - EntityPlayer
+	 * @return true if canceled
+	 */
+	public static boolean callBlockBreakEvent(int x, int y, int z, World w, EntityPlayer p)
+	{
+		BreakEvent event = new BreakEvent(x, y, z, w, w.getBlock(x, y, z), w.getBlockMetadata(x, y, z), p);
+		return MinecraftForge.EVENT_BUS.post(event);
 	}
 }

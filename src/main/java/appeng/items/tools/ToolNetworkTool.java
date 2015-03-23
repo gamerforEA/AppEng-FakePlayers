@@ -10,9 +10,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import appeng.api.implementations.guiobjects.IGuiItem;
 import appeng.api.implementations.guiobjects.IGuiItemObject;
 import appeng.api.implementations.items.IAEWrench;
@@ -30,6 +28,7 @@ import appeng.core.sync.network.NetworkHandler;
 import appeng.core.sync.packets.PacketClick;
 import appeng.items.AEBaseItem;
 import appeng.items.contents.NetworkToolViewer;
+import appeng.items.tools.quartz.ToolQuartzWrench;
 import appeng.transformer.annotations.integration.Interface;
 import appeng.util.Platform;
 import buildcraft.api.tools.IToolWrench;
@@ -114,11 +113,6 @@ public class ToolNetworkTool extends AEBaseItem implements IGuiItem, IAEWrench, 
 			if (!Platform.hasPermissions(new DimensionalCoord(w, x, y, z), p)) return false;
 
 			Block b = w.getBlock(x, y, z);
-			// TODO gamerforEA code start
-			if (b == null) return false;
-			BreakEvent event = new BreakEvent(x, y, z, w, b, w.getBlockMetadata(x, y, z), p);
-			if (MinecraftForge.EVENT_BUS.post(event)) return false;
-			// TODO gamerforEA code end
 			if (b != null && !p.isSneaking())
 			{
 				TileEntity te = w.getTileEntity(x, y, z);
@@ -160,13 +154,13 @@ public class ToolNetworkTool extends AEBaseItem implements IGuiItem, IAEWrench, 
 	@Override
 	public boolean canWrench(ItemStack is, EntityPlayer player, int x, int y, int z)
 	{
-		return true;
+		return !ToolQuartzWrench.callBlockBreakEvent(x, y, z, player.worldObj, player);
 	}
 
 	@Override
 	public boolean canWrench(EntityPlayer player, int x, int y, int z)
 	{
-		return true;
+		return !ToolQuartzWrench.callBlockBreakEvent(x, y, z, player.worldObj, player);
 	}
 
 	@Override
