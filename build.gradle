@@ -19,7 +19,7 @@ apply plugin: 'forge'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-version = "rv1-stable"
+version = "rv2-beta-28"
 group= "appeng"
 archivesBaseName = "appliedenergistics2"
 
@@ -29,10 +29,10 @@ minecraft {
 }
 
 dependencies {
-	compile files('lib/appliedenergistics2-rv1-stable-1-dev.jar', 'lib/buildcraft-6.4.3-api.jar')
+	compile files('lib/CoFHLib-[1.7.10]1.0.1-151.jar', 'lib/industrialcraft-2-2.2.710-experimental-api.jar', 'lib/bukkit-api.jar', 'lib/WorldGuardEventWrapperPlugin.jar', 'lib/appliedenergistics2-rv2-beta-28-dev.jar', 'lib/buildcraft-6.4.8-api.jar')
 }
 
 jar {
-	from zipTree('lib/appliedenergistics2-rv1-stable-1.jar')
+	from zipTree('lib/appliedenergistics2-rv2-beta-28.jar')
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

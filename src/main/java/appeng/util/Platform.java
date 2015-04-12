@@ -1,3 +1,21 @@
+/*
+ * This file is part of Applied Energistics 2.
+ * Copyright (c) 2013 - 2014, AlgorithmX2, All rights reserved.
+ *
+ * Applied Energistics 2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Applied Energistics 2 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ */
+
 package appeng.util;
 
 import java.lang.reflect.Field;
@@ -12,6 +30,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.WeakHashMap;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -42,6 +63,7 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.server.management.PlayerManager;
+import net.minecraft.stats.Achievement;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
@@ -49,15 +71,12 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.oredict.OreDictionary;
 import appeng.api.AEApi;
 import appeng.api.config.AccessRestriction;
 import appeng.api.config.Actionable;
@@ -67,6 +86,9 @@ import appeng.api.config.PowerUnits;
 import appeng.api.config.SearchBoxMode;
 import appeng.api.config.SecurityPermissions;
 import appeng.api.config.SortOrder;
+import appeng.api.definitions.IItemDefinition;
+import appeng.api.definitions.IMaterials;
+import appeng.api.definitions.IParts;
 import appeng.api.implementations.items.IAEItemPowerStorage;
 import appeng.api.implementations.items.IAEWrench;
 import appeng.api.implementations.tiles.ITileStorageMonitorable;
@@ -79,13 +101,10 @@ import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.MachineSource;
 import appeng.api.networking.security.PlayerSource;
-import appeng.api.networking.storage.IBaseMonitor;
 import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.storage.IMEInventory;
-import appeng.api.storage.IMEInventoryHandler;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.IMEMonitorHandlerReceiver;
-import appeng.api.storage.ISaveProvider;
 import appeng.api.storage.StorageChannel;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
@@ -93,12 +112,12 @@ import appeng.api.storage.data.IAEStack;
 import appeng.api.storage.data.IAETagCompound;
 import appeng.api.storage.data.IItemList;
 import appeng.api.util.AEColor;
-import appeng.api.util.AEItemDefinition;
 import appeng.api.util.DimensionalCoord;
 import appeng.core.AEConfig;
 import appeng.core.AELog;
 import appeng.core.AppEng;
 import appeng.core.features.AEFeature;
+import appeng.core.stats.Stats;
 import appeng.core.sync.GuiBridge;
 import appeng.core.sync.GuiHostType;
 import appeng.hooks.TickHandler;
@@ -109,9 +128,12 @@ import appeng.me.helpers.AENetworkProxy;
 import appeng.util.item.AEItemStack;
 import appeng.util.item.AESharedNBT;
 import appeng.util.item.OreHelper;
-import appeng.util.item.OreRefrence;
+import appeng.util.item.OreReference;
 import appeng.util.prioitylist.IPartitionList;
 import buildcraft.api.tools.IToolWrench;
+
+import com.gamerforea.ae.FakePlayerUtils;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
@@ -119,60 +141,71 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * @author AlgorithmX2
+ * @author thatsIch
+ * @version rv2
+ * @since rv0
+ */
 public class Platform
 {
-	public static Block air = Blocks.air;
+	public static final Block AIR = Blocks.air;
+
 	public static final int DEF_OFFSET = 16;
-	private static Random rdnSrc = new Random();
+
+	/*
+	 * random source, use it for item drop locations...
+	 */
+	private static final Random RANDOM_GENERATOR = new Random();
+	private static final WeakHashMap<World, EntityPlayer> FAKE_PLAYERS = new WeakHashMap<World, EntityPlayer>();
 	private static Field tagList;
-	private static WeakHashMap<World, EntityPlayer> fakePlayers = new WeakHashMap();
-	private static Class Playerinstance;
+	private static Class playerInstance;
 	private static Method getOrCreateChunkWatcher;
 	private static Method sendToAllPlayersWatchingChunk;
 
 	public static Random getRandom()
 	{
-		return rdnSrc;
-	}
-
-	public static int getRandomInt()
-	{
-		return Math.abs(rdnSrc.nextInt());
+		return RANDOM_GENERATOR;
 	}
 
 	public static float getRandomFloat()
 	{
-		return rdnSrc.nextFloat();
+		return RANDOM_GENERATOR.nextFloat();
 	}
 
+	/**
+	 * This displays the value for encoded longs ( double *100 )
+	 *
+	 * @param n      to be formatted long value
+	 * @param isRate if true it adds a /t to the formatted string
+	 *
+	 * @return formatted long value
+	 */
 	public static String formatPowerLong(long n, boolean isRate)
 	{
-		double p = (double) n / 100.0D;
+		double p = ((double) n) / 100;
+
 		PowerUnits displayUnits = AEConfig.instance.selectedPowerUnit();
 		p = PowerUnits.AE.convertTo(displayUnits, p);
+
 		int offset = 0;
 		String Lvl = "";
 		String[] preFixes = new String[] { "k", "M", "G", "T", "P", "T", "P", "E", "Z", "Y" };
 		String unitName = displayUnits.name();
-		if (displayUnits == PowerUnits.WA)
-		{
-			unitName = "J";
-		}
 
-		if (displayUnits == PowerUnits.MK)
-		{
-			unitName = "J";
-		}
+		if (displayUnits == PowerUnits.WA) unitName = "J";
 
-		while (p > 1000.0D && offset < preFixes.length)
+		if (displayUnits == PowerUnits.MK) unitName = "J";
+
+		while (p > 1000 && offset < preFixes.length)
 		{
-			p /= 1000.0D;
+			p /= 1000;
 			Lvl = preFixes[offset];
-			++offset;
+			offset++;
 		}
 
 		DecimalFormat df = new DecimalFormat("#.##");
-		return df.format(p) + " " + Lvl + unitName + (isRate ? "/t" : "");
+		return df.format(p) + ' ' + Lvl + unitName + (isRate ? "/t" : "");
 	}
 
 	public static ForgeDirection crossProduct(ForgeDirection forward, ForgeDirection up)
@@ -180,294 +213,260 @@ public class Platform
 		int west_x = forward.offsetY * up.offsetZ - forward.offsetZ * up.offsetY;
 		int west_y = forward.offsetZ * up.offsetX - forward.offsetX * up.offsetZ;
 		int west_z = forward.offsetX * up.offsetY - forward.offsetY * up.offsetX;
+
 		switch (west_x + west_y * 2 + west_z * 3)
 		{
-			case -3:
-				return ForgeDirection.NORTH;
-			case -2:
-				return ForgeDirection.DOWN;
-			case -1:
-				return ForgeDirection.WEST;
-			case 0:
-			default:
-				return ForgeDirection.UNKNOWN;
 			case 1:
 				return ForgeDirection.EAST;
+			case -1:
+				return ForgeDirection.WEST;
+
 			case 2:
 				return ForgeDirection.UP;
+			case -2:
+				return ForgeDirection.DOWN;
+
 			case 3:
 				return ForgeDirection.SOUTH;
-		}
-	}
-
-	public static <T extends Enum> T nextEnum(T ce)
-	{
-		EnumSet valList = EnumSet.allOf(ce.getClass());
-		int pLoc = ce.ordinal() + 1;
-		if (pLoc >= valList.size())
-		{
-			pLoc = 0;
+			case -3:
+				return ForgeDirection.NORTH;
 		}
 
-		if (pLoc < 0 || pLoc >= valList.size())
-		{
-			pLoc = 0;
-		}
-
-		int pos = 0;
-		Iterator i$ = valList.iterator();
-
-		Object g;
-		do
-		{
-			if (!i$.hasNext())
-			{
-				return null;
-			}
-
-			g = i$.next();
-		}
-		while (pos++ != pLoc);
-
-		return (T) g;
+		return ForgeDirection.UNKNOWN;
 	}
 
 	public static <T extends Enum> T rotateEnum(T ce, boolean backwards, EnumSet ValidOptions)
 	{
 		do
 		{
-			if (backwards)
-			{
-				ce = prevEnum(ce);
-			}
-			else
-			{
-				ce = nextEnum(ce);
-			}
+			if (backwards) ce = prevEnum(ce);
+			else ce = nextEnum(ce);
 		}
 		while (!ValidOptions.contains(ce) || isNotValidSetting(ce));
 
 		return ce;
 	}
 
-	private static boolean isNotValidSetting(Enum e)
-	{
-		return e == SortOrder.INVTWEAKS && !AppEng.instance.isIntegrationEnabled(IntegrationType.InvTweaks) ? true : (e == SearchBoxMode.NEI_AUTOSEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI) ? true : e == SearchBoxMode.NEI_MANUAL_SEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI));
-	}
-
+	/*
+	 * Simple way to cycle an enum...
+	 */
 	public static <T extends Enum> T prevEnum(T ce)
 	{
 		EnumSet valList = EnumSet.allOf(ce.getClass());
-		int pLoc = ce.ordinal() - 1;
-		if (pLoc < 0)
-		{
-			pLoc = valList.size() - 1;
-		}
 
-		if (pLoc < 0 || pLoc >= valList.size())
-		{
-			pLoc = 0;
-		}
+		int pLoc = ce.ordinal() - 1;
+		if (pLoc < 0) pLoc = valList.size() - 1;
+
+		if (pLoc < 0 || pLoc >= valList.size()) pLoc = 0;
 
 		int pos = 0;
-		Iterator i$ = valList.iterator();
-
-		Object g;
-		do
+		for (Object g : valList)
 		{
-			if (!i$.hasNext())
-			{
-				return null;
-			}
-
-			g = i$.next();
+			if (pos == pLoc) return (T) g;
+			pos++;
 		}
-		while (pos++ != pLoc);
 
-		return (T) g;
+		return null;
 	}
 
+	/*
+	 * Simple way to cycle an enum...
+	 */
+	public static <T extends Enum> T nextEnum(T ce)
+	{
+		EnumSet valList = EnumSet.allOf(ce.getClass());
+
+		int pLoc = ce.ordinal() + 1;
+		if (pLoc >= valList.size()) pLoc = 0;
+
+		if (pLoc < 0 || pLoc >= valList.size()) pLoc = 0;
+
+		int pos = 0;
+		for (Object g : valList)
+		{
+			if (pos == pLoc) return (T) g;
+			pos++;
+		}
+
+		return null;
+	}
+
+	private static boolean isNotValidSetting(Enum e)
+	{
+		if (e == SortOrder.INVTWEAKS && !AppEng.instance.isIntegrationEnabled(IntegrationType.InvTweaks)) return true;
+
+		if (e == SearchBoxMode.NEI_AUTOSEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI)) return true;
+
+		if (e == SearchBoxMode.NEI_MANUAL_SEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI)) return true;
+
+		return false;
+	}
+
+	public static void openGUI(@Nonnull EntityPlayer p, @Nullable TileEntity tile, @Nullable ForgeDirection side, @Nonnull GuiBridge type)
+	{
+		if (isClient()) return;
+
+		int x = (int) p.posX;
+		int y = (int) p.posY;
+		int z = (int) p.posZ;
+		if (tile != null)
+		{
+			x = tile.xCoord;
+			y = tile.yCoord;
+			z = tile.zCoord;
+		}
+
+		if ((type.getType().isItem() && tile == null) || type.hasPermissions(tile, x, y, z, side, p))
+		{
+			if (tile == null && type.getType() == GuiHostType.ITEM) p.openGui(AppEng.instance, type.ordinal() << 4 | (0 << 3), p.getEntityWorld(), p.inventory.currentItem, 0, 0);
+			else if (tile == null || type.getType() == GuiHostType.ITEM) p.openGui(AppEng.instance, type.ordinal() << 4 | (1 << 3), p.getEntityWorld(), x, y, z);
+			else p.openGui(AppEng.instance, type.ordinal() << 4 | (side.ordinal()), tile.getWorldObj(), x, y, z);
+		}
+	}
+
+	/*
+	 * returns true if the code is on the client.
+	 */
 	public static boolean isClient()
 	{
 		return FMLCommonHandler.instance().getEffectiveSide().isClient();
 	}
 
-	public static boolean isServer()
-	{
-		return FMLCommonHandler.instance().getEffectiveSide().isServer();
-	}
-
-	public static void openGUI(EntityPlayer p, TileEntity tile, ForgeDirection side, GuiBridge type)
-	{
-		if (!isClient())
-		{
-			int x = (int) p.posX;
-			int y = (int) p.posY;
-			int z = (int) p.posZ;
-			if (tile != null)
-			{
-				x = tile.xCoord;
-				y = tile.yCoord;
-				z = tile.zCoord;
-			}
-
-			if (type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
-			{
-				if (tile != null && type.getType() != GuiHostType.ITEM)
-				{
-					p.openGui(AppEng.instance, type.ordinal() << 4 | side.ordinal(), tile.getWorldObj(), x, y, z);
-				}
-				else
-				{
-					p.openGui(AppEng.instance, type.ordinal() << 4 | 8, p.getEntityWorld(), x, y, z);
-				}
-			}
-
-		}
-	}
-
 	public static boolean hasPermissions(DimensionalCoord dc, EntityPlayer player)
 	{
 		// TODO gamerforEA code start
-		if (callBlockBreakEvent(dc.x, dc.y, dc.z, dc.getWorld(), player)) return false;
+		if (FakePlayerUtils.callBlockBreakEvent(dc.x, dc.y, dc.z, player).isCancelled()) return false;
 		// TODO gamerforEA code end
-
 		return dc.getWorld().canMineBlock(player, dc.x, dc.y, dc.z);
 	}
 
+	/*
+	 * Checks to see if a block is air?
+	 */
 	public static boolean isBlockAir(World w, int x, int y, int z)
 	{
 		try
 		{
 			return w.getBlock(x, y, z).isAir(w, x, y, z);
 		}
-		catch (Throwable var5)
+		catch (Throwable e)
 		{
 			return false;
 		}
 	}
 
+	/*
+	 * Lots of silliness to try and account for weird tag related junk, basically requires that two tags have at least
+	 * something in their tags before it wasts its time comparing them.
+	 */
 	public static boolean sameStackStags(ItemStack a, ItemStack b)
 	{
-		if (a == null && b == null)
+		if (a == null && b == null) return true;
+		if (a == null || b == null) return false;
+		if (a == b) return true;
+
+		NBTTagCompound ta = a.getTagCompound();
+		NBTTagCompound tb = b.getTagCompound();
+		if (ta == tb) return true;
+
+		if ((ta == null && tb == null) || (ta != null && ta.hasNoTags() && tb == null) || (tb != null && tb.hasNoTags() && ta == null) || (ta != null && ta.hasNoTags() && tb != null && tb.hasNoTags())) return true;
+
+		if ((ta == null && tb != null) || (ta != null && tb == null)) return false;
+
+		// if both tags are shared this is easy...
+		if (AESharedNBT.isShared(ta) && AESharedNBT.isShared(tb))
 		{
-			return true;
+			return ta == tb;
 		}
-		else if (a != null && b != null)
-		{
-			if (a == b)
-			{
-				return true;
-			}
-			else
-			{
-				NBTTagCompound ta = a.getTagCompound();
-				NBTTagCompound tb = b.getTagCompound();
-				return ta == tb ? true : ((ta != null || tb != null) && (ta == null || !ta.hasNoTags() || tb != null) && (tb == null || !tb.hasNoTags() || ta != null) && (ta == null || !ta.hasNoTags() || tb == null || !tb.hasNoTags()) ? ((ta != null || tb == null) && (ta == null || tb != null) ? (AESharedNBT.isShared(ta) && AESharedNBT.isShared(tb) ? ta == tb : NBTEqualityTest(ta, tb)) : false) : true);
-			}
-		}
-		else
-		{
-			return false;
-		}
+
+		return NBTEqualityTest(ta, tb);
 	}
 
+	/*
+	 * recursive test for NBT Equality, this was faster then trying to compare / generate hashes, its also more reliable
+	 * then the vanilla version which likes to fail when NBT Compound data changes order, it is pretty expensive
+	 * performance wise, so try an use shared tag compounds as long as the system remains in AE.
+	 */
 	public static boolean NBTEqualityTest(NBTBase A, NBTBase B)
 	{
+		// same type?
 		byte id = A.getId();
 		if (id == B.getId())
 		{
 			switch (id)
 			{
-				case 1:
-					return ((NBTTagByte) A).func_150287_d() == ((NBTTagByte) B).func_150287_d();
-				case 2:
-				case 7:
-				default:
-					return A.equals(B);
-				case 3:
-					return ((NBTTagInt) A).func_150287_d() == ((NBTTagInt) B).func_150287_d();
-				case 4:
-					return ((NBTTagLong) A).func_150291_c() == ((NBTTagLong) B).func_150291_c();
-				case 5:
-					return ((NBTTagFloat) A).func_150288_h() == ((NBTTagFloat) B).func_150288_h();
-				case 6:
-					return ((NBTTagDouble) A).func_150286_g() == ((NBTTagDouble) B).func_150286_g();
-				case 8:
-					return ((NBTTagString) A).func_150285_a_() == ((NBTTagString) B).func_150285_a_() || ((NBTTagString) A).func_150285_a_().equals(((NBTTagString) B).func_150285_a_());
-				case 9:
-					NBTTagList var11 = (NBTTagList) A;
-					NBTTagList var12 = (NBTTagList) B;
-					if (var11.tagCount() != var12.tagCount())
+				case 10:
+				{
+					NBTTagCompound ctA = (NBTTagCompound) A;
+					NBTTagCompound ctB = (NBTTagCompound) B;
+
+					Set<String> cA = ctA.func_150296_c();
+					Set<String> cB = ctB.func_150296_c();
+
+					if (cA.size() != cB.size()) return false;
+
+					for (String name : cA)
 					{
-						return false;
-					}
-					else
-					{
-						List var13 = tagList(var11);
-						List var14 = tagList(var12);
-						if (var13.size() != var14.size())
+						NBTBase tag = ctA.getTag(name);
+						NBTBase aTag = ctB.getTag(name);
+						if (aTag == null)
 						{
 							return false;
 						}
-						else
+
+						if (!NBTEqualityTest(tag, aTag))
 						{
-							for (int var15 = 0; var15 < var13.size(); ++var15)
-							{
-								if (var14.get(var15) == null)
-								{
-									return false;
-								}
-
-								if (!NBTEqualityTest((NBTBase) var13.get(var15), (NBTBase) var14.get(var15)))
-								{
-									return false;
-								}
-							}
-
-							return true;
+							return false;
 						}
 					}
-				case 10:
-					NBTTagCompound lA = (NBTTagCompound) A;
-					NBTTagCompound lB = (NBTTagCompound) B;
-					Set tag = lA.func_150296_c();
-					Set aTag = lB.func_150296_c();
-					if (tag.size() != aTag.size())
+
+					return true;
+				}
+
+				case 9: // ) // A instanceof NBTTagList )
+				{
+					NBTTagList lA = (NBTTagList) A;
+					NBTTagList lB = (NBTTagList) B;
+					if (lA.tagCount() != lB.tagCount()) return false;
+
+					List<NBTBase> tag = tagList(lA);
+					List<NBTBase> aTag = tagList(lB);
+					if (tag.size() != aTag.size()) return false;
+
+					for (int x = 0; x < tag.size(); x++)
 					{
-						return false;
+						if (aTag.get(x) == null) return false;
+
+						if (!NBTEqualityTest(tag.get(x), aTag.get(x))) return false;
 					}
-					else
-					{
-						Iterator x = tag.iterator();
 
-						NBTBase tag1;
-						NBTBase aTag1;
-						do
-						{
-							if (!x.hasNext())
-							{
-								return true;
-							}
+					return true;
+				}
 
-							String name = (String) x.next();
-							tag1 = lA.getTag(name);
-							aTag1 = lB.getTag(name);
-							if (aTag1 == null)
-							{
-								return false;
-							}
-						}
-						while (NBTEqualityTest(tag1, aTag1));
+				case 1: // ( A instanceof NBTTagByte )
+					return ((NBTTagByte) A).func_150287_d() == ((NBTTagByte) B).func_150287_d();
 
-						return false;
-					}
+				case 4: // else if ( A instanceof NBTTagLong )
+					return ((NBTTagLong) A).func_150291_c() == ((NBTTagLong) B).func_150291_c();
+
+				case 8: // else if ( A instanceof NBTTagString )
+					return ((NBTTagString) A).func_150285_a_().equals(((NBTTagString) B).func_150285_a_()) || ((NBTTagString) A).func_150285_a_().equals(((NBTTagString) B).func_150285_a_());
+
+				case 6: // else if ( A instanceof NBTTagDouble )
+					return ((NBTTagDouble) A).func_150286_g() == ((NBTTagDouble) B).func_150286_g();
+
+				case 5: // else if ( A instanceof NBTTagFloat )
+					return ((NBTTagFloat) A).func_150288_h() == ((NBTTagFloat) B).func_150288_h();
+
+				case 3: // else if ( A instanceof NBTTagInt )
+					return ((NBTTagInt) A).func_150287_d() == ((NBTTagInt) B).func_150287_d();
+
+				default:
+					return A.equals(B);
 			}
 		}
-		else
-		{
-			return false;
-		}
+
+		return false;
 	}
 
 	private static List<NBTBase> tagList(NBTTagList lB)
@@ -478,16 +477,16 @@ public class Platform
 			{
 				tagList = lB.getClass().getDeclaredField("tagList");
 			}
-			catch (Throwable var5)
+			catch (Throwable t)
 			{
 				try
 				{
 					tagList = lB.getClass().getDeclaredField("field_74747_a");
 				}
-				catch (Throwable var4)
+				catch (Throwable z)
 				{
-					AELog.error(var5);
-					AELog.error(var4);
+					AELog.error(t);
+					AELog.error(z);
 				}
 			}
 		}
@@ -495,71 +494,89 @@ public class Platform
 		try
 		{
 			tagList.setAccessible(true);
-			return (List) tagList.get(lB);
+			return (List<NBTBase>) tagList.get(lB);
 		}
-		catch (Throwable var3)
+		catch (Throwable t)
 		{
-			AELog.error(var3);
-			return new ArrayList();
+			AELog.error(t);
 		}
+
+		return new ArrayList<NBTBase>();
 	}
 
+	/*
+	 * Orderless hash on NBT Data, used to work thought huge piles fast, but ignores the order just in case MC decided
+	 * to change it... WHICH IS BAD...
+	 */
 	public static int NBTOrderlessHash(NBTBase A)
 	{
-		byte hash = 0;
+		// same type?
+		int hash = 0;
 		byte id = A.getId();
-		int var7 = hash + id;
+		hash += id;
 		switch (id)
 		{
-			case 1:
-				return var7 + ((NBTTagByte) A).func_150290_f();
-			case 2:
-			case 7:
-			default:
-				return var7;
-			case 3:
-				return var7 + ((NBTTagInt) A).func_150287_d();
-			case 4:
-				return var7 + (int) ((NBTTagLong) A).func_150291_c();
-			case 5:
-				return var7 + (int) ((NBTTagFloat) A).func_150288_h();
-			case 6:
-				return var7 + (int) ((NBTTagDouble) A).func_150286_g();
-			case 8:
-				return var7 + ((NBTTagString) A).func_150285_a_().hashCode();
-			case 9:
-				NBTTagList var8 = (NBTTagList) A;
-				var7 += 9 * var8.tagCount();
-				List var9 = tagList(var8);
-
-				for (int var10 = 0; var10 < var9.size(); ++var10)
-				{
-					var7 += Integer.valueOf(var10).hashCode() ^ NBTOrderlessHash((NBTBase) var9.get(var10));
-				}
-
-				return var7;
 			case 10:
-				NBTTagCompound lA = (NBTTagCompound) A;
-				Set l = lA.func_150296_c();
+			{
+				NBTTagCompound ctA = (NBTTagCompound) A;
 
-				String name;
-				for (Iterator x = l.iterator(); x.hasNext(); var7 += name.hashCode() ^ NBTOrderlessHash(lA.getTag(name)))
+				Set<String> cA = ctA.func_150296_c();
+
+				for (String name : cA)
 				{
-					name = (String) x.next();
+					hash += name.hashCode() ^ NBTOrderlessHash(ctA.getTag(name));
 				}
 
-				return var7;
+				return hash;
+			}
+
+			case 9: // ) // A instanceof NBTTagList )
+			{
+				NBTTagList lA = (NBTTagList) A;
+				hash += 9 * lA.tagCount();
+
+				List<NBTBase> l = tagList(lA);
+				for (int x = 0; x < l.size(); x++)
+				{
+					hash += ((Integer) x).hashCode() ^ NBTOrderlessHash(l.get(x));
+				}
+
+				return hash;
+			}
+
+			case 1: // ( A instanceof NBTTagByte )
+				return hash + ((NBTTagByte) A).func_150290_f();
+
+			case 4: // else if ( A instanceof NBTTagLong )
+				return hash + (int) ((NBTTagLong) A).func_150291_c();
+
+			case 8: // else if ( A instanceof NBTTagString )
+				return hash + ((NBTTagString) A).func_150285_a_().hashCode();
+
+			case 6: // else if ( A instanceof NBTTagDouble )
+				return hash + (int) ((NBTTagDouble) A).func_150286_g();
+
+			case 5: // else if ( A instanceof NBTTagFloat )
+				return hash + (int) ((NBTTagFloat) A).func_150288_h();
+
+			case 3: // else if ( A instanceof NBTTagInt )
+				return hash + ((NBTTagInt) A).func_150287_d();
+
+			default:
+				return hash;
 		}
 	}
 
+	/*
+	 * The usual version of this returns an ItemStack, this version returns the recipe.
+	 */
 	public static IRecipe findMatchingRecipe(InventoryCrafting par1InventoryCrafting, World par2World)
 	{
 		CraftingManager cm = CraftingManager.getInstance();
-		List rl = cm.getRecipeList();
+		List<IRecipe> rl = cm.getRecipeList();
 
-		for (int x = 0; x < rl.size(); ++x)
+		for (IRecipe r : rl)
 		{
-			IRecipe r = (IRecipe) rl.get(x);
 			if (r.matches(par1InventoryCrafting, par2World))
 			{
 				return r;
@@ -571,55 +588,57 @@ public class Platform
 
 	public static ItemStack[] getBlockDrops(World w, int x, int y, int z)
 	{
-		ArrayList out = new ArrayList();
+		List<ItemStack> out = new ArrayList<ItemStack>();
 		Block which = w.getBlock(x, y, z);
+
 		if (which != null)
 		{
 			out = which.getDrops(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
 		}
 
-		return out == null ? new ItemStack[0] : (ItemStack[]) out.toArray(new ItemStack[out.size()]);
+		if (out == null) return new ItemStack[0];
+		return out.toArray(new ItemStack[out.size()]);
 	}
 
 	public static ForgeDirection cycleOrientations(ForgeDirection dir, boolean upAndDown)
 	{
 		if (upAndDown)
 		{
-			switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[dir.ordinal()])
+			switch (dir)
 			{
-				case 1:
+				case NORTH:
 					return ForgeDirection.SOUTH;
-				case 2:
+				case SOUTH:
 					return ForgeDirection.EAST;
-				case 3:
+				case EAST:
 					return ForgeDirection.WEST;
-				case 4:
+				case WEST:
 					return ForgeDirection.NORTH;
-				case 5:
+				case UP:
 					return ForgeDirection.UP;
-				case 6:
+				case DOWN:
 					return ForgeDirection.DOWN;
-				case 7:
+				case UNKNOWN:
 					return ForgeDirection.UNKNOWN;
 			}
 		}
 		else
 		{
-			switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[dir.ordinal()])
+			switch (dir)
 			{
-				case 1:
-					return ForgeDirection.SOUTH;
-				case 2:
-					return ForgeDirection.EAST;
-				case 3:
-					return ForgeDirection.WEST;
-				case 4:
-					return ForgeDirection.UP;
-				case 5:
+				case UP:
 					return ForgeDirection.DOWN;
-				case 6:
+				case DOWN:
 					return ForgeDirection.NORTH;
-				case 7:
+				case NORTH:
+					return ForgeDirection.SOUTH;
+				case SOUTH:
+					return ForgeDirection.EAST;
+				case EAST:
+					return ForgeDirection.WEST;
+				case WEST:
+					return ForgeDirection.UP;
+				case UNKNOWN:
 					return ForgeDirection.UNKNOWN;
 			}
 		}
@@ -627,9 +646,13 @@ public class Platform
 		return ForgeDirection.UNKNOWN;
 	}
 
+	/*
+	 * Creates / or loads previous NBT Data on items, used for editing items owned by AE.
+	 */
 	public static NBTTagCompound openNbtData(ItemStack i)
 	{
 		NBTTagCompound compound = i.getTagCompound();
+
 		if (compound == null)
 		{
 			i.setTagCompound(compound = new NBTTagCompound());
@@ -638,110 +661,121 @@ public class Platform
 		return compound;
 	}
 
+	/*
+	 * Generates Item entities in the world similar to how items are generally dropped.
+	 */
 	public static void spawnDrops(World w, int x, int y, int z, List<ItemStack> drops)
 	{
 		if (isServer())
 		{
-			Iterator i$ = drops.iterator();
-
-			while (i$.hasNext())
+			for (ItemStack i : drops)
 			{
-				ItemStack i = (ItemStack) i$.next();
-				if (i != null && i.stackSize > 0)
+				if (i != null)
 				{
-					double offset_x = (double) ((getRandomInt() % 32 - 16) / 82);
-					double offset_y = (double) ((getRandomInt() % 32 - 16) / 82);
-					double offset_z = (double) ((getRandomInt() % 32 - 16) / 82);
-					EntityItem ei = new EntityItem(w, 0.5D + offset_x + (double) x, 0.5D + offset_y + (double) y, 0.2D + offset_z + (double) z, i.copy());
-					w.spawnEntityInWorld(ei);
+					if (i.stackSize > 0)
+					{
+						double offset_x = (getRandomInt() % 32 - 16) / 82;
+						double offset_y = (getRandomInt() % 32 - 16) / 82;
+						double offset_z = (getRandomInt() % 32 - 16) / 82;
+						EntityItem ei = new EntityItem(w, 0.5 + offset_x + x, 0.5 + offset_y + y, 0.2 + offset_z + z, i.copy());
+						w.spawnEntityInWorld(ei);
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	 * returns true if the code is on the server.
+	 */
+	public static boolean isServer()
+	{
+		return FMLCommonHandler.instance().getEffectiveSide().isServer();
+	}
+
+	public static int getRandomInt()
+	{
+		return Math.abs(RANDOM_GENERATOR.nextInt());
+	}
+
+	/*
+	 * Utility function to get the full inventory for a Double Chest in the World.
+	 */
+	public static IInventory GetChestInv(Object te)
+	{
+		TileEntityChest teA = (TileEntityChest) te;
+		TileEntity teB = null;
+		Block myBlockID = teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
+
+		if (teA.getWorldObj().getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
+		{
+			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
+			if (!(teB instanceof TileEntityChest)) teB = null;
+		}
+
+		if (teB == null)
+		{
+			if (teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
+			{
+				teB = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
+				if (!(teB instanceof TileEntityChest)) teB = null;
+				else
+				{
+					TileEntityChest x = teA;
+					teA = (TileEntityChest) teB;
+					teB = x;
 				}
 			}
 		}
 
-	}
-
-	public static IInventory GetChestInv(Object te)
-	{
-		TileEntityChest teA = (TileEntityChest) te;
-		Object teB = null;
-		Block myBlockID = teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
-		if (teA.getWorldObj().getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
+		if (teB == null)
 		{
-			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
-			if (!(teB instanceof TileEntityChest))
+			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
 			{
-				teB = null;
+				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
+				if (!(teB instanceof TileEntityChest)) teB = null;
 			}
 		}
 
-		TileEntityChest x;
-		TileEntity teB1;
-		if (teB == null && teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
+		if (teB == null)
 		{
-			teB1 = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
-			if (!(teB1 instanceof TileEntityChest))
+			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
 			{
-				teB = null;
-			}
-			else
-			{
-				x = teA;
-				teA = (TileEntityChest) teB1;
-				teB = x;
+				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
+				if (!(teB instanceof TileEntityChest)) teB = null;
+				else
+				{
+					TileEntityChest x = teA;
+					teA = (TileEntityChest) teB;
+					teB = x;
+				}
 			}
 		}
 
-		if (teB == null && teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
-		{
-			teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
-			if (!(teB instanceof TileEntityChest))
-			{
-				teB = null;
-			}
-		}
+		if (teB == null) return teA;
 
-		if (teB == null && teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
-		{
-			teB1 = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
-			if (!(teB1 instanceof TileEntityChest))
-			{
-				teB = null;
-			}
-			else
-			{
-				x = teA;
-				teA = (TileEntityChest) teB1;
-				teB = x;
-			}
-		}
-
-		return (IInventory) (teB == null ? teA : new InventoryLargeChest("", teA, (TileEntityChest) teB));
+		return new InventoryLargeChest("", teA, (TileEntityChest) teB);
 	}
 
 	public static boolean isModLoaded(String modid)
 	{
 		try
 		{
+			// if this fails for some reason, try the other method.
 			return Loader.isModLoaded(modid);
 		}
-		catch (Throwable var3)
+		catch (Throwable ignored)
 		{
-			Iterator i$ = Loader.instance().getActiveModList().iterator();
-
-			ModContainer f;
-			do
-			{
-				if (!i$.hasNext())
-				{
-					return false;
-				}
-
-				f = (ModContainer) i$.next();
-			}
-			while (!f.getModId().equals(modid));
-
-			return true;
 		}
+
+		for (ModContainer f : Loader.instance().getActiveModList())
+		{
+			if (f.getModId().equals(modid))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static ItemStack findMatchingRecipeOutput(InventoryCrafting ic, World worldObj)
@@ -752,116 +786,83 @@ public class Platform
 	@SideOnly(Side.CLIENT)
 	public static List getTooltip(Object o)
 	{
-		if (o == null)
+		if (o == null) return new ArrayList();
+
+		ItemStack itemStack = null;
+		if (o instanceof AEItemStack)
+		{
+			AEItemStack ais = (AEItemStack) o;
+			return ais.getToolTip();
+		}
+		else if (o instanceof ItemStack) itemStack = (ItemStack) o;
+		else return new ArrayList();
+
+		try
+		{
+			return itemStack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
+		}
+		catch (Exception errB)
 		{
 			return new ArrayList();
-		}
-		else
-		{
-			ItemStack itemStack = null;
-			if (o instanceof AEItemStack)
-			{
-				AEItemStack errB = (AEItemStack) o;
-				return errB.getToolTip();
-			}
-			else if (o instanceof ItemStack)
-			{
-				itemStack = (ItemStack) o;
-
-				try
-				{
-					return itemStack.getTooltip(Minecraft.getMinecraft().thePlayer, false);
-				}
-				catch (Exception var3)
-				{
-					return new ArrayList();
-				}
-			}
-			else
-			{
-				return new ArrayList();
-			}
 		}
 	}
 
 	public static String getModId(IAEItemStack is)
 	{
-		if (is == null)
-		{
-			return "** Null";
-		}
-		else
-		{
-			String n = ((AEItemStack) is).getModID();
-			return n == null ? "** Null" : n;
-		}
+		if (is == null) return "** Null";
+
+		String n = ((AEItemStack) is).getModID();
+		return n == null ? "** Null" : n;
 	}
 
 	public static String getItemDisplayName(Object o)
 	{
-		if (o == null)
+		if (o == null) return "** Null";
+
+		ItemStack itemStack = null;
+		if (o instanceof AEItemStack)
 		{
-			return "** Null";
+			String n = ((AEItemStack) o).getDisplayName();
+			return n == null ? "** Null" : n;
 		}
-		else
+		else if (o instanceof ItemStack) itemStack = (ItemStack) o;
+		else return "**Invalid Object";
+
+		try
 		{
-			ItemStack itemStack = null;
-			String errA;
-			if (o instanceof AEItemStack)
+			String name = itemStack.getDisplayName();
+			if (name == null || name.isEmpty()) name = itemStack.getItem().getUnlocalizedName(itemStack);
+			return name == null ? "** Null" : name;
+		}
+		catch (Exception errA)
+		{
+			try
 			{
-				errA = ((AEItemStack) o).getDisplayName();
-				return errA == null ? "** Null" : errA;
+				String n = itemStack.getUnlocalizedName();
+				return n == null ? "** Null" : n;
 			}
-			else if (o instanceof ItemStack)
+			catch (Exception errB)
 			{
-				itemStack = (ItemStack) o;
-
-				try
-				{
-					errA = itemStack.getDisplayName();
-					if (errA == null || errA.equals(""))
-					{
-						errA = itemStack.getItem().getUnlocalizedName(itemStack);
-					}
-
-					return errA == null ? "** Null" : errA;
-				}
-				catch (Exception var5)
-				{
-					try
-					{
-						String errB = itemStack.getUnlocalizedName();
-						return errB == null ? "** Null" : errB;
-					}
-					catch (Exception var4)
-					{
-						return "** Exception";
-					}
-				}
-			}
-			else
-			{
-				return "**Invalid Object";
+				return "** Exception";
 			}
 		}
 	}
 
 	public static boolean hasSpecialComparison(IAEItemStack willAdd)
 	{
-		if (willAdd == null)
-		{
-			return false;
-		}
-		else
-		{
-			IAETagCompound tag = willAdd.getTagCompound();
-			return tag != null && ((AESharedNBT) tag).getSpecialComparison() != null;
-		}
+		if (willAdd == null) return false;
+		IAETagCompound tag = willAdd.getTagCompound();
+		if (tag != null && tag.getSpecialComparison() != null) return true;
+		return false;
 	}
 
 	public static boolean hasSpecialComparison(ItemStack willAdd)
 	{
-		return AESharedNBT.isShared(willAdd.getTagCompound()) && ((AESharedNBT) willAdd.getTagCompound()).getSpecialComparison() != null;
+		if (AESharedNBT.isShared(willAdd.getTagCompound()))
+		{
+			if (((AESharedNBT) willAdd.getTagCompound()).getSpecialComparison() != null) return true;
+		}
+		return false;
 	}
 
 	public static boolean isWrench(EntityPlayer player, ItemStack eq, int x, int y, int z)
@@ -869,9 +870,8 @@ public class Platform
 		if (eq != null)
 		{
 			// TODO gamerforEA code start
-			if (callBlockBreakEvent(x, y, z, player.worldObj, player)) return false;
+			if (FakePlayerUtils.callBlockBreakEvent(x, y, z, player).isCancelled()) return false;
 			// TODO gamerforEA code end
-
 			try
 			{
 				if (eq.getItem() instanceof IToolWrench)
@@ -880,9 +880,8 @@ public class Platform
 					return wrench.canWrench(player, x, y, z);
 				}
 			}
-			catch (Throwable var6)
-			{
-				;
+			catch (Throwable ignore)
+			{ // explodes without BC
 			}
 
 			if (eq.getItem() instanceof IAEWrench)
@@ -891,212 +890,189 @@ public class Platform
 				return wrench.canWrench(eq, player, x, y, z);
 			}
 		}
-
 		return false;
 	}
 
 	public static boolean isChargeable(ItemStack i)
 	{
-		if (i == null)
+		if (i == null) return false;
+		Item it = i.getItem();
+		if (it instanceof IAEItemPowerStorage)
 		{
-			return false;
+			return ((IAEItemPowerStorage) it).getPowerFlow(i) != AccessRestriction.READ;
 		}
-		else
-		{
-			Item it = i.getItem();
-			return it instanceof IAEItemPowerStorage ? ((IAEItemPowerStorage) it).getPowerFlow(i) != AccessRestriction.READ : false;
-		}
+		return false;
 	}
 
 	public static EntityPlayer getPlayer(WorldServer w)
 	{
-		if (w == null)
-		{
-			throw new NullPointerException();
-		}
-		else
-		{
-			EntityPlayer wrp = (EntityPlayer) fakePlayers.get(w);
-			if (wrp != null)
-			{
-				return wrp;
-			}
-			else
-			{
-				FakePlayer p = FakePlayerFactory.getMinecraft(w);
-				fakePlayers.put(w, p);
-				return p;
-			}
-		}
+		if (w == null) throw new NullPointerException();
+
+		EntityPlayer wrp = FAKE_PLAYERS.get(w);
+		if (wrp != null) return wrp;
+
+		EntityPlayer p = FakePlayerFactory.getMinecraft(w);
+		FAKE_PLAYERS.put(w, p);
+		return p;
 	}
 
 	public static int MC2MEColor(int color)
 	{
 		switch (color)
 		{
-			case 0:
-				return 1;
-			case 1:
-				return 4;
-			case 2:
-				return 6;
-			case 3:
-				return 3;
-			case 4:
+			case 4: // "blue"
 				return 0;
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-			case 10:
-			case 12:
-			case 13:
-			case 14:
-			default:
-				return -1;
-			case 11:
-				return 5;
-			case 15:
+			case 0: // "black"
+				return 1;
+			case 15: // "white"
 				return 2;
+			case 3: // "brown"
+				return 3;
+			case 1: // "red"
+				return 4;
+			case 11: // "yellow"
+				return 5;
+			case 2: // "green"
+				return 6;
+
+			case 5: // "purple"
+			case 6: // "cyan"
+			case 7: // "silver"
+			case 8: // "gray"
+			case 9: // "pink"
+			case 10: // "lime"
+			case 12: // "lightBlue"
+			case 13: // "magenta"
+			case 14: // "orange"
 		}
+		return -1;
 	}
 
 	public static int findEmpty(Object[] l)
 	{
-		for (int x = 0; x < l.length; ++x)
+		for (int x = 0; x < l.length; x++)
 		{
-			if (l[x] == null)
-			{
-				return x;
-			}
+			if (l[x] == null) return x;
 		}
-
 		return -1;
 	}
 
 	public static <T> T pickRandom(Collection<T> outs)
 	{
-		int index = rdnSrc.nextInt(outs.size());
-		Iterator i = outs.iterator();
-
-		while (i.hasNext() && index-- > 0)
+		int index = RANDOM_GENERATOR.nextInt(outs.size());
+		Iterator<T> i = outs.iterator();
+		while (i.hasNext() && index > 0)
 		{
+			index--;
 			i.next();
 		}
-
-		return (T) (i.hasNext() ? i.next() : null);
-	}
-
-	public static boolean blockAtLocationIs(IBlockAccess w, int x, int y, int z, AEItemDefinition def)
-	{
-		return def.block() == w.getBlock(x, y, z);
+		index--;
+		if (i.hasNext()) return i.next();
+		return null; // wtf?
 	}
 
 	public static ForgeDirection rotateAround(ForgeDirection forward, ForgeDirection axis)
 	{
-		if (axis != ForgeDirection.UNKNOWN && forward != ForgeDirection.UNKNOWN)
-		{
-			switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[forward.ordinal()])
-			{
-				case 1:
-					switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[axis.ordinal()])
-					{
-						case 3:
-							return ForgeDirection.UP;
-						case 4:
-							return ForgeDirection.DOWN;
-						case 5:
-							return ForgeDirection.WEST;
-						case 6:
-							return ForgeDirection.EAST;
-						default:
-							return forward;
-					}
-				case 2:
-					switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[axis.ordinal()])
-					{
-						case 3:
-							return ForgeDirection.DOWN;
-						case 4:
-							return ForgeDirection.UP;
-						case 5:
-							return ForgeDirection.EAST;
-						case 6:
-							return ForgeDirection.WEST;
-						default:
-							return forward;
-					}
-				case 3:
-					switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[axis.ordinal()])
-					{
-						case 1:
-							return ForgeDirection.UP;
-						case 2:
-							return ForgeDirection.DOWN;
-						case 3:
-						case 4:
-						default:
-							break;
-						case 5:
-							return ForgeDirection.NORTH;
-						case 6:
-							return ForgeDirection.SOUTH;
-					}
-				case 4:
-					switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[axis.ordinal()])
-					{
-						case 1:
-							return ForgeDirection.DOWN;
-						case 2:
-							return ForgeDirection.UP;
-						case 3:
-						case 4:
-						default:
-							return forward;
-						case 5:
-							return ForgeDirection.SOUTH;
-						case 6:
-							return ForgeDirection.NORTH;
-					}
-				case 5:
-					switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[axis.ordinal()])
-					{
-						case 1:
-							return ForgeDirection.WEST;
-						case 2:
-							return ForgeDirection.EAST;
-						case 3:
-							return ForgeDirection.SOUTH;
-						case 4:
-							return ForgeDirection.NORTH;
-						default:
-							return forward;
-					}
-				case 6:
-					switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[axis.ordinal()])
-					{
-						case 1:
-							return ForgeDirection.EAST;
-						case 2:
-							return ForgeDirection.WEST;
-						case 3:
-							return ForgeDirection.NORTH;
-						case 4:
-							return ForgeDirection.SOUTH;
-						case 5:
-							return forward;
-						case 6:
-							return forward;
-					}
-			}
+		if (axis == ForgeDirection.UNKNOWN || forward == ForgeDirection.UNKNOWN) return forward;
 
-			return forward;
-		}
-		else
+		switch (forward)
 		{
-			return forward;
+			case DOWN:
+				switch (axis)
+				{
+					case DOWN:
+						return forward;
+					case UP:
+						return forward;
+					case NORTH:
+						return ForgeDirection.EAST;
+					case SOUTH:
+						return ForgeDirection.WEST;
+					case EAST:
+						return ForgeDirection.NORTH;
+					case WEST:
+						return ForgeDirection.SOUTH;
+					default:
+						break;
+				}
+				break;
+			case UP:
+				switch (axis)
+				{
+					case NORTH:
+						return ForgeDirection.WEST;
+					case SOUTH:
+						return ForgeDirection.EAST;
+					case EAST:
+						return ForgeDirection.SOUTH;
+					case WEST:
+						return ForgeDirection.NORTH;
+					default:
+						break;
+				}
+				break;
+			case NORTH:
+				switch (axis)
+				{
+					case UP:
+						return ForgeDirection.WEST;
+					case DOWN:
+						return ForgeDirection.EAST;
+					case EAST:
+						return ForgeDirection.UP;
+					case WEST:
+						return ForgeDirection.DOWN;
+					default:
+						break;
+				}
+				break;
+			case SOUTH:
+				switch (axis)
+				{
+					case UP:
+						return ForgeDirection.EAST;
+					case DOWN:
+						return ForgeDirection.WEST;
+					case EAST:
+						return ForgeDirection.DOWN;
+					case WEST:
+						return ForgeDirection.UP;
+					default:
+						break;
+				}
+				break;
+			case EAST:
+				switch (axis)
+				{
+					case UP:
+						return ForgeDirection.NORTH;
+					case DOWN:
+						return ForgeDirection.SOUTH;
+					case NORTH:
+						return ForgeDirection.UP;
+					case SOUTH:
+						return ForgeDirection.DOWN;
+					default:
+						break;
+				}
+			case WEST:
+				switch (axis)
+				{
+					case UP:
+						return ForgeDirection.SOUTH;
+					case DOWN:
+						return ForgeDirection.NORTH;
+					case NORTH:
+						return ForgeDirection.DOWN;
+					case SOUTH:
+						return ForgeDirection.UP;
+					default:
+						break;
+				}
+			default:
+				break;
 		}
+		return forward;
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -1105,22 +1081,7 @@ public class Platform
 		return StatCollector.translateToLocal(string);
 	}
 
-	public static boolean isSameItemType(ItemStack ol, ItemStack op)
-	{
-		return ol != null && op != null && ol.getItem() == op.getItem() ? (ol.isItemStackDamageable() ? true : ol.getItemDamage() == ol.getItemDamage()) : false;
-	}
-
-	public static boolean isSameItem(ItemStack ol, ItemStack op)
-	{
-		return ol != null && op != null && ol.isItemEqual(op);
-	}
-
-	public static ItemStack cloneItemStack(ItemStack a)
-	{
-		return a.copy();
-	}
-
-	public static boolean isSameItemPrecise(ItemStack is, ItemStack filter)
+	public static boolean isSameItemPrecise(@Nullable ItemStack is, @Nullable ItemStack filter)
 	{
 		return isSameItem(is, filter) && sameStackStags(is, filter);
 	}
@@ -1131,17 +1092,25 @@ public class Platform
 		{
 			return true;
 		}
-		else if (a == null)
+
+		if (a == null)
 		{
 			return false;
 		}
-		else if (b == null)
+
+		if (b == null)
 		{
 			return false;
 		}
-		else if (a.getItem() != null && b.getItem() != null && a.getItem().isDamageable() && a.getItem() == b.getItem())
+
+		/*
+		 * if ( a.itemID != 0 && b.itemID != 0 && a.isItemStackDamageable() && ! a.getHasSubtypes() && a.itemID ==
+		 * b.itemID ) { return (a.getItemDamage() > 0) == (b.getItemDamage() > 0); }
+		 */
+
+		// test damageable items..
+		if (a.getItem() != null && b.getItem() != null && a.getItem().isDamageable() && a.getItem() == b.getItem())
 		{
-			float bOR1;
 			try
 			{
 				if (Mode == FuzzyMode.IGNORE_ALL)
@@ -1150,16 +1119,17 @@ public class Platform
 				}
 				else if (Mode == FuzzyMode.PERCENT_99)
 				{
-					return a.getItemDamageForDisplay() > 1 == b.getItemDamageForDisplay() > 1;
+					return (a.getItemDamageForDisplay() > 1) == (b.getItemDamageForDisplay() > 1);
 				}
 				else
 				{
-					float aOR1 = 1.0F - (float) a.getItemDamageForDisplay() / (float) a.getMaxDamage();
-					bOR1 = 1.0F - (float) b.getItemDamageForDisplay() / (float) b.getMaxDamage();
-					return aOR1 > Mode.breakPoint == bOR1 > Mode.breakPoint;
+					float APercentDamaged = 1.0f - (float) a.getItemDamageForDisplay() / (float) a.getMaxDamage();
+					float BPercentDamaged = 1.0f - (float) b.getItemDamageForDisplay() / (float) b.getMaxDamage();
+
+					return (APercentDamaged > Mode.breakPoint) == (BPercentDamaged > Mode.breakPoint);
 				}
 			}
-			catch (Throwable var6)
+			catch (Throwable e)
 			{
 				if (Mode == FuzzyMode.IGNORE_ALL)
 				{
@@ -1167,387 +1137,373 @@ public class Platform
 				}
 				else if (Mode == FuzzyMode.PERCENT_99)
 				{
-					return a.getItemDamage() > 1 == b.getItemDamage() > 1;
+					return (a.getItemDamage() > 1) == (b.getItemDamage() > 1);
 				}
 				else
 				{
-					bOR1 = (float) a.getItemDamage() / (float) a.getMaxDamage();
+					float APercentDamaged = (float) a.getItemDamage() / (float) a.getMaxDamage();
 					float BPercentDamaged = (float) b.getItemDamage() / (float) b.getMaxDamage();
-					return bOR1 > Mode.breakPoint == BPercentDamaged > Mode.breakPoint;
+
+					return (APercentDamaged > Mode.breakPoint) == (BPercentDamaged > Mode.breakPoint);
 				}
 			}
 		}
-		else
-		{
-			OreRefrence aOR = OreHelper.instance.isOre(a);
-			OreRefrence bOR = OreHelper.instance.isOre(b);
-			return OreHelper.instance.sameOre(aOR, bOR) ? true : a.isItemEqual(b);
-		}
+
+		OreReference aOR = OreHelper.INSTANCE.isOre(a);
+		OreReference bOR = OreHelper.INSTANCE.isOre(b);
+
+		if (OreHelper.INSTANCE.sameOre(aOR, bOR)) return true;
+
+		/*
+		 * // test ore dictionary.. int OreID = getOreID( a ); if ( OreID != -1 ) return OreID == getOreID( b );
+		 *
+		 * if ( Mode != FuzzyMode.IGNORE_ALL ) { if ( a.hasTagCompound() && !isShared( a.getTagCompound() ) ) { a =
+		 * Platform.getSharedItemStack( AEItemStack.create( a ) ); }
+		 *
+		 * if ( b.hasTagCompound() && !isShared( b.getTagCompound() ) ) { b = Platform.getSharedItemStack(
+		 * AEItemStack.create( b ) ); }
+		 *
+		 * // test regular items with damage values and what not... if ( isShared( a.getTagCompound() ) && isShared(
+		 * b.getTagCompound() ) && a.itemID == b.itemID ) { return ((AppEngSharedNBTTagCompound)
+		 * a.getTagCompound()).compareFuzzyWithRegistry( (AppEngSharedNBTTagCompound) b.getTagCompound() ); } }
+		 */
+
+		return a.isItemEqual(b);
 	}
 
-	public static LookDirection getPlayerRay(EntityPlayer player, float eyeoffset)
+	public static LookDirection getPlayerRay(EntityPlayer player, float eyeOffset)
 	{
 		float f = 1.0F;
 		float f1 = player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * f;
 		float f2 = player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * f;
-		double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double) f;
-		double d1 = (double) eyeoffset;
-		double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double) f;
+		double d0 = player.prevPosX + (player.posX - player.prevPosX) * f;
+		double d1 = eyeOffset;
+		double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * f;
+
 		Vec3 vec3 = Vec3.createVectorHelper(d0, d1, d2);
-		float f3 = MathHelper.cos(-f2 * 0.017453292F - 3.1415927F);
-		float f4 = MathHelper.sin(-f2 * 0.017453292F - 3.1415927F);
+		float f3 = MathHelper.cos(-f2 * 0.017453292F - (float) Math.PI);
+		float f4 = MathHelper.sin(-f2 * 0.017453292F - (float) Math.PI);
 		float f5 = -MathHelper.cos(-f1 * 0.017453292F);
 		float f6 = MathHelper.sin(-f1 * 0.017453292F);
 		float f7 = f4 * f5;
 		float f8 = f3 * f5;
 		double d3 = 5.0D;
+
 		if (player instanceof EntityPlayerMP)
 		{
 			d3 = ((EntityPlayerMP) player).theItemInWorldManager.getBlockReachDistance();
 		}
-
-		Vec3 vec31 = vec3.addVector((double) f7 * d3, (double) f6 * d3, (double) f8 * d3);
+		Vec3 vec31 = vec3.addVector(f7 * d3, f6 * d3, f8 * d3);
 		return new LookDirection(vec3, vec31);
 	}
 
 	public static MovingObjectPosition rayTrace(EntityPlayer p, boolean hitBlocks, boolean hitEntities)
 	{
 		World w = p.getEntityWorld();
+
 		float f = 1.0F;
 		float f1 = p.prevRotationPitch + (p.rotationPitch - p.prevRotationPitch) * f;
 		float f2 = p.prevRotationYaw + (p.rotationYaw - p.prevRotationYaw) * f;
-		double d0 = p.prevPosX + (p.posX - p.prevPosX) * (double) f;
-		double d1 = p.prevPosY + (p.posY - p.prevPosY) * (double) f + 1.62D - (double) p.yOffset;
-		double d2 = p.prevPosZ + (p.posZ - p.prevPosZ) * (double) f;
+		double d0 = p.prevPosX + (p.posX - p.prevPosX) * f;
+		double d1 = p.prevPosY + (p.posY - p.prevPosY) * f + 1.62D - p.yOffset;
+		double d2 = p.prevPosZ + (p.posZ - p.prevPosZ) * f;
 		Vec3 vec3 = Vec3.createVectorHelper(d0, d1, d2);
-		float f3 = MathHelper.cos(-f2 * 0.017453292F - 3.1415927F);
-		float f4 = MathHelper.sin(-f2 * 0.017453292F - 3.1415927F);
+		float f3 = MathHelper.cos(-f2 * 0.017453292F - (float) Math.PI);
+		float f4 = MathHelper.sin(-f2 * 0.017453292F - (float) Math.PI);
 		float f5 = -MathHelper.cos(-f1 * 0.017453292F);
 		float f6 = MathHelper.sin(-f1 * 0.017453292F);
 		float f7 = f4 * f5;
 		float f8 = f3 * f5;
 		double d3 = 32.0D;
-		Vec3 vec31 = vec3.addVector((double) f7 * d3, (double) f6 * d3, (double) f8 * d3);
-		AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord)).expand(16.0D, 16.0D, 16.0D);
+
+		Vec3 vec31 = vec3.addVector(f7 * d3, f6 * d3, f8 * d3);
+
+		AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord)).expand(16, 16, 16);
+
 		Entity entity = null;
-		double Closeest = 9999999.0D;
+		double closest = 9999999.0D;
 		if (hitEntities)
 		{
-			List pos = w.getEntitiesWithinAABBExcludingEntity(p, bb);
+			List list = w.getEntitiesWithinAABBExcludingEntity(p, bb);
+			int l;
 
-			for (int Srec = 0; Srec < pos.size(); ++Srec)
+			for (l = 0; l < list.size(); ++l)
 			{
-				Entity entity1 = (Entity) pos.get(Srec);
-				if (!entity1.isDead && entity1 != p && !(entity1 instanceof EntityItem) && entity1.isEntityAlive() && entity1.riddenByEntity != p)
+				Entity entity1 = (Entity) list.get(l);
+
+				if (!entity1.isDead && entity1 != p && !(entity1 instanceof EntityItem))
 				{
-					f1 = 0.3F;
-					AxisAlignedBB axisalignedbb1 = entity1.boundingBox.expand((double) f1, (double) f1, (double) f1);
-					MovingObjectPosition movingobjectposition1 = axisalignedbb1.calculateIntercept(vec3, vec31);
-					if (movingobjectposition1 != null)
+					if (entity1.isEntityAlive())
 					{
-						double nd = vec3.squareDistanceTo(movingobjectposition1.hitVec);
-						if (nd < Closeest)
+						// prevent killing / flying of mounts.
+						if (entity1.riddenByEntity == p) continue;
+
+						f1 = 0.3F;
+						AxisAlignedBB boundingBox = entity1.boundingBox.expand(f1, f1, f1);
+						MovingObjectPosition movingObjectPosition = boundingBox.calculateIntercept(vec3, vec31);
+
+						if (movingObjectPosition != null)
 						{
-							entity = entity1;
-							Closeest = nd;
+							double nd = vec3.squareDistanceTo(movingObjectPosition.hitVec);
+
+							if (nd < closest)
+							{
+								entity = entity1;
+								closest = nd;
+							}
 						}
 					}
 				}
 			}
 		}
 
-		MovingObjectPosition var34 = null;
-		Vec3 var35 = null;
+		MovingObjectPosition pos = null;
+		Vec3 vec = null;
+
 		if (hitBlocks)
 		{
-			var35 = Vec3.createVectorHelper(d0, d1, d2);
-			var34 = w.rayTraceBlocks(vec3, vec31, true);
+			vec = Vec3.createVectorHelper(d0, d1, d2);
+			pos = w.rayTraceBlocks(vec3, vec31, true);
 		}
 
-		if (entity != null && var34 != null && var34.hitVec.squareDistanceTo(var35) > Closeest)
+		if (entity != null && pos != null && pos.hitVec.squareDistanceTo(vec) > closest)
 		{
-			var34 = new MovingObjectPosition(entity);
+			pos = new MovingObjectPosition(entity);
 		}
-		else if (entity != null && var34 == null)
+		else if (entity != null && pos == null)
 		{
-			var34 = new MovingObjectPosition(entity);
+			pos = new MovingObjectPosition(entity);
 		}
 
-		return var34;
+		return pos;
 	}
 
 	public static long nanoTime()
 	{
-		return 0L;
+		// if ( Configuration.INSTANCE.enableNetworkProfiler )
+		// return System.nanoTime();
+		return 0;
 	}
 
 	public static <StackType extends IAEStack> StackType poweredExtraction(IEnergySource energy, IMEInventory<StackType> cell, StackType request, BaseActionSource src)
 	{
-		IAEStack possible = cell.extractItems((StackType) request.copy(), Actionable.SIMULATE, src);
-		long retrieved = 0L;
-		if (possible != null)
+		StackType possible = cell.extractItems((StackType) request.copy(), Actionable.SIMULATE, src);
+
+		long retrieved = 0;
+		if (possible != null) retrieved = possible.getStackSize();
+
+		double availablePower = energy.extractAEPower(retrieved, Actionable.SIMULATE, PowerMultiplier.CONFIG);
+
+		long itemToExtract = Math.min((long) (availablePower + 0.9), retrieved);
+
+		if (itemToExtract > 0)
 		{
-			retrieved = possible.getStackSize();
+			energy.extractAEPower(retrieved, Actionable.MODULATE, PowerMultiplier.CONFIG);
+
+			possible.setStackSize(itemToExtract);
+			StackType ret = cell.extractItems(possible, Actionable.MODULATE, src);
+
+			if (ret != null && src.isPlayer())
+			{
+				Stats.ItemsExtracted.addToPlayer(((PlayerSource) src).player, (int) ret.getStackSize());
+			}
+
+			return ret;
 		}
 
-		double availablePower = energy.extractAEPower((double) retrieved, Actionable.SIMULATE, PowerMultiplier.CONFIG);
-		long itemToExtract = Math.min((long) (availablePower + 0.9D), retrieved);
-		if (itemToExtract > 0L)
-		{
-			energy.extractAEPower((double) retrieved, Actionable.MODULATE, PowerMultiplier.CONFIG);
-			possible.setStackSize(itemToExtract);
-			IAEStack ret = cell.extractItems((StackType) possible, Actionable.MODULATE, src);
-			return (StackType) ret;
-		}
-		else
-		{
-			return null;
-		}
+		return null;
 	}
 
 	public static <StackType extends IAEStack> StackType poweredInsert(IEnergySource energy, IMEInventory<StackType> cell, StackType input, BaseActionSource src)
 	{
-		IAEStack possible = cell.injectItems((StackType) input.copy(), Actionable.SIMULATE, src);
-		long stored = input.getStackSize();
-		if (possible != null)
-		{
-			stored -= possible.getStackSize();
-		}
+		StackType possible = cell.injectItems((StackType) input.copy(), Actionable.SIMULATE, src);
 
-		double availablePower = energy.extractAEPower((double) stored, Actionable.SIMULATE, PowerMultiplier.CONFIG);
-		long itemToAdd = Math.min((long) (availablePower + 0.9D), stored);
-		if (itemToAdd > 0L)
+		long stored = input.getStackSize();
+		if (possible != null) stored -= possible.getStackSize();
+
+		double availablePower = energy.extractAEPower(stored, Actionable.SIMULATE, PowerMultiplier.CONFIG);
+
+		long itemToAdd = Math.min((long) (availablePower + 0.9), stored);
+
+		if (itemToAdd > 0)
 		{
-			energy.extractAEPower((double) stored, Actionable.MODULATE, PowerMultiplier.CONFIG);
-			IAEStack ret;
+			energy.extractAEPower(stored, Actionable.MODULATE, PowerMultiplier.CONFIG);
+
 			if (itemToAdd < input.getStackSize())
 			{
-				ret = input.copy();
-				ret.decStackSize(itemToAdd);
+				long original = input.getStackSize();
+				StackType split = (StackType) input.copy();
+				split.decStackSize(itemToAdd);
 				input.setStackSize(itemToAdd);
-				ret.add(cell.injectItems(input, Actionable.MODULATE, src));
-				return (StackType) ret;
+				split.add(cell.injectItems(input, Actionable.MODULATE, src));
+
+				if (src.isPlayer())
+				{
+					long diff = original - split.getStackSize();
+					Stats.ItemsInserted.addToPlayer(((PlayerSource) src).player, (int) diff);
+				}
+
+				return split;
 			}
-			else
+
+			StackType ret = cell.injectItems(input, Actionable.MODULATE, src);
+
+			if (src.isPlayer())
 			{
-				ret = cell.injectItems(input, Actionable.MODULATE, src);
-				return (StackType) ret;
+				long diff = ret == null ? input.getStackSize() : input.getStackSize() - ret.getStackSize();
+				Stats.ItemsInserted.addToPlayer(((PlayerSource) src).player, (int) diff);
 			}
+
+			return ret;
 		}
-		else
-		{
-			return input;
-		}
+
+		return input;
 	}
 
 	public static void postChanges(IStorageGrid gs, ItemStack removed, ItemStack added, BaseActionSource src)
 	{
-		IItemList itemChanges = AEApi.instance().storage().createItemList();
-		IItemList fluidChanges = AEApi.instance().storage().createFluidList();
-		IMEInventoryHandler myItems;
-		IMEInventoryHandler myFluids1;
+		IItemList<IAEItemStack> itemChanges = AEApi.instance().storage().createItemList();
+		IItemList<IAEFluidStack> fluidChanges = AEApi.instance().storage().createFluidList();
+
 		if (removed != null)
 		{
-			myItems = AEApi.instance().registries().cell().getCellInventory(removed, (ISaveProvider) null, StorageChannel.ITEMS);
+			IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.ITEMS);
+
 			if (myItems != null)
 			{
-				Iterator myFluids = myItems.getAvailableItems(itemChanges).iterator();
-
-				while (myFluids.hasNext())
-				{
-					IAEItemStack i$ = (IAEItemStack) myFluids.next();
-					i$.setStackSize(-i$.getStackSize());
-				}
+				for (IAEItemStack is : myItems.getAvailableItems(itemChanges))
+					is.setStackSize(-is.getStackSize());
 			}
 
-			myFluids1 = AEApi.instance().registries().cell().getCellInventory(removed, (ISaveProvider) null, StorageChannel.FLUIDS);
-			if (myFluids1 != null)
-			{
-				Iterator i$1 = myFluids1.getAvailableItems(fluidChanges).iterator();
+			IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.FLUIDS);
 
-				while (i$1.hasNext())
-				{
-					IAEFluidStack is = (IAEFluidStack) i$1.next();
+			if (myFluids != null)
+			{
+				for (IAEFluidStack is : myFluids.getAvailableItems(fluidChanges))
 					is.setStackSize(-is.getStackSize());
-				}
 			}
 		}
 
 		if (added != null)
 		{
-			myItems = AEApi.instance().registries().cell().getCellInventory(added, (ISaveProvider) null, StorageChannel.ITEMS);
-			if (myItems != null)
-			{
-				myItems.getAvailableItems(itemChanges);
-			}
+			IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.ITEMS);
 
-			myFluids1 = AEApi.instance().registries().cell().getCellInventory(added, (ISaveProvider) null, StorageChannel.FLUIDS);
-			if (myFluids1 != null)
-			{
-				myFluids1.getAvailableItems(fluidChanges);
-			}
+			if (myItems != null) myItems.getAvailableItems(itemChanges);
+
+			IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.FLUIDS);
+
+			if (myFluids != null) myFluids.getAvailableItems(fluidChanges);
 		}
 
 		gs.postAlterationOfStoredItems(StorageChannel.ITEMS, itemChanges, src);
 	}
 
-	public static <T extends IAEStack<T>> void postListChanges(IItemList<T> before, IItemList<T> after, IMEMonitorHandlerReceiver<T> meMonitorPassthu, BaseActionSource source)
+	public static <T extends IAEStack<T>> void postListChanges(IItemList<T> before, IItemList<T> after, IMEMonitorHandlerReceiver<T> meMonitorPassthrough, BaseActionSource source)
 	{
-		LinkedList changes = new LinkedList();
-		Iterator i$ = before.iterator();
+		LinkedList<T> changes = new LinkedList<T>();
 
-		IAEStack is;
-		while (i$.hasNext())
-		{
-			is = (IAEStack) i$.next();
+		for (T is : before)
 			is.setStackSize(-is.getStackSize());
-		}
 
-		i$ = after.iterator();
+		for (T is : after)
+			before.add(is);
 
-		while (i$.hasNext())
+		for (T is : before)
 		{
-			is = (IAEStack) i$.next();
-			before.add((T) is);
-		}
-
-		i$ = before.iterator();
-
-		while (i$.hasNext())
-		{
-			is = (IAEStack) i$.next();
-			if (is.getStackSize() != 0L)
+			if (is.getStackSize() != 0)
 			{
 				changes.add(is);
 			}
 		}
 
-		if (!changes.isEmpty())
-		{
-			meMonitorPassthu.postChange((IBaseMonitor) null, changes, source);
-		}
-
+		if (!changes.isEmpty()) meMonitorPassthrough.postChange(null, changes, source);
 	}
 
 	public static int generateTileHash(TileEntity target)
 	{
-		if (target == null)
+		if (target == null) return 0;
+
+		int hash = target.hashCode();
+
+		if (target instanceof ITileStorageMonitorable) return 0;
+		else if (target instanceof TileEntityChest)
 		{
-			return 0;
+			TileEntityChest chest = (TileEntityChest) target;
+			chest.checkForAdjacentChests();
+			if (chest.adjacentChestZNeg != null) hash ^= chest.adjacentChestZNeg.hashCode();
+			else if (chest.adjacentChestZPos != null) hash ^= chest.adjacentChestZPos.hashCode();
+			else if (chest.adjacentChestXPos != null) hash ^= chest.adjacentChestXPos.hashCode();
+			else if (chest.adjacentChestXNeg != null) hash ^= chest.adjacentChestXNeg.hashCode();
 		}
-		else
+		else if (target instanceof IInventory)
 		{
-			int hash = target.hashCode();
-			if (target instanceof ITileStorageMonitorable)
+			hash ^= ((IInventory) target).getSizeInventory();
+
+			if (target instanceof ISidedInventory)
 			{
-				return 0;
-			}
-			else
-			{
-				if (target instanceof TileEntityChest)
+				for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
 				{
-					TileEntityChest arr$ = (TileEntityChest) target;
-					arr$.checkForAdjacentChests();
-					if (arr$.adjacentChestZNeg != null)
+					int offset = 0;
+
+					int[] sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
+
+					if (sides == null) return 0;
+
+					for (Integer Side : sides)
 					{
-						hash ^= arr$.adjacentChestZNeg.hashCode();
-					}
-					else if (arr$.adjacentChestZPos != null)
-					{
-						hash ^= arr$.adjacentChestZPos.hashCode();
-					}
-					else if (arr$.adjacentChestXPos != null)
-					{
-						hash ^= arr$.adjacentChestXPos.hashCode();
-					}
-					else if (arr$.adjacentChestXNeg != null)
-					{
-						hash ^= arr$.adjacentChestXNeg.hashCode();
+						int c = (Side << (offset % 8)) ^ (1 << dir.ordinal());
+						offset++;
+						hash = c + (hash << 6) + (hash << 16) - hash;
 					}
 				}
-				else if (target instanceof IInventory)
-				{
-					hash ^= ((IInventory) target).getSizeInventory();
-					if (target instanceof ISidedInventory)
-					{
-						ForgeDirection[] var13 = ForgeDirection.VALID_DIRECTIONS;
-						int len$ = var13.length;
-
-						for (int i$ = 0; i$ < len$; ++i$)
-						{
-							ForgeDirection dir = var13[i$];
-							int offset = 0;
-							int[] sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
-							if (sides == null)
-							{
-								return 0;
-							}
-
-							int[] arr$1 = sides;
-							int len$1 = sides.length;
-
-							for (int i$1 = 0; i$1 < len$1; ++i$1)
-							{
-								Integer Side = Integer.valueOf(arr$1[i$1]);
-								int c = Side.intValue() << offset++ % 8 ^ 1 << dir.ordinal();
-								hash = c + (hash << 6) + (hash << 16) - hash;
-							}
-						}
-					}
-				}
-
-				return hash;
 			}
 		}
+
+		return hash;
 	}
 
 	public static boolean securityCheck(GridNode a, GridNode b)
 	{
-		if (a.lastSecurityKey == -1L && b.lastSecurityKey == -1L)
-		{
-			return false;
-		}
-		else if (a.lastSecurityKey == b.lastSecurityKey)
-		{
-			return false;
-		}
-		else
-		{
-			boolean a_isSecure = isPowered(a.getGrid()) && a.lastSecurityKey != -1L;
-			boolean b_isSecure = isPowered(b.getGrid()) && b.lastSecurityKey != -1L;
-			if (AEConfig.instance.isFeatureEnabled(AEFeature.LogSecurityAudits))
-			{
-				AELog.info("Audit: " + a_isSecure + " : " + b_isSecure + " @ " + a.lastSecurityKey + " vs " + b.lastSecurityKey + " & " + a.playerID + " vs " + b.playerID, new Object[0]);
-			}
+		if (a.lastSecurityKey == -1 && b.lastSecurityKey == -1) return false;
+		else if (a.lastSecurityKey == b.lastSecurityKey) return false;
 
-			return a_isSecure && b_isSecure ? true : (!a_isSecure && b_isSecure ? checkPlayerPermissions(b.getGrid(), a.playerID) : (a_isSecure && !b_isSecure ? checkPlayerPermissions(a.getGrid(), b.playerID) : false));
+		boolean a_isSecure = isPowered(a.getGrid()) && a.lastSecurityKey != -1;
+		boolean b_isSecure = isPowered(b.getGrid()) && b.lastSecurityKey != -1;
+
+		if (AEConfig.instance.isFeatureEnabled(AEFeature.LogSecurityAudits))
+		{
+			AELog.info("Audit: " + a_isSecure + " : " + b_isSecure + " @ " + a.lastSecurityKey + " vs " + b.lastSecurityKey + " & " + a.playerID + " vs " + b.playerID);
 		}
+
+		// can't do that son...
+		if (a_isSecure && b_isSecure) return true;
+
+		if (!a_isSecure && b_isSecure) return checkPlayerPermissions(b.getGrid(), a.playerID);
+
+		if (a_isSecure && !b_isSecure) return checkPlayerPermissions(a.getGrid(), b.playerID);
+
+		return false;
 	}
 
 	private static boolean isPowered(IGrid grid)
 	{
-		if (grid == null)
-		{
-			return false;
-		}
-		else
-		{
-			IEnergyGrid eg = (IEnergyGrid) grid.getCache(IEnergyGrid.class);
-			return eg.isNetworkPowered();
-		}
+		if (grid == null) return false;
+
+		IEnergyGrid eg = grid.getCache(IEnergyGrid.class);
+		return eg.isNetworkPowered();
 	}
 
 	private static boolean checkPlayerPermissions(IGrid grid, int playerID)
 	{
-		if (grid == null)
-		{
-			return false;
-		}
-		else
-		{
-			ISecurityGrid gs = (ISecurityGrid) grid.getCache(ISecurityGrid.class);
-			return gs == null ? false : (!gs.isAvailable() ? false : !gs.hasPermission(playerID, SecurityPermissions.BUILD));
-		}
+		if (grid == null) return false;
+
+		ISecurityGrid gs = grid.getCache(ISecurityGrid.class);
+
+		if (gs == null) return false;
+
+		if (!gs.isAvailable()) return false;
+
+		return !gs.hasPermission(playerID, SecurityPermissions.BUILD);
 	}
 
 	public static boolean isDrawing(Tessellator tess)
@@ -1557,35 +1513,39 @@ public class Platform
 
 	public static void configurePlayer(EntityPlayer player, ForgeDirection side, TileEntity tile)
 	{
-		float pitch = 0.0F;
-		float yaw = 0.0F;
-		player.yOffset = 1.8F;
-		switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[side.ordinal()])
+		float pitch = 0.0f;
+		float yaw = 0.0f;
+		player.yOffset = 1.8f;
+
+		switch (side)
 		{
-			case 1:
-				yaw = 180.0F;
+			case DOWN:
+				pitch = 90.0f;
+				player.yOffset = -1.8f;
 				break;
-			case 2:
-				yaw = 0.0F;
+			case EAST:
+				yaw = -90.0f;
 				break;
-			case 3:
-				yaw = -90.0F;
+			case NORTH:
+				yaw = 180.0f;
 				break;
-			case 4:
-				yaw = 90.0F;
+			case SOUTH:
+				yaw = 0.0f;
 				break;
-			case 5:
-				pitch = 90.0F;
+			case UNKNOWN:
 				break;
-			case 6:
-				pitch = 90.0F;
-				player.yOffset = -1.8F;
-			case 7:
+			case UP:
+				pitch = 90.0f;
+				break;
+			case WEST:
+				yaw = 90.0f;
+				break;
 		}
 
-		player.posX = (double) ((float) tile.xCoord) + 0.5D;
-		player.posY = (double) ((float) tile.yCoord) + 0.5D;
-		player.posZ = (double) ((float) tile.zCoord) + 0.5D;
+		player.posX = tile.xCoord + 0.5;
+		player.posY = tile.yCoord + 0.5;
+		player.posZ = tile.zCoord + 0.5;
+
 		player.rotationPitch = player.prevCameraPitch = player.cameraPitch = pitch;
 		player.rotationYaw = player.prevCameraYaw = player.cameraYaw = yaw;
 	}
@@ -1600,161 +1560,162 @@ public class Platform
 			}
 			else if (src.isMachine())
 			{
-				IActionHost gae = ((MachineSource) src).via;
-				IGridNode n = gae.getActionableNode();
-				if (n == null)
-				{
-					return false;
-				}
-				else
-				{
-					int playerID = n.getPlayerID();
-					return gridProxy.getSecurity().hasPermission(playerID, SecurityPermissions.BUILD);
-				}
+				IActionHost te = ((MachineSource) src).via;
+				IGridNode n = te.getActionableNode();
+				if (n == null) return false;
+
+				int playerID = n.getPlayerID();
+				return gridProxy.getSecurity().hasPermission(playerID, SecurityPermissions.BUILD);
 			}
-			else
-			{
-				return false;
-			}
+			else return false;
 		}
-		catch (GridAccessException var5)
+		catch (GridAccessException gae)
 		{
 			return false;
 		}
 	}
 
-	public static ItemStack extractItemsByRecipe(IEnergySource energySrc, BaseActionSource mySrc, IMEMonitor<IAEItemStack> src, World w, IRecipe r, ItemStack output, InventoryCrafting ci, ItemStack providedTemplate, int slot, IItemList<IAEItemStack> aitems, Actionable realForFake, IPartitionList<IAEItemStack> filter)
+	public static ItemStack extractItemsByRecipe(IEnergySource energySrc, BaseActionSource mySrc, IMEMonitor<IAEItemStack> src, World w, IRecipe r, ItemStack output, InventoryCrafting ci, ItemStack providedTemplate, int slot, IItemList<IAEItemStack> items, Actionable realForFake, IPartitionList<IAEItemStack> filter)
 	{
-		if (energySrc.extractAEPower(1.0D, Actionable.SIMULATE, PowerMultiplier.CONFIG) > 0.9D)
+		if (energySrc.extractAEPower(1, Actionable.SIMULATE, PowerMultiplier.CONFIG) > 0.9)
 		{
-			if (providedTemplate == null)
-			{
-				return null;
-			}
+			if (providedTemplate == null) return null;
 
 			AEItemStack ae_req = AEItemStack.create(providedTemplate);
-			ae_req.setStackSize(1L);
+			ae_req.setStackSize(1);
+
 			if (filter == null || filter.isListed(ae_req))
 			{
-				IAEItemStack checkFuzzy = (IAEItemStack) src.extractItems(ae_req, realForFake, mySrc);
-				if (checkFuzzy != null)
+				IAEItemStack ae_ext = src.extractItems(ae_req, realForFake, mySrc);
+				if (ae_ext != null)
 				{
-					ItemStack i$ = checkFuzzy.getItemStack();
-					if (i$ != null)
+					ItemStack extracted = ae_ext.getItemStack();
+					if (extracted != null)
 					{
-						energySrc.extractAEPower(1.0D, realForFake, PowerMultiplier.CONFIG);
-						return i$;
+						energySrc.extractAEPower(1, realForFake, PowerMultiplier.CONFIG);
+						return extracted;
 					}
 				}
 			}
 
-			boolean checkFuzzy1 = ae_req.isOre() || providedTemplate.getItemDamage() == 32767 || providedTemplate.hasTagCompound() || providedTemplate.isItemStackDamageable();
-			if (aitems != null && checkFuzzy1)
-			{
-				Iterator i$1 = aitems.iterator();
+			boolean checkFuzzy = ae_req.isOre() || providedTemplate.getItemDamage() == OreDictionary.WILDCARD_VALUE || providedTemplate.hasTagCompound() || providedTemplate.isItemStackDamageable();
 
-				while (i$1.hasNext())
+			if (items != null && checkFuzzy)
+			{
+				for (IAEItemStack x : items)
 				{
-					IAEItemStack x = (IAEItemStack) i$1.next();
 					ItemStack sh = x.getItemStack();
-					if ((isSameItemType(providedTemplate, sh) || ae_req.sameOre(x)) && !isSameItem(sh, output))
-					{
-						ItemStack cp = cloneItemStack(sh);
+					if ((Platform.isSameItemType(providedTemplate, sh) || ae_req.sameOre(x)) && !Platform.isSameItem(sh, output))
+					{ // Platform.isSameItemType( sh, providedTemplate )
+						ItemStack cp = Platform.cloneItemStack(sh);
 						cp.stackSize = 1;
 						ci.setInventorySlotContents(slot, cp);
-						if (r.matches(ci, w) && isSameItem(r.getCraftingResult(ci), output))
+						if (r.matches(ci, w) && Platform.isSameItem(r.getCraftingResult(ci), output))
 						{
 							IAEItemStack ax = x.copy();
-							ax.setStackSize(1L);
+							ax.setStackSize(1);
 							if (filter == null || filter.isListed(ax))
 							{
-								IAEItemStack ex = (IAEItemStack) src.extractItems(ax, realForFake, mySrc);
+								IAEItemStack ex = src.extractItems(ax, realForFake, mySrc);
 								if (ex != null)
 								{
-									energySrc.extractAEPower(1.0D, realForFake, PowerMultiplier.CONFIG);
+									energySrc.extractAEPower(1, realForFake, PowerMultiplier.CONFIG);
 									return ex.getItemStack();
 								}
 							}
 						}
-
 						ci.setInventorySlotContents(slot, providedTemplate);
 					}
 				}
 			}
 		}
-
 		return null;
+	}
+
+	public static boolean isSameItemType(ItemStack ol, ItemStack op)
+	{
+		if (ol != null && op != null && ol.getItem() == op.getItem())
+		{
+			if (ol.isItemStackDamageable()) return true;
+			return ol.getItemDamage() == ol.getItemDamage();
+		}
+		return false;
+	}
+
+	public static boolean isSameItem(@Nullable ItemStack left, @Nullable ItemStack right)
+	{
+		return left != null && right != null && left.isItemEqual(right);
+	}
+
+	public static ItemStack cloneItemStack(ItemStack a)
+	{
+		return a.copy();
 	}
 
 	public static ItemStack getContainerItem(ItemStack stackInSlot)
 	{
-		if (stackInSlot == null)
-		{
-			return null;
-		}
-		else
-		{
-			Item i = stackInSlot.getItem();
-			if (i != null && i.hasContainerItem(stackInSlot))
-			{
-				ItemStack ci = i.getContainerItem(stackInSlot.copy());
-				if (ci != null && ci.isItemStackDamageable() && ci.getItemDamage() == ci.getMaxDamage())
-				{
-					ci = null;
-				}
+		if (stackInSlot == null) return null;
 
-				return ci;
-			}
-			else if (stackInSlot.stackSize > 1)
+		Item i = stackInSlot.getItem();
+		if (i == null || !i.hasContainerItem(stackInSlot))
+		{
+			if (stackInSlot.stackSize > 1)
 			{
-				--stackInSlot.stackSize;
+				stackInSlot.stackSize--;
 				return stackInSlot;
 			}
-			else
-			{
-				return null;
-			}
+			return null;
 		}
+
+		ItemStack ci = i.getContainerItem(stackInSlot.copy());
+		if (ci != null && ci.isItemStackDamageable() && ci.getItemDamage() == ci.getMaxDamage()) ci = null;
+
+		return ci;
 	}
 
 	public static void notifyBlocksOfNeighbors(World worldObj, int xCoord, int yCoord, int zCoord)
 	{
-		if (!worldObj.isRemote)
-		{
-			TickHandler.instance.addCallable(worldObj, new BlockUpdate(worldObj, xCoord, yCoord, zCoord));
-		}
-
+		if (!worldObj.isRemote) TickHandler.INSTANCE.addCallable(worldObj, new BlockUpdate(worldObj, xCoord, yCoord, zCoord));
 	}
 
 	public static boolean canRepair(AEFeature type, ItemStack a, ItemStack b)
 	{
-		return b != null && a != null ? (type == AEFeature.CertusQuartzTools ? AEApi.instance().materials().materialCertusQuartzCrystal.sameAsStack(b) : (type == AEFeature.NetherQuartzTools ? Items.quartz == b.getItem() : false)) : false;
+		if (b == null || a == null) return false;
+
+		if (type == AEFeature.CertusQuartzTools)
+		{
+			final IItemDefinition certusQuartzCrystal = AEApi.instance().definitions().materials().certusQuartzCrystal();
+
+			return certusQuartzCrystal.isSameAs(b);
+		}
+
+		if (type == AEFeature.NetherQuartzTools) return Items.quartz == b.getItem();
+
+		return false;
 	}
 
-	public static Object findPrefered(ItemStack[] is)
+	public static Object findPreferred(ItemStack[] is)
 	{
-		ItemStack[] arr$ = is;
-		int len$ = is.length;
+		final IParts parts = AEApi.instance().definitions().parts();
 
-		for (int i$ = 0; i$ < len$; ++i$)
+		for (ItemStack stack : is)
 		{
-			ItemStack stack = arr$[i$];
-			if (AEApi.instance().parts().partCableGlass.sameAs(AEColor.Transparent, stack))
+			if (parts.cableGlass().sameAs(AEColor.Transparent, stack))
 			{
 				return stack;
 			}
 
-			if (AEApi.instance().parts().partCableCovered.sameAs(AEColor.Transparent, stack))
+			if (parts.cableCovered().sameAs(AEColor.Transparent, stack))
 			{
 				return stack;
 			}
 
-			if (AEApi.instance().parts().partCableSmart.sameAs(AEColor.Transparent, stack))
+			if (parts.cableSmart().sameAs(AEColor.Transparent, stack))
 			{
 				return stack;
 			}
 
-			if (AEApi.instance().parts().partCableDense.sameAs(AEColor.Transparent, stack))
+			if (parts.cableDense().sameAs(AEColor.Transparent, stack))
 			{
 				return stack;
 			}
@@ -1767,158 +1728,81 @@ public class Platform
 	{
 		try
 		{
-			WorldServer t = (WorldServer) c.worldObj;
-			PlayerManager pm = t.getPlayerManager();
+			WorldServer ws = (WorldServer) c.worldObj;
+			PlayerManager pm = ws.getPlayerManager();
+
 			if (getOrCreateChunkWatcher == null)
 			{
-				getOrCreateChunkWatcher = ReflectionHelper.findMethod(PlayerManager.class, pm, new String[] { "getOrCreateChunkWatcher", "func_72690_a" }, new Class[] { Integer.TYPE, Integer.TYPE, Boolean.TYPE });
+				getOrCreateChunkWatcher = ReflectionHelper.findMethod(PlayerManager.class, pm, new String[] { "getOrCreateChunkWatcher", "func_72690_a" }, int.class, int.class, boolean.class);
 			}
 
 			if (getOrCreateChunkWatcher != null)
 			{
-				Object playerinstance = getOrCreateChunkWatcher.invoke(pm, new Object[] { Integer.valueOf(c.xPosition), Integer.valueOf(c.zPosition), Boolean.valueOf(false) });
-				if (playerinstance != null)
+				Object playerInstance = getOrCreateChunkWatcher.invoke(pm, c.xPosition, c.zPosition, false);
+				if (playerInstance != null)
 				{
-					Playerinstance = playerinstance.getClass();
+					Platform.playerInstance = playerInstance.getClass();
+
 					if (sendToAllPlayersWatchingChunk == null)
 					{
-						sendToAllPlayersWatchingChunk = ReflectionHelper.findMethod(Playerinstance, playerinstance, new String[] { "sendToAllPlayersWatchingChunk", "func_151251_a" }, new Class[] { Packet.class });
+						sendToAllPlayersWatchingChunk = ReflectionHelper.findMethod(Platform.playerInstance, playerInstance, new String[] { "sendToAllPlayersWatchingChunk", "func_151251_a" }, Packet.class);
 					}
 
-					if (sendToAllPlayersWatchingChunk != null)
-					{
-						sendToAllPlayersWatchingChunk.invoke(playerinstance, new Object[] { new S21PacketChunkData(c, false, verticalBits) });
-					}
+					if (sendToAllPlayersWatchingChunk != null) sendToAllPlayersWatchingChunk.invoke(playerInstance, new S21PacketChunkData(c, false, verticalBits));
 				}
 			}
 		}
-		catch (Throwable var5)
+		catch (Throwable t)
 		{
-			AELog.error(var5);
+			AELog.error(t);
 		}
-
 	}
 
 	public static AxisAlignedBB getPrimaryBox(ForgeDirection side, int facadeThickness)
 	{
-		switch (SyntheticClass_1.$SwitchMap$net$minecraftforge$common$util$ForgeDirection[side.ordinal()])
+		switch (side)
 		{
-			case 1:
-				return AxisAlignedBB.getBoundingBox(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, (double) facadeThickness / 16.0D);
-			case 2:
-				return AxisAlignedBB.getBoundingBox(0.0D, 0.0D, (16.0D - (double) facadeThickness) / 16.0D, 1.0D, 1.0D, 1.0D);
-			case 3:
-				return AxisAlignedBB.getBoundingBox((16.0D - (double) facadeThickness) / 16.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-			case 4:
-				return AxisAlignedBB.getBoundingBox(0.0D, 0.0D, 0.0D, (double) facadeThickness / 16.0D, 1.0D, 1.0D);
-			case 5:
-				return AxisAlignedBB.getBoundingBox(0.0D, (16.0D - (double) facadeThickness) / 16.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-			case 6:
-				return AxisAlignedBB.getBoundingBox(0.0D, 0.0D, 0.0D, 1.0D, (double) facadeThickness / 16.0D, 1.0D);
+			case DOWN:
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, (facadeThickness) / 16.0, 1.0);
+			case EAST:
+				return AxisAlignedBB.getBoundingBox((16.0 - facadeThickness) / 16.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+			case NORTH:
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, 1.0, (facadeThickness) / 16.0);
+			case SOUTH:
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, (16.0 - facadeThickness) / 16.0, 1.0, 1.0, 1.0);
+			case UP:
+				return AxisAlignedBB.getBoundingBox(0.0, (16.0 - facadeThickness) / 16.0, 0.0, 1.0, 1.0, 1.0);
+			case WEST:
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, (facadeThickness) / 16.0, 1.0, 1.0);
 			default:
-				return AxisAlignedBB.getBoundingBox(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+				break;
 		}
+		return AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1);
 	}
 
 	public static float getEyeOffset(EntityPlayer player)
 	{
 		assert player.worldObj.isRemote : "Valid only on client";
+		return (float) (player.posY + player.getEyeHeight() - player.getDefaultEyeHeight());
+	}
 
-		return (float) (player.posY + (double) player.getEyeHeight() - (double) player.getDefaultEyeHeight());
+	public static void addStat(int playerID, Achievement achievement)
+	{
+		EntityPlayer p = AEApi.instance().registries().players().findPlayer(playerID);
+		if (p != null)
+		{
+			p.addStat(achievement, 1);
+		}
 	}
 
 	public static boolean isRecipePrioritized(ItemStack what)
 	{
-		return AEApi.instance().materials().materialPureifiedCertusQuartzCrystal.sameAsStack(what) || AEApi.instance().materials().materialPureifiedFluixCrystal.sameAsStack(what) || AEApi.instance().materials().materialPureifiedNetherQuartzCrystal.sameAsStack(what);
+		final IMaterials materials = AEApi.instance().definitions().materials();
+
+		boolean isPurified = materials.purifiedCertusQuartzCrystal().isSameAs(what);
+		isPurified |= materials.purifiedFluixCrystal().isSameAs(what);
+		isPurified |= materials.purifiedNetherQuartzCrystal().isSameAs(what);
+
+		return isPurified;
 	}
-
-	// $FF: synthetic class
-	static class SyntheticClass_1
-	{
-		// $FF: synthetic field
-		static final int[] $SwitchMap$net$minecraftforge$common$util$ForgeDirection = new int[ForgeDirection.values().length];
-
-		static
-		{
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.NORTH.ordinal()] = 1;
-			}
-			catch (NoSuchFieldError var7)
-			{
-				;
-			}
-
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.SOUTH.ordinal()] = 2;
-			}
-			catch (NoSuchFieldError var6)
-			{
-				;
-			}
-
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.EAST.ordinal()] = 3;
-			}
-			catch (NoSuchFieldError var5)
-			{
-				;
-			}
-
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.WEST.ordinal()] = 4;
-			}
-			catch (NoSuchFieldError var4)
-			{
-				;
-			}
-
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.UP.ordinal()] = 5;
-			}
-			catch (NoSuchFieldError var3)
-			{
-				;
-			}
-
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.DOWN.ordinal()] = 6;
-			}
-			catch (NoSuchFieldError var2)
-			{
-				;
-			}
-
-			try
-			{
-				$SwitchMap$net$minecraftforge$common$util$ForgeDirection[ForgeDirection.UNKNOWN.ordinal()] = 7;
-			}
-			catch (NoSuchFieldError var1)
-			{
-				;
-			}
-		}
-	}
-
-	// TODO gamerforEA code start
-	/**
-	 * 
-	 * @param x - X coord
-	 * @param y - Y coord
-	 * @param z - Z coord
-	 * @param w - World
-	 * @param p - EntityPlayer
-	 * @return true if canceled
-	 */
-	public static boolean callBlockBreakEvent(int x, int y, int z, World w, EntityPlayer p)
-	{
-		BreakEvent event = new BreakEvent(x, y, z, w, w.getBlock(x, y, z), w.getBlockMetadata(x, y, z), p);
-		return MinecraftForge.EVENT_BUS.post(event);
-	}
-	// TODO gamerforEA code end
 }
