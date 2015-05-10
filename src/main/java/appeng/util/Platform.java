@@ -20,6 +20,7 @@ package appeng.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.security.InvalidParameterException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +37,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -193,9 +193,15 @@ public class Platform
 		String[] preFixes = new String[] { "k", "M", "G", "T", "P", "T", "P", "E", "Z", "Y" };
 		String unitName = displayUnits.name();
 
-		if (displayUnits == PowerUnits.WA) unitName = "J";
+		if (displayUnits == PowerUnits.WA)
+		{
+			unitName = "J";
+		}
 
-		if (displayUnits == PowerUnits.MK) unitName = "J";
+		if (displayUnits == PowerUnits.MK)
+		{
+			unitName = "J";
+		}
 
 		while (p > 1000 && offset < preFixes.length)
 		{
@@ -239,8 +245,14 @@ public class Platform
 	{
 		do
 		{
-			if (backwards) ce = prevEnum(ce);
-			else ce = nextEnum(ce);
+			if (backwards)
+			{
+				ce = prevEnum(ce);
+			}
+			else
+			{
+				ce = nextEnum(ce);
+			}
 		}
 		while (!ValidOptions.contains(ce) || isNotValidSetting(ce));
 
@@ -255,14 +267,23 @@ public class Platform
 		EnumSet valList = EnumSet.allOf(ce.getClass());
 
 		int pLoc = ce.ordinal() - 1;
-		if (pLoc < 0) pLoc = valList.size() - 1;
+		if (pLoc < 0)
+		{
+			pLoc = valList.size() - 1;
+		}
 
-		if (pLoc < 0 || pLoc >= valList.size()) pLoc = 0;
+		if (pLoc < 0 || pLoc >= valList.size())
+		{
+			pLoc = 0;
+		}
 
 		int pos = 0;
 		for (Object g : valList)
 		{
-			if (pos == pLoc) return (T) g;
+			if (pos == pLoc)
+			{
+				return (T) g;
+			}
 			pos++;
 		}
 
@@ -277,14 +298,23 @@ public class Platform
 		EnumSet valList = EnumSet.allOf(ce.getClass());
 
 		int pLoc = ce.ordinal() + 1;
-		if (pLoc >= valList.size()) pLoc = 0;
+		if (pLoc >= valList.size())
+		{
+			pLoc = 0;
+		}
 
-		if (pLoc < 0 || pLoc >= valList.size()) pLoc = 0;
+		if (pLoc < 0 || pLoc >= valList.size())
+		{
+			pLoc = 0;
+		}
 
 		int pos = 0;
 		for (Object g : valList)
 		{
-			if (pos == pLoc) return (T) g;
+			if (pos == pLoc)
+			{
+				return (T) g;
+			}
 			pos++;
 		}
 
@@ -293,18 +323,30 @@ public class Platform
 
 	private static boolean isNotValidSetting(Enum e)
 	{
-		if (e == SortOrder.INVTWEAKS && !AppEng.instance.isIntegrationEnabled(IntegrationType.InvTweaks)) return true;
+		if (e == SortOrder.INVTWEAKS && !AppEng.instance.isIntegrationEnabled(IntegrationType.InvTweaks))
+		{
+			return true;
+		}
 
-		if (e == SearchBoxMode.NEI_AUTOSEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI)) return true;
+		if (e == SearchBoxMode.NEI_AUTOSEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI))
+		{
+			return true;
+		}
 
-		if (e == SearchBoxMode.NEI_MANUAL_SEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI)) return true;
+		if (e == SearchBoxMode.NEI_MANUAL_SEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI))
+		{
+			return true;
+		}
 
 		return false;
 	}
 
 	public static void openGUI(@Nonnull EntityPlayer p, @Nullable TileEntity tile, @Nullable ForgeDirection side, @Nonnull GuiBridge type)
 	{
-		if (isClient()) return;
+		if (isClient())
+		{
+			return;
+		}
 
 		int x = (int) p.posX;
 		int y = (int) p.posY;
@@ -318,9 +360,18 @@ public class Platform
 
 		if ((type.getType().isItem() && tile == null) || type.hasPermissions(tile, x, y, z, side, p))
 		{
-			if (tile == null && type.getType() == GuiHostType.ITEM) p.openGui(AppEng.instance, type.ordinal() << 4 | (0 << 3), p.getEntityWorld(), p.inventory.currentItem, 0, 0);
-			else if (tile == null || type.getType() == GuiHostType.ITEM) p.openGui(AppEng.instance, type.ordinal() << 4 | (1 << 3), p.getEntityWorld(), x, y, z);
-			else p.openGui(AppEng.instance, type.ordinal() << 4 | (side.ordinal()), tile.getWorldObj(), x, y, z);
+			if (tile == null && type.getType() == GuiHostType.ITEM)
+			{
+				p.openGui(AppEng.instance, type.ordinal() << 4 | (0 << 3), p.getEntityWorld(), p.inventory.currentItem, 0, 0);
+			}
+			else if (tile == null || type.getType() == GuiHostType.ITEM)
+			{
+				p.openGui(AppEng.instance, type.ordinal() << 4 | (1 << 3), p.getEntityWorld(), x, y, z);
+			}
+			else
+			{
+				p.openGui(AppEng.instance, type.ordinal() << 4 | (side.ordinal()), tile.getWorldObj(), x, y, z);
+			}
 		}
 	}
 
@@ -361,17 +412,35 @@ public class Platform
 	 */
 	public static boolean sameStackStags(ItemStack a, ItemStack b)
 	{
-		if (a == null && b == null) return true;
-		if (a == null || b == null) return false;
-		if (a == b) return true;
+		if (a == null && b == null)
+		{
+			return true;
+		}
+		if (a == null || b == null)
+		{
+			return false;
+		}
+		if (a == b)
+		{
+			return true;
+		}
 
 		NBTTagCompound ta = a.getTagCompound();
 		NBTTagCompound tb = b.getTagCompound();
-		if (ta == tb) return true;
+		if (ta == tb)
+		{
+			return true;
+		}
 
-		if ((ta == null && tb == null) || (ta != null && ta.hasNoTags() && tb == null) || (tb != null && tb.hasNoTags() && ta == null) || (ta != null && ta.hasNoTags() && tb != null && tb.hasNoTags())) return true;
+		if ((ta == null && tb == null) || (ta != null && ta.hasNoTags() && tb == null) || (tb != null && tb.hasNoTags() && ta == null) || (ta != null && ta.hasNoTags() && tb != null && tb.hasNoTags()))
+		{
+			return true;
+		}
 
-		if ((ta == null && tb != null) || (ta != null && tb == null)) return false;
+		if ((ta == null && tb != null) || (ta != null && tb == null))
+		{
+			return false;
+		}
 
 		// if both tags are shared this is easy...
 		if (AESharedNBT.isShared(ta) && AESharedNBT.isShared(tb))
@@ -403,7 +472,10 @@ public class Platform
 					Set<String> cA = ctA.func_150296_c();
 					Set<String> cB = ctB.func_150296_c();
 
-					if (cA.size() != cB.size()) return false;
+					if (cA.size() != cB.size())
+					{
+						return false;
+					}
 
 					for (String name : cA)
 					{
@@ -427,17 +499,29 @@ public class Platform
 				{
 					NBTTagList lA = (NBTTagList) A;
 					NBTTagList lB = (NBTTagList) B;
-					if (lA.tagCount() != lB.tagCount()) return false;
+					if (lA.tagCount() != lB.tagCount())
+					{
+						return false;
+					}
 
 					List<NBTBase> tag = tagList(lA);
 					List<NBTBase> aTag = tagList(lB);
-					if (tag.size() != aTag.size()) return false;
+					if (tag.size() != aTag.size())
+					{
+						return false;
+					}
 
 					for (int x = 0; x < tag.size(); x++)
 					{
-						if (aTag.get(x) == null) return false;
+						if (aTag.get(x) == null)
+						{
+							return false;
+						}
 
-						if (!NBTEqualityTest(tag.get(x), aTag.get(x))) return false;
+						if (!NBTEqualityTest(tag.get(x), aTag.get(x)))
+						{
+							return false;
+						}
 					}
 
 					return true;
@@ -596,7 +680,10 @@ public class Platform
 			out = which.getDrops(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
 		}
 
-		if (out == null) return new ItemStack[0];
+		if (out == null)
+		{
+			return new ItemStack[0];
+		}
 		return out.toArray(new ItemStack[out.size()]);
 	}
 
@@ -710,7 +797,10 @@ public class Platform
 		if (teA.getWorldObj().getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
 		{
 			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
-			if (!(teB instanceof TileEntityChest)) teB = null;
+			if (!(teB instanceof TileEntityChest))
+			{
+				teB = null;
+			}
 		}
 
 		if (teB == null)
@@ -718,7 +808,10 @@ public class Platform
 			if (teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
 			{
 				teB = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
-				if (!(teB instanceof TileEntityChest)) teB = null;
+				if (!(teB instanceof TileEntityChest))
+				{
+					teB = null;
+				}
 				else
 				{
 					TileEntityChest x = teA;
@@ -733,7 +826,10 @@ public class Platform
 			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
 			{
 				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
-				if (!(teB instanceof TileEntityChest)) teB = null;
+				if (!(teB instanceof TileEntityChest))
+				{
+					teB = null;
+				}
 			}
 		}
 
@@ -742,7 +838,10 @@ public class Platform
 			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
 			{
 				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
-				if (!(teB instanceof TileEntityChest)) teB = null;
+				if (!(teB instanceof TileEntityChest))
+				{
+					teB = null;
+				}
 				else
 				{
 					TileEntityChest x = teA;
@@ -752,7 +851,10 @@ public class Platform
 			}
 		}
 
-		if (teB == null) return teA;
+		if (teB == null)
+		{
+			return teA;
+		}
 
 		return new InventoryLargeChest("", teA, (TileEntityChest) teB);
 	}
@@ -786,7 +888,10 @@ public class Platform
 	@SideOnly(Side.CLIENT)
 	public static List getTooltip(Object o)
 	{
-		if (o == null) return new ArrayList();
+		if (o == null)
+		{
+			return new ArrayList();
+		}
 
 		ItemStack itemStack = null;
 		if (o instanceof AEItemStack)
@@ -794,8 +899,14 @@ public class Platform
 			AEItemStack ais = (AEItemStack) o;
 			return ais.getToolTip();
 		}
-		else if (o instanceof ItemStack) itemStack = (ItemStack) o;
-		else return new ArrayList();
+		else if (o instanceof ItemStack)
+		{
+			itemStack = (ItemStack) o;
+		}
+		else
+		{
+			return new ArrayList();
+		}
 
 		try
 		{
@@ -809,7 +920,10 @@ public class Platform
 
 	public static String getModId(IAEItemStack is)
 	{
-		if (is == null) return "** Null";
+		if (is == null)
+		{
+			return "** Null";
+		}
 
 		String n = ((AEItemStack) is).getModID();
 		return n == null ? "** Null" : n;
@@ -817,7 +931,10 @@ public class Platform
 
 	public static String getItemDisplayName(Object o)
 	{
-		if (o == null) return "** Null";
+		if (o == null)
+		{
+			return "** Null";
+		}
 
 		ItemStack itemStack = null;
 		if (o instanceof AEItemStack)
@@ -825,13 +942,22 @@ public class Platform
 			String n = ((AEItemStack) o).getDisplayName();
 			return n == null ? "** Null" : n;
 		}
-		else if (o instanceof ItemStack) itemStack = (ItemStack) o;
-		else return "**Invalid Object";
+		else if (o instanceof ItemStack)
+		{
+			itemStack = (ItemStack) o;
+		}
+		else
+		{
+			return "**Invalid Object";
+		}
 
 		try
 		{
 			String name = itemStack.getDisplayName();
-			if (name == null || name.isEmpty()) name = itemStack.getItem().getUnlocalizedName(itemStack);
+			if (name == null || name.isEmpty())
+			{
+				name = itemStack.getItem().getUnlocalizedName(itemStack);
+			}
 			return name == null ? "** Null" : name;
 		}
 		catch (Exception errA)
@@ -850,9 +976,15 @@ public class Platform
 
 	public static boolean hasSpecialComparison(IAEItemStack willAdd)
 	{
-		if (willAdd == null) return false;
+		if (willAdd == null)
+		{
+			return false;
+		}
 		IAETagCompound tag = willAdd.getTagCompound();
-		if (tag != null && tag.getSpecialComparison() != null) return true;
+		if (tag != null && tag.getSpecialComparison() != null)
+		{
+			return true;
+		}
 		return false;
 	}
 
@@ -860,7 +992,10 @@ public class Platform
 	{
 		if (AESharedNBT.isShared(willAdd.getTagCompound()))
 		{
-			if (((AESharedNBT) willAdd.getTagCompound()).getSpecialComparison() != null) return true;
+			if (((AESharedNBT) willAdd.getTagCompound()).getSpecialComparison() != null)
+			{
+				return true;
+			}
 		}
 		return false;
 	}
@@ -895,7 +1030,10 @@ public class Platform
 
 	public static boolean isChargeable(ItemStack i)
 	{
-		if (i == null) return false;
+		if (i == null)
+		{
+			return false;
+		}
 		Item it = i.getItem();
 		if (it instanceof IAEItemPowerStorage)
 		{
@@ -906,10 +1044,16 @@ public class Platform
 
 	public static EntityPlayer getPlayer(WorldServer w)
 	{
-		if (w == null) throw new NullPointerException();
+		if (w == null)
+		{
+			throw new InvalidParameterException("World is null.");
+		}
 
 		EntityPlayer wrp = FAKE_PLAYERS.get(w);
-		if (wrp != null) return wrp;
+		if (wrp != null)
+		{
+			return wrp;
+		}
 
 		EntityPlayer p = FakePlayerFactory.getMinecraft(w);
 		FAKE_PLAYERS.put(w, p);
@@ -952,7 +1096,10 @@ public class Platform
 	{
 		for (int x = 0; x < l.length; x++)
 		{
-			if (l[x] == null) return x;
+			if (l[x] == null)
+			{
+				return x;
+			}
 		}
 		return -1;
 	}
@@ -967,13 +1114,19 @@ public class Platform
 			i.next();
 		}
 		index--;
-		if (i.hasNext()) return i.next();
+		if (i.hasNext())
+		{
+			return i.next();
+		}
 		return null; // wtf?
 	}
 
 	public static ForgeDirection rotateAround(ForgeDirection forward, ForgeDirection axis)
 	{
-		if (axis == ForgeDirection.UNKNOWN || forward == ForgeDirection.UNKNOWN) return forward;
+		if (axis == ForgeDirection.UNKNOWN || forward == ForgeDirection.UNKNOWN)
+		{
+			return forward;
+		}
 
 		switch (forward)
 		{
@@ -1152,7 +1305,10 @@ public class Platform
 		OreReference aOR = OreHelper.INSTANCE.isOre(a);
 		OreReference bOR = OreHelper.INSTANCE.isOre(b);
 
-		if (OreHelper.INSTANCE.sameOre(aOR, bOR)) return true;
+		if (OreHelper.INSTANCE.sameOre(aOR, bOR))
+		{
+			return true;
+		}
 
 		/*
 		 * // test ore dictionary.. int OreID = getOreID( a ); if ( OreID != -1 ) return OreID == getOreID( b );
@@ -1236,7 +1392,10 @@ public class Platform
 					if (entity1.isEntityAlive())
 					{
 						// prevent killing / flying of mounts.
-						if (entity1.riddenByEntity == p) continue;
+						if (entity1.riddenByEntity == p)
+						{
+							continue;
+						}
 
 						f1 = 0.3F;
 						AxisAlignedBB boundingBox = entity1.boundingBox.expand(f1, f1, f1);
@@ -1290,7 +1449,10 @@ public class Platform
 		StackType possible = cell.extractItems((StackType) request.copy(), Actionable.SIMULATE, src);
 
 		long retrieved = 0;
-		if (possible != null) retrieved = possible.getStackSize();
+		if (possible != null)
+		{
+			retrieved = possible.getStackSize();
+		}
 
 		double availablePower = energy.extractAEPower(retrieved, Actionable.SIMULATE, PowerMultiplier.CONFIG);
 
@@ -1319,7 +1481,10 @@ public class Platform
 		StackType possible = cell.injectItems((StackType) input.copy(), Actionable.SIMULATE, src);
 
 		long stored = input.getStackSize();
-		if (possible != null) stored -= possible.getStackSize();
+		if (possible != null)
+		{
+			stored -= possible.getStackSize();
+		}
 
 		double availablePower = energy.extractAEPower(stored, Actionable.SIMULATE, PowerMultiplier.CONFIG);
 
@@ -1372,7 +1537,9 @@ public class Platform
 			if (myItems != null)
 			{
 				for (IAEItemStack is : myItems.getAvailableItems(itemChanges))
+				{
 					is.setStackSize(-is.getStackSize());
+				}
 			}
 
 			IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.FLUIDS);
@@ -1380,7 +1547,9 @@ public class Platform
 			if (myFluids != null)
 			{
 				for (IAEFluidStack is : myFluids.getAvailableItems(fluidChanges))
+				{
 					is.setStackSize(-is.getStackSize());
+				}
 			}
 		}
 
@@ -1388,11 +1557,17 @@ public class Platform
 		{
 			IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.ITEMS);
 
-			if (myItems != null) myItems.getAvailableItems(itemChanges);
+			if (myItems != null)
+			{
+				myItems.getAvailableItems(itemChanges);
+			}
 
 			IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.FLUIDS);
 
-			if (myFluids != null) myFluids.getAvailableItems(fluidChanges);
+			if (myFluids != null)
+			{
+				myFluids.getAvailableItems(fluidChanges);
+			}
 		}
 
 		gs.postAlterationOfStoredItems(StorageChannel.ITEMS, itemChanges, src);
@@ -1403,10 +1578,14 @@ public class Platform
 		LinkedList<T> changes = new LinkedList<T>();
 
 		for (T is : before)
+		{
 			is.setStackSize(-is.getStackSize());
+		}
 
 		for (T is : after)
+		{
 			before.add(is);
+		}
 
 		for (T is : before)
 		{
@@ -1416,24 +1595,45 @@ public class Platform
 			}
 		}
 
-		if (!changes.isEmpty()) meMonitorPassthrough.postChange(null, changes, source);
+		if (!changes.isEmpty())
+		{
+			meMonitorPassthrough.postChange(null, changes, source);
+		}
 	}
 
 	public static int generateTileHash(TileEntity target)
 	{
-		if (target == null) return 0;
+		if (target == null)
+		{
+			return 0;
+		}
 
 		int hash = target.hashCode();
 
-		if (target instanceof ITileStorageMonitorable) return 0;
+		if (target instanceof ITileStorageMonitorable)
+		{
+			return 0;
+		}
 		else if (target instanceof TileEntityChest)
 		{
 			TileEntityChest chest = (TileEntityChest) target;
 			chest.checkForAdjacentChests();
-			if (chest.adjacentChestZNeg != null) hash ^= chest.adjacentChestZNeg.hashCode();
-			else if (chest.adjacentChestZPos != null) hash ^= chest.adjacentChestZPos.hashCode();
-			else if (chest.adjacentChestXPos != null) hash ^= chest.adjacentChestXPos.hashCode();
-			else if (chest.adjacentChestXNeg != null) hash ^= chest.adjacentChestXNeg.hashCode();
+			if (chest.adjacentChestZNeg != null)
+			{
+				hash ^= chest.adjacentChestZNeg.hashCode();
+			}
+			else if (chest.adjacentChestZPos != null)
+			{
+				hash ^= chest.adjacentChestZPos.hashCode();
+			}
+			else if (chest.adjacentChestXPos != null)
+			{
+				hash ^= chest.adjacentChestXPos.hashCode();
+			}
+			else if (chest.adjacentChestXNeg != null)
+			{
+				hash ^= chest.adjacentChestXNeg.hashCode();
+			}
 		}
 		else if (target instanceof IInventory)
 		{
@@ -1447,7 +1647,10 @@ public class Platform
 
 					int[] sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
 
-					if (sides == null) return 0;
+					if (sides == null)
+					{
+						return 0;
+					}
 
 					for (Integer Side : sides)
 					{
@@ -1464,8 +1667,14 @@ public class Platform
 
 	public static boolean securityCheck(GridNode a, GridNode b)
 	{
-		if (a.lastSecurityKey == -1 && b.lastSecurityKey == -1) return false;
-		else if (a.lastSecurityKey == b.lastSecurityKey) return false;
+		if (a.lastSecurityKey == -1 && b.lastSecurityKey == -1)
+		{
+			return false;
+		}
+		else if (a.lastSecurityKey == b.lastSecurityKey)
+		{
+			return false;
+		}
 
 		boolean a_isSecure = isPowered(a.getGrid()) && a.lastSecurityKey != -1;
 		boolean b_isSecure = isPowered(b.getGrid()) && b.lastSecurityKey != -1;
@@ -1476,18 +1685,30 @@ public class Platform
 		}
 
 		// can't do that son...
-		if (a_isSecure && b_isSecure) return true;
+		if (a_isSecure && b_isSecure)
+		{
+			return true;
+		}
 
-		if (!a_isSecure && b_isSecure) return checkPlayerPermissions(b.getGrid(), a.playerID);
+		if (!a_isSecure && b_isSecure)
+		{
+			return checkPlayerPermissions(b.getGrid(), a.playerID);
+		}
 
-		if (a_isSecure && !b_isSecure) return checkPlayerPermissions(a.getGrid(), b.playerID);
+		if (a_isSecure && !b_isSecure)
+		{
+			return checkPlayerPermissions(a.getGrid(), b.playerID);
+		}
 
 		return false;
 	}
 
 	private static boolean isPowered(IGrid grid)
 	{
-		if (grid == null) return false;
+		if (grid == null)
+		{
+			return false;
+		}
 
 		IEnergyGrid eg = grid.getCache(IEnergyGrid.class);
 		return eg.isNetworkPowered();
@@ -1495,20 +1716,24 @@ public class Platform
 
 	private static boolean checkPlayerPermissions(IGrid grid, int playerID)
 	{
-		if (grid == null) return false;
+		if (grid == null)
+		{
+			return false;
+		}
 
 		ISecurityGrid gs = grid.getCache(ISecurityGrid.class);
 
-		if (gs == null) return false;
+		if (gs == null)
+		{
+			return false;
+		}
 
-		if (!gs.isAvailable()) return false;
+		if (!gs.isAvailable())
+		{
+			return false;
+		}
 
 		return !gs.hasPermission(playerID, SecurityPermissions.BUILD);
-	}
-
-	public static boolean isDrawing(Tessellator tess)
-	{
-		return false;
 	}
 
 	public static void configurePlayer(EntityPlayer player, ForgeDirection side, TileEntity tile)
@@ -1562,12 +1787,18 @@ public class Platform
 			{
 				IActionHost te = ((MachineSource) src).via;
 				IGridNode n = te.getActionableNode();
-				if (n == null) return false;
+				if (n == null)
+				{
+					return false;
+				}
 
 				int playerID = n.getPlayerID();
 				return gridProxy.getSecurity().hasPermission(playerID, SecurityPermissions.BUILD);
 			}
-			else return false;
+			else
+			{
+				return false;
+			}
 		}
 		catch (GridAccessException gae)
 		{
@@ -1579,7 +1810,10 @@ public class Platform
 	{
 		if (energySrc.extractAEPower(1, Actionable.SIMULATE, PowerMultiplier.CONFIG) > 0.9)
 		{
-			if (providedTemplate == null) return null;
+			if (providedTemplate == null)
+			{
+				return null;
+			}
 
 			AEItemStack ae_req = AEItemStack.create(providedTemplate);
 			ae_req.setStackSize(1);
@@ -1636,7 +1870,10 @@ public class Platform
 	{
 		if (ol != null && op != null && ol.getItem() == op.getItem())
 		{
-			if (ol.isItemStackDamageable()) return true;
+			if (ol.isItemStackDamageable())
+			{
+				return true;
+			}
 			return ol.getItemDamage() == ol.getItemDamage();
 		}
 		return false;
@@ -1654,7 +1891,10 @@ public class Platform
 
 	public static ItemStack getContainerItem(ItemStack stackInSlot)
 	{
-		if (stackInSlot == null) return null;
+		if (stackInSlot == null)
+		{
+			return null;
+		}
 
 		Item i = stackInSlot.getItem();
 		if (i == null || !i.hasContainerItem(stackInSlot))
@@ -1668,19 +1908,28 @@ public class Platform
 		}
 
 		ItemStack ci = i.getContainerItem(stackInSlot.copy());
-		if (ci != null && ci.isItemStackDamageable() && ci.getItemDamage() == ci.getMaxDamage()) ci = null;
+		if (ci != null && ci.isItemStackDamageable() && ci.getItemDamage() == ci.getMaxDamage())
+		{
+			ci = null;
+		}
 
 		return ci;
 	}
 
 	public static void notifyBlocksOfNeighbors(World worldObj, int xCoord, int yCoord, int zCoord)
 	{
-		if (!worldObj.isRemote) TickHandler.INSTANCE.addCallable(worldObj, new BlockUpdate(worldObj, xCoord, yCoord, zCoord));
+		if (!worldObj.isRemote)
+		{
+			TickHandler.INSTANCE.addCallable(worldObj, new BlockUpdate(worldObj, xCoord, yCoord, zCoord));
+		}
 	}
 
 	public static boolean canRepair(AEFeature type, ItemStack a, ItemStack b)
 	{
-		if (b == null || a == null) return false;
+		if (b == null || a == null)
+		{
+			return false;
+		}
 
 		if (type == AEFeature.CertusQuartzTools)
 		{
@@ -1689,7 +1938,10 @@ public class Platform
 			return certusQuartzCrystal.isSameAs(b);
 		}
 
-		if (type == AEFeature.NetherQuartzTools) return Items.quartz == b.getItem();
+		if (type == AEFeature.NetherQuartzTools)
+		{
+			return Items.quartz == b.getItem();
+		}
 
 		return false;
 	}
@@ -1748,7 +2000,10 @@ public class Platform
 						sendToAllPlayersWatchingChunk = ReflectionHelper.findMethod(Platform.playerInstance, playerInstance, new String[] { "sendToAllPlayersWatchingChunk", "func_151251_a" }, Packet.class);
 					}
 
-					if (sendToAllPlayersWatchingChunk != null) sendToAllPlayersWatchingChunk.invoke(playerInstance, new S21PacketChunkData(c, false, verticalBits));
+					if (sendToAllPlayersWatchingChunk != null)
+					{
+						sendToAllPlayersWatchingChunk.invoke(playerInstance, new S21PacketChunkData(c, false, verticalBits));
+					}
 				}
 			}
 		}

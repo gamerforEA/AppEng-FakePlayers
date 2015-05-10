@@ -51,7 +51,7 @@ public class ToolChargedStaff extends AEBasePoweredItem
 		{
 			this.extractAEPower(item, 300);
 			// TODO gamerforEA code start
-			if (FakePlayerUtils.callEntityDamageByEntityEvent(hitter, target, DamageCause.ENTITY_ATTACK, 6.0D).isCancelled()) return false;
+			if (FakePlayerUtils.callEntityDamageByEntityEvent(hitter, target, DamageCause.ENTITY_ATTACK, 6D).isCancelled()) return false;
 			// TODO gamerforEA code end
 			if (Platform.isServer())
 			{
