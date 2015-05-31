@@ -386,7 +386,7 @@ public class Platform
 	public static boolean hasPermissions(DimensionalCoord dc, EntityPlayer player)
 	{
 		// TODO gamerforEA code start
-		if (FakePlayerUtils.callBlockBreakEvent(dc.x, dc.y, dc.z, player).isCancelled()) return false;
+		if (FakePlayerUtils.cantBreak(player, dc.x, dc.y, dc.z)) return false;
 		// TODO gamerforEA code end
 		return dc.getWorld().canMineBlock(player, dc.x, dc.y, dc.z);
 	}
@@ -1005,7 +1005,7 @@ public class Platform
 		if (eq != null)
 		{
 			// TODO gamerforEA code start
-			if (FakePlayerUtils.callBlockBreakEvent(x, y, z, player).isCancelled()) return false;
+			if (FakePlayerUtils.cantBreak(player, x, y, z)) return false;
 			// TODO gamerforEA code end
 			try
 			{
@@ -1017,6 +1017,7 @@ public class Platform
 			}
 			catch (Throwable ignore)
 			{ // explodes without BC
+
 			}
 
 			if (eq.getItem() instanceof IAEWrench)
@@ -1866,15 +1867,15 @@ public class Platform
 		return null;
 	}
 
-	public static boolean isSameItemType(ItemStack ol, ItemStack op)
+	public static boolean isSameItemType(ItemStack that, ItemStack other)
 	{
-		if (ol != null && op != null && ol.getItem() == op.getItem())
+		if (that != null && other != null && that.getItem() == other.getItem())
 		{
-			if (ol.isItemStackDamageable())
+			if (that.isItemStackDamageable())
 			{
 				return true;
 			}
-			return ol.getItemDamage() == ol.getItemDamage();
+			return that.getItemDamage() == other.getItemDamage();
 		}
 		return false;
 	}

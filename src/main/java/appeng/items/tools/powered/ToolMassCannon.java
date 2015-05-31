@@ -39,9 +39,6 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
@@ -277,7 +274,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 			if (pos.typeOfHit == MovingObjectType.ENTITY)
 			{
 				// TODO gamerforEA code start
-				if (FakePlayerUtils.callEntityDamageByEntityEvent(p, pos.entityHit, DamageCause.ENTITY_ATTACK, 1D).isCancelled()) return;
+				if (FakePlayerUtils.cantDamage(p, pos.entityHit)) return;
 				// TODO gamerforEA code end
 				int id = pos.entityHit.getEntityId();
 				PlayerColor marker = new PlayerColor(id, col, 20 * 30);
@@ -401,7 +398,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 				if (pos.typeOfHit == MovingObjectType.ENTITY)
 				{
 					// TODO gamerforEA code start
-					if (FakePlayerUtils.callEntityDamageByEntityEvent(p, pos.entityHit, DamageCause.ENTITY_ATTACK, 1.0D).isCancelled())
+					if (FakePlayerUtils.cantDamage(p, pos.entityHit))
 					{
 						penetration = 0F;
 						return;

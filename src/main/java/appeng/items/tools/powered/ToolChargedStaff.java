@@ -23,9 +23,6 @@ import java.util.EnumSet;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
-
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-
 import appeng.core.AEConfig;
 import appeng.core.features.AEFeature;
 import appeng.core.sync.packets.PacketLightning;
@@ -47,11 +44,11 @@ public class ToolChargedStaff extends AEBasePoweredItem
 	@Override
 	public boolean hitEntity(ItemStack item, EntityLivingBase target, EntityLivingBase hitter)
 	{
-		if (this.getAECurrentPower(item) > 300)
+		if (this.getAECurrentPower(item) > 300D)
 		{
-			this.extractAEPower(item, 300);
+			this.extractAEPower(item, 300D);
 			// TODO gamerforEA code start
-			if (FakePlayerUtils.callEntityDamageByEntityEvent(hitter, target, DamageCause.ENTITY_ATTACK, 6D).isCancelled()) return false;
+			if (FakePlayerUtils.cantDamage(hitter, target)) return false;
 			// TODO gamerforEA code end
 			if (Platform.isServer())
 			{
@@ -60,10 +57,10 @@ public class ToolChargedStaff extends AEBasePoweredItem
 					float dx = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minX);
 					float dy = (float) (Platform.getRandomFloat() * target.height + target.boundingBox.minY);
 					float dz = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minZ);
-					ServerHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32.0, target.worldObj, new PacketLightning(dx, dy, dz));
+					ServerHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32D, target.worldObj, new PacketLightning(dx, dy, dz));
 				}
 			}
-			target.attackEntityFrom(DamageSource.magic, 6);
+			target.attackEntityFrom(DamageSource.magic, 6F);
 			return true;
 		}
 
