@@ -21,24 +21,9 @@ package appeng.items.tools.powered;
 import java.util.EnumSet;
 import java.util.List;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockDispenser;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.passive.EntitySheep;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
-import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
+import com.gamerforea.eventhelper.util.EventUtils;
+import com.google.common.base.Optional;
+
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
@@ -72,9 +57,24 @@ import appeng.items.tools.powered.powersink.AEBasePoweredItem;
 import appeng.me.storage.CellInventoryHandler;
 import appeng.tile.misc.TilePaint;
 import appeng.util.Platform;
-
-import com.gamerforea.ae.FakePlayerUtils;
-import com.google.common.base.Optional;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockDispenser;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.passive.EntitySheep;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 {
@@ -118,9 +118,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 
 			CellUpgrades cu = (CellUpgrades) this.getUpgradesInventory(item);
 			if (cu != null)
-			{
 				shots += cu.getInstalledUpgrades(Upgrades.SPEED);
-			}
 
 			IMEInventory inv = AEApi.instance().registries().cell().getCellInventory(item, null, StorageChannel.ITEMS);
 			if (inv != null)
@@ -135,23 +133,17 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 						this.extractAEPower(item, 1600);
 
 						if (Platform.isClient())
-						{
 							return item;
-						}
 
 						aeAmmo.setStackSize(1);
 						ItemStack ammo = ((IAEItemStack) aeAmmo).getItemStack();
 						if (ammo == null)
-						{
 							return item;
-						}
 
 						ammo.stackSize = 1;
 						aeAmmo = inv.extractItems(aeAmmo, Actionable.MODULATE, new PlayerSource(p, null));
 						if (aeAmmo == null)
-						{
 							return item;
-						}
 
 						float f = 1.0F;
 						float f1 = p.prevRotationPitch + (p.rotationPitch - p.prevRotationPitch) * f;
@@ -177,23 +169,17 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 						{
 							ItemStack type = ((IAEItemStack) aeAmmo).getItemStack();
 							if (type.getItem() instanceof ItemPaintBall)
-							{
 								this.shootPaintBalls(type, w, p, vec3, vec31, direction, d0, d1, d2);
-							}
 							return item;
 						}
 						else
-						{
 							this.standardAmmo(penetration, w, p, vec3, vec31, direction, d0, d1, d2);
-						}
 					}
 				}
 				else
 				{
 					if (Platform.isServer())
-					{
 						p.addChatMessage(PlayerMessages.AmmoDepleted.get());
-					}
 					return item;
 				}
 			}
@@ -215,14 +201,11 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 			Entity entity1 = (Entity) list.get(l);
 
 			if (!entity1.isDead && entity1 != p && !(entity1 instanceof EntityItem))
-			{
 				if (entity1.isEntityAlive())
 				{
 					// prevent killing / flying of mounts.
 					if (entity1.riddenByEntity == p)
-					{
 						continue;
-					}
 
 					float f1 = 0.3F;
 
@@ -240,20 +223,15 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 						}
 					}
 				}
-			}
 		}
 
 		MovingObjectPosition pos = w.rayTraceBlocks(vec3, vec31, false);
 
 		Vec3 vec = Vec3.createVectorHelper(d0, d1, d2);
 		if (entity != null && pos != null && pos.hitVec.squareDistanceTo(vec) > closest)
-		{
 			pos = new MovingObjectPosition(entity);
-		}
 		else if (entity != null && pos == null)
-		{
 			pos = new MovingObjectPosition(entity);
-		}
 
 		try
 		{
@@ -274,8 +252,10 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 			if (pos.typeOfHit == MovingObjectType.ENTITY)
 			{
 				// TODO gamerforEA code start
-				if (FakePlayerUtils.cantDamage(p, pos.entityHit)) return;
+				if (EventUtils.cantDamage(p, pos.entityHit))
+					return;
 				// TODO gamerforEA code end
+
 				int id = pos.entityHit.getEntityId();
 				PlayerColor marker = new PlayerColor(id, col, 20 * 30);
 				TickHandler.INSTANCE.getPlayerColors().put(id, marker);
@@ -298,18 +278,12 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 				int z = pos.blockZ + side.offsetZ;
 
 				if (!Platform.hasPermissions(new DimensionalCoord(w, x, y, z), p))
-				{
 					return;
-				}
 
 				Block whatsThere = w.getBlock(x, y, z);
 				if (whatsThere.isReplaceable(w, x, y, z) && w.isAirBlock(x, y, z))
-				{
 					for (Block paintBlock : AEApi.instance().definitions().blocks().paint().maybeBlock().asSet())
-					{
 						w.setBlock(x, y, z, paintBlock, 0, 3);
-					}
-				}
 
 				TileEntity te = w.getTileEntity(x, y, z);
 				if (te instanceof TilePaint)
@@ -342,14 +316,11 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 				Entity entity1 = (Entity) list.get(l);
 
 				if (!entity1.isDead && entity1 != p && !(entity1 instanceof EntityItem))
-				{
 					if (entity1.isEntityAlive())
 					{
 						// prevent killing / flying of mounts.
 						if (entity1.riddenByEntity == p)
-						{
 							continue;
-						}
 
 						float f1 = 0.3F;
 
@@ -367,19 +338,14 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 							}
 						}
 					}
-				}
 			}
 
 			Vec3 vec = Vec3.createVectorHelper(d0, d1, d2);
 			MovingObjectPosition pos = w.rayTraceBlocks(vec3, vec31, true);
 			if (entity != null && pos != null && pos.hitVec.squareDistanceTo(vec) > closest)
-			{
 				pos = new MovingObjectPosition(entity);
-			}
 			else if (entity != null && pos == null)
-			{
 				pos = new MovingObjectPosition(entity);
-			}
 
 			try
 			{
@@ -398,12 +364,13 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 				if (pos.typeOfHit == MovingObjectType.ENTITY)
 				{
 					// TODO gamerforEA code start
-					if (FakePlayerUtils.cantDamage(p, pos.entityHit))
+					if (EventUtils.cantDamage(p, pos.entityHit))
 					{
 						penetration = 0F;
 						return;
 					}
 					// TODO gamerforEA code end
+
 					int dmg = (int) Math.ceil(penetration / 20.0f);
 					if (pos.entityHit instanceof EntityLivingBase)
 					{
@@ -414,9 +381,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 						// vec3.zCoord );
 						el.attackEntityFrom(dmgSrc, dmg);
 						if (!el.isEntityAlive())
-						{
 							hasDestroyedSomething = true;
-						}
 					}
 					else if (pos.entityHit instanceof EntityItem)
 					{
@@ -424,16 +389,11 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 						pos.entityHit.setDead();
 					}
 					else if (pos.entityHit.attackEntityFrom(dmgSrc, dmg))
-					{
 						hasDestroyedSomething = true;
-					}
 				}
 				else if (pos.typeOfHit == MovingObjectType.BLOCK)
-				{
 					if (!AEConfig.instance.isFeatureEnabled(AEFeature.MassCannonBlockDamage))
-					{
 						penetration = 0;
-					}
 					else
 					{
 						Block b = w.getBlock(pos.blockX, pos.blockY, pos.blockZ);
@@ -442,7 +402,6 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 
 						float hardness = b.getBlockHardness(w, pos.blockX, pos.blockY, pos.blockZ) * 9.0f;
 						if (hardness >= 0.0)
-						{
 							if (penetration > hardness && Platform.hasPermissions(new DimensionalCoord(w, pos.blockX, pos.blockY, pos.blockZ), p))
 							{
 								hasDestroyedSomething = true;
@@ -451,9 +410,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 								w.func_147480_a(pos.blockX, pos.blockY, pos.blockZ, true);
 								// w.destroyBlock( pos.blockX, pos.blockY, pos.blockZ, true );
 							}
-						}
 					}
-				}
 			}
 		}
 	}
@@ -525,14 +482,10 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 	{
 		float pen = AEApi.instance().registries().matterCannon().getPenetration(requestedAddition.getItemStack());
 		if (pen > 0)
-		{
 			return false;
-		}
 
 		if (requestedAddition.getItem() instanceof ItemPaintBall)
-		{
 			return false;
-		}
 
 		return true;
 	}

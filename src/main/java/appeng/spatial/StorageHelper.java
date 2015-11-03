@@ -21,11 +21,17 @@ package appeng.spatial;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import com.gamerforea.ae.ModUtils;
+import com.gamerforea.eventhelper.util.EventUtils;
+
+import appeng.api.AEApi;
+import appeng.api.util.WorldCoord;
+import appeng.core.stats.Achievements;
+import appeng.util.Platform;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
@@ -33,12 +39,6 @@ import net.minecraft.world.Teleporter;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
-import appeng.api.AEApi;
-import appeng.api.util.WorldCoord;
-import appeng.core.stats.Achievements;
-import appeng.util.Platform;
-
-import com.gamerforea.ae.FakePlayerUtils;
 
 public class StorageHelper
 {
@@ -49,9 +49,7 @@ public class StorageHelper
 	public static StorageHelper getInstance()
 	{
 		if (instance == null)
-		{
 			instance = new StorageHelper();
-		}
 		return instance;
 	}
 
@@ -73,7 +71,7 @@ public class StorageHelper
 		{
 			oldWorld = (WorldServer) entity.worldObj;
 			newWorld = (WorldServer) link.dim;
-			player = (entity instanceof EntityPlayerMP) ? (EntityPlayerMP) entity : null;
+			player = entity instanceof EntityPlayerMP ? (EntityPlayerMP) entity : null;
 		}
 		catch (Throwable e)
 		{
@@ -81,19 +79,13 @@ public class StorageHelper
 		}
 
 		if (oldWorld == null)
-		{
 			return entity;
-		}
 		if (newWorld == null)
-		{
 			return entity;
-		}
 
 		// Is something riding? Handle it first.
 		if (entity.riddenByEntity != null)
-		{
 			return this.teleportEntity(entity.riddenByEntity, link);
-		}
 		// Are we riding something? Dismount and tell the mount to go first.
 		Entity cart = entity.ridingEntity;
 		if (cart != null)
@@ -108,13 +100,10 @@ public class StorageHelper
 
 		boolean diffDestination = newWorld != oldWorld;
 		if (diffDestination)
-		{
 			if (player != null)
 			{
 				if (link.dim.provider instanceof StorageWorldProvider)
-				{
 					Achievements.SpatialIOExplorer.addToPlayer(player);
-				}
 
 				player.mcServer.getConfigurationManager().transferPlayerToDimension(player, link.dim.provider.dimensionId, new METeleporter(newWorld, link));
 			}
@@ -123,7 +112,7 @@ public class StorageHelper
 				int entX = entity.chunkCoordX;
 				int entZ = entity.chunkCoordZ;
 
-				if ((entity.addedToChunk) && (oldWorld.getChunkProvider().chunkExists(entX, entZ)))
+				if (entity.addedToChunk && oldWorld.getChunkProvider().chunkExists(entX, entZ))
 				{
 					oldWorld.getChunkFromChunkCoords(entX, entZ).removeEntity(entity);
 					oldWorld.getChunkFromChunkCoords(entX, entZ).isModified = true;
@@ -152,25 +141,20 @@ public class StorageHelper
 					entity = newEntity;
 				}
 				else
-				{
 					return null;
-				}
 
 				// myChunk.addEntity( entity );
 				// newWorld.loadedEntityList.add( entity );
 				// newWorld.onEntityAdded( entity );
 				newWorld.spawnEntityInWorld(entity);
 			}
-		}
 
 		entity.worldObj.updateEntityWithOptionalForce(entity, false);
 
 		if (cart != null)
 		{
 			if (player != null)
-			{
 				entity.worldObj.updateEntityWithOptionalForce(entity, true);
-			}
 
 			entity.mountEntity(cart);
 		}
@@ -181,37 +165,31 @@ public class StorageHelper
 	public void transverseEdges(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, ISpatialVisitor visitor)
 	{
 		for (int y = minY; y < maxY; y++)
-		{
 			for (int z = minZ; z < maxZ; z++)
 			{
 				visitor.visit(minX, y, z);
 				visitor.visit(maxX, y, z);
 			}
-		}
 
 		for (int x = minX; x < maxX; x++)
-		{
 			for (int z = minZ; z < maxZ; z++)
 			{
 				visitor.visit(x, minY, z);
 				visitor.visit(x, maxY, z);
 			}
-		}
 
 		for (int x = minX; x < maxX; x++)
-		{
 			for (int y = minY; y < maxY; y++)
 			{
 				visitor.visit(x, y, minZ);
 				visitor.visit(x, y, maxZ);
 			}
-		}
 	}
 
 	// TODO gamerforEA code start
 	public void swapRegions(World src, World dst, int x, int y, int z, int i, int j, int k, int scaleX, int scaleY, int scaleZ)
 	{
-		this.swapRegions(FakePlayerUtils.getModFake(src), src, dst, x, y, z, i, j, k, scaleX, scaleY, scaleZ);
+		this.swapRegions(ModUtils.getModFake(src), src, dst, x, y, z, i, j, k, scaleX, scaleY, scaleZ);
 	}
 	// TODO gamerforEA code end
 
@@ -224,19 +202,21 @@ public class StorageHelper
 		// TODO gamerforEA code start
 		World playerWorld = player.worldObj;
 		// TODO gamerforEA code end
+
 		for (Block matrixFrameBlock : AEApi.instance().definitions().blocks().matrixFrame().maybeBlock().asSet())
-		{
 			this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new WrapInMatrixFrame(matrixFrameBlock, 0, dst));
-		}
 
 		AxisAlignedBB srcBox = AxisAlignedBB.getBoundingBox(x, y, z, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1);
 		AxisAlignedBB dstBox = AxisAlignedBB.getBoundingBox(i, j, k, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1);
 
-		CachedPlane cDst = new CachedPlane(player, dst, i, j, k, i + scaleX, j + scaleY, k + scaleZ); // TODO gamerforEA add EntityPlayer parameter
-		CachedPlane cSrc = new CachedPlane(player, src, x, y, z, x + scaleX, y + scaleY, z + scaleZ); // TODO gamerforEA add EntityPlayer parameter
+		// TODO gamerforEA add EntityPlayer parameter
+		CachedPlane cDst = new CachedPlane(player, dst, i, j, k, i + scaleX, j + scaleY, k + scaleZ);
+		// TODO gamerforEA add EntityPlayer parameter
+		CachedPlane cSrc = new CachedPlane(player, src, x, y, z, x + scaleX, y + scaleY, z + scaleZ);
 
 		// do nearly all the work... swaps blocks, tiles, and block ticks
-		cSrc.Swap(player, cDst); // TODO gamerforEA add EntityPlayer parameter
+		// TODO gamerforEA add EntityPlayer parameter
+		cSrc.Swap(player, cDst);
 
 		List<Entity> srcE = src.getEntitiesWithinAABB(Entity.class, srcBox);
 		List<Entity> dstE = dst.getEntitiesWithinAABB(Entity.class, dstBox);
@@ -244,35 +224,38 @@ public class StorageHelper
 		for (Entity e : dstE)
 		{
 			// TODO gamerforEA code start
-			if (e instanceof EntityPlayer) continue;
+			if (e instanceof Entity)
+				continue;
 			player.worldObj = dst;
-			if (FakePlayerUtils.cantDamage(player, e)) continue;
+			if (EventUtils.cantDamage(player, e))
+				continue;
 			// TODO gamerforEA code end
+
 			this.teleportEntity(e, new TelDestination(src, srcBox, e.posX, e.posY, e.posZ, -i + x, -j + y, -k + z));
 		}
 
 		for (Entity e : srcE)
 		{
 			// TODO gamerforEA code start
-			if (e instanceof EntityPlayer) continue;
+			if (e instanceof Entity)
+				continue;
 			player.worldObj = src;
-			if (FakePlayerUtils.cantDamage(player, e)) continue;
+			if (EventUtils.cantDamage(player, e))
+				continue;
 			// TODO gamerforEA code end
+
 			this.teleportEntity(e, new TelDestination(dst, dstBox, e.posX, e.posY, e.posZ, -x + i, -y + j, -z + k));
 		}
+
 		// TODO gamerforEA code start
 		player.worldObj = playerWorld;
 		// TODO gamerforEA code end
 
 		for (WorldCoord wc : cDst.updates)
-		{
 			cDst.world.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR);
-		}
 
 		for (WorldCoord wc : cSrc.updates)
-		{
 			cSrc.world.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR);
-		}
 
 		this.transverseEdges(x - 1, y - 1, z - 1, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1, new TriggerUpdates(src));
 		this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new TriggerUpdates(dst));

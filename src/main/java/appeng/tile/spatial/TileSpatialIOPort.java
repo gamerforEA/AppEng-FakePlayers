@@ -18,14 +18,12 @@
 
 package appeng.tile.spatial;
 
-import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.ForgeDirection;
+import com.gamerforea.ae.ModUtils;
+import com.gamerforea.eventhelper.fake.FakePlayerContainer;
+import com.gamerforea.eventhelper.fake.FakePlayerContainerTileEntity;
+
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.config.YesNo;
@@ -48,10 +46,10 @@ import appeng.tile.grid.AENetworkInvTile;
 import appeng.tile.inventory.AppEngInternalInventory;
 import appeng.tile.inventory.InvOperation;
 import appeng.util.Platform;
-
-import com.gamerforea.ae.FakePlayerUtils;
-import com.google.common.base.Strings;
-import com.mojang.authlib.GameProfile;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 {
@@ -60,15 +58,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	YesNo lastRedstoneState = YesNo.UNDECIDED;
 
 	// TODO gamerforEA code start
-	public GameProfile ownerProfile;
-	private FakePlayer ownerFake;
-
-	public FakePlayer getOwnerFake()
-	{
-		if (this.ownerFake != null) return this.ownerFake;
-		else if (this.ownerProfile != null) return this.ownerFake = FakePlayerUtils.create(this.worldObj, this.ownerProfile);
-		else return FakePlayerUtils.getModFake(this.worldObj);
-	}
+	public final FakePlayerContainer fake = new FakePlayerContainerTileEntity(ModUtils.profile, this);
 	// TODO gamerforEA code end
 
 	public TileSpatialIOPort()
@@ -80,12 +70,9 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	public void writeToNBT_TileSpatialIOPort(NBTTagCompound data)
 	{
 		data.setInteger("lastRedstoneState", this.lastRedstoneState.ordinal());
+
 		// TODO gamerforEA code start
-		if (this.ownerProfile != null)
-		{
-			data.setString("ownerUUID", this.ownerProfile.getId().toString());
-			data.setString("ownerName", this.ownerProfile.getName());
-		}
+		this.fake.writeToNBT(data);
 		// TODO gamerforEA code end
 	}
 
@@ -93,25 +80,17 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	public void readFromNBT_TileSpatialIOPort(NBTTagCompound data)
 	{
 		if (data.hasKey("lastRedstoneState"))
-		{
 			this.lastRedstoneState = YesNo.values()[data.getInteger("lastRedstoneState")];
-		}
+
 		// TODO gamerforEA code start
-		String uuid = data.getString("ownerUUID");
-		if (!Strings.isNullOrEmpty(uuid))
-		{
-			String name = data.getString("ownerName");
-			if (!Strings.isNullOrEmpty(name)) this.ownerProfile = new GameProfile(UUID.fromString(uuid), name);
-		}
+		this.fake.readFromNBT(data);
 		// TODO gamerforEA code end
 	}
 
 	public boolean getRedstoneState()
 	{
 		if (this.lastRedstoneState == YesNo.UNDECIDED)
-		{
 			this.updateRedstoneState();
-		}
 
 		return this.lastRedstoneState == YesNo.YES;
 	}
@@ -123,9 +102,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 		{
 			this.lastRedstoneState = currentState;
 			if (this.lastRedstoneState == YesNo.YES)
-			{
 				this.triggerTransition();
-			}
 		}
 	}
 
@@ -135,9 +112,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 		{
 			ItemStack cell = this.getStackInSlot(0);
 			if (this.isSpatialCell(cell))
-			{
 				TickHandler.INSTANCE.addCallable(null, this);// this needs to be cross world synced.
-			}
 		}
 	}
 
@@ -174,9 +149,12 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 					{
 						// TODO gamerforEA code replace, old code: TransitionResult tr = sc.doSpatialTransition(cell, this.worldObj, spc.getMin(), spc.getMax(), true);
 						TransitionResult tr = null;
-						if (sc instanceof ItemSpatialStorageCell) tr = ((ItemSpatialStorageCell) sc).doSpatialTransition(this.getOwnerFake(), cell, this.worldObj, spc.getMin(), spc.getMax(), true);
-						else tr = sc.doSpatialTransition(cell, this.worldObj, spc.getMin(), spc.getMax(), true);
+						if (sc instanceof ItemSpatialStorageCell)
+							tr = ((ItemSpatialStorageCell) sc).doSpatialTransition(this.fake.getPlayer(), cell, this.worldObj, spc.getMin(), spc.getMax(), true);
+						else
+							tr = sc.doSpatialTransition(cell, this.worldObj, spc.getMin(), spc.getMax(), true);
 						// TODO gamerforEA code end
+
 						if (tr.success)
 						{
 							energy.extractAEPower(req, Actionable.MODULATE, PowerMultiplier.CONFIG);
@@ -212,7 +190,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemstack)
 	{
-		return (i == 0 && this.isSpatialCell(itemstack));
+		return i == 0 && this.isSpatialCell(itemstack);
 	}
 
 	@Override

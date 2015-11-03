@@ -21,12 +21,9 @@ package appeng.items.storage;
 import java.util.EnumSet;
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.util.FakePlayer;
+import com.gamerforea.ae.ModUtils;
+import com.google.common.base.Optional;
+
 import appeng.api.implementations.TransitionResult;
 import appeng.api.implementations.items.ISpatialStorageCell;
 import appeng.api.util.WorldCoord;
@@ -37,9 +34,12 @@ import appeng.items.AEBaseItem;
 import appeng.spatial.StorageHelper;
 import appeng.spatial.StorageWorldProvider;
 import appeng.util.Platform;
-
-import com.gamerforea.ae.FakePlayerUtils;
-import com.google.common.base.Optional;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.util.FakePlayer;
 
 public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorageCell
 {
@@ -58,9 +58,7 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 	{
 		WorldCoord wc = this.getStoredSize(stack);
 		if (wc.x > 0)
-		{
 			lines.add(GuiText.StoredSize.getLocal() + ": " + wc.x + " x " + wc.y + " x " + wc.z);
-		}
 	}
 
 	@Override
@@ -90,12 +88,8 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 			}
 
 			if (w != null)
-			{
 				if (w.provider instanceof StorageWorldProvider)
-				{
 					return w;
-				}
-			}
 		}
 		return null;
 	}
@@ -112,9 +106,7 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 				return WorldSettings.getInstance().getStoredSize(dim);
 			}
 			else
-			{
 				return new WorldCoord(c.getInteger("sizeX"), c.getInteger("sizeY"), c.getInteger("sizeZ"));
-			}
 		}
 		return new WorldCoord(0, 0, 0);
 	}
@@ -127,9 +119,7 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 		{
 			NBTTagCompound info = (NBTTagCompound) w.getWorldInfo().getAdditionalProperty("storageCell");
 			if (info != null)
-			{
 				return new WorldCoord(info.getInteger("minX"), info.getInteger("minY"), info.getInteger("minZ"));
-			}
 		}
 		return new WorldCoord(0, 0, 0);
 	}
@@ -142,9 +132,7 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 		{
 			NBTTagCompound info = (NBTTagCompound) w.getWorldInfo().getAdditionalProperty("storageCell");
 			if (info != null)
-			{
 				return new WorldCoord(info.getInteger("maxX"), info.getInteger("maxY"), info.getInteger("maxZ"));
-			}
 		}
 		return new WorldCoord(0, 0, 0);
 	}
@@ -153,7 +141,7 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 	@Override
 	public TransitionResult doSpatialTransition(ItemStack is, World w, WorldCoord min, WorldCoord max, boolean doTransition)
 	{
-		return this.doSpatialTransition(FakePlayerUtils.getModFake(w), is, w, min, max, doTransition);
+		return this.doSpatialTransition(ModUtils.getModFake(w), is, w, min, max, doTransition);
 	}
 	// TODO gamerforEA code end
 
@@ -169,21 +157,18 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 		int floorBuffer = 64;
 		World destination = this.getWorld(is);
 
-		if ((scale.x == 0 && scale.y == 0 && scale.z == 0) || (scale.x == targetX && scale.y == targetY && scale.z == targetZ))
-		{
+		if (scale.x == 0 && scale.y == 0 && scale.z == 0 || scale.x == targetX && scale.y == targetY && scale.z == targetZ)
 			if (targetX <= maxSize && targetY <= maxSize && targetZ <= maxSize)
 			{
 				if (destination == null)
-				{
 					destination = this.createNewWorld(is);
-				}
 
-				StorageHelper.getInstance().swapRegions(player, w, destination, min.x + 1, min.y + 1, min.z + 1, 1, floorBuffer + 1, 1, targetX - 1, targetY - 1, targetZ - 1); // TODO gamerforEA add EntityPlayer parameter
+				// TODO gamerforEA add EntityPlayer parameter
+				StorageHelper.getInstance().swapRegions(player, w, destination, min.x + 1, min.y + 1, min.z + 1, 1, floorBuffer + 1, 1, targetX - 1, targetY - 1, targetZ - 1);
 				this.setStoredSize(is, targetX, targetY, targetZ);
 
 				return new TransitionResult(true, 0);
 			}
-		}
 
 		return new TransitionResult(false, 0);
 	}

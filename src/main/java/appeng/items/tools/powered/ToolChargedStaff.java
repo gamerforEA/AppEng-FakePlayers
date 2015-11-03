@@ -20,18 +20,18 @@ package appeng.items.tools.powered;
 
 import java.util.EnumSet;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.DamageSource;
+import com.gamerforea.eventhelper.util.EventUtils;
+import com.google.common.base.Optional;
+
 import appeng.core.AEConfig;
+import appeng.core.CommonHelper;
 import appeng.core.features.AEFeature;
 import appeng.core.sync.packets.PacketLightning;
 import appeng.items.tools.powered.powersink.AEBasePoweredItem;
-import appeng.server.ServerHelper;
 import appeng.util.Platform;
-
-import com.gamerforea.ae.FakePlayerUtils;
-import com.google.common.base.Optional;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.DamageSource;
 
 public class ToolChargedStaff extends AEBasePoweredItem
 {
@@ -47,19 +47,20 @@ public class ToolChargedStaff extends AEBasePoweredItem
 		if (this.getAECurrentPower(item) > 300D)
 		{
 			this.extractAEPower(item, 300D);
+
 			// TODO gamerforEA code start
-			if (FakePlayerUtils.cantDamage(hitter, target)) return false;
+			if (EventUtils.cantDamage(hitter, target))
+				return false;
 			// TODO gamerforEA code end
+
 			if (Platform.isServer())
-			{
 				for (int x = 0; x < 2; x++)
 				{
 					float dx = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minX);
 					float dy = (float) (Platform.getRandomFloat() * target.height + target.boundingBox.minY);
 					float dz = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minZ);
-					ServerHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32D, target.worldObj, new PacketLightning(dx, dy, dz));
+					CommonHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32D, target.worldObj, new PacketLightning(dx, dy, dz));
 				}
-			}
 			target.attackEntityFrom(DamageSource.magic, 6F);
 			return true;
 		}

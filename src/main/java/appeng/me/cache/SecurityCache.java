@@ -23,7 +23,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayer;
 import appeng.api.config.SecurityPermissions;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
@@ -36,6 +35,7 @@ import appeng.api.networking.security.ISecurityProvider;
 import appeng.core.WorldSettings;
 import appeng.me.GridNode;
 import cpw.mods.fml.common.FMLCommonHandler;
+import net.minecraft.entity.player.EntityPlayer;
 
 public class SecurityCache implements ISecurityGrid
 {
@@ -54,9 +54,7 @@ public class SecurityCache implements ISecurityGrid
 	{
 		this.playerPerms.clear();
 		if (this.securityProvider.isEmpty())
-		{
 			return;
-		}
 
 		this.securityProvider.get(0).readPermissions(this.playerPerms);
 	}
@@ -86,21 +84,15 @@ public class SecurityCache implements ISecurityGrid
 		long lastCode = this.securityKey;
 
 		if (this.securityProvider.size() == 1)
-		{
 			this.securityKey = this.securityProvider.get(0).getSecurityKey();
-		}
 		else
-		{
 			this.securityKey = -1;
-		}
 
 		if (lastCode != this.securityKey)
 		{
 			this.myGrid.postEvent(new MENetworkSecurityChange());
 			for (IGridNode n : this.myGrid.getNodes())
-			{
 				((GridNode) n).lastSecurityKey = this.securityKey;
-			}
 		}
 	}
 
@@ -113,9 +105,7 @@ public class SecurityCache implements ISecurityGrid
 			this.updateSecurityKey();
 		}
 		else
-		{
 			((GridNode) gridNode).lastSecurityKey = this.securityKey;
-		}
 	}
 
 	@Override
@@ -143,8 +133,10 @@ public class SecurityCache implements ISecurityGrid
 	public boolean hasPermission(EntityPlayer player, SecurityPermissions perm)
 	{
 		// TODO gamerforEA code start
-		if (FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152596_g(player.getGameProfile())) return true;
+		if (FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152596_g(player.getGameProfile()))
+			return true;
 		// TODO gamerforEA code end
+
 		return this.hasPermission(player == null ? -1 : WorldSettings.getInstance().getPlayerID(player.getGameProfile()), perm);
 	}
 
@@ -156,16 +148,10 @@ public class SecurityCache implements ISecurityGrid
 			EnumSet<SecurityPermissions> perms = this.playerPerms.get(playerID);
 
 			if (perms == null)
-			{
-				if (playerID == -1) // no default?
-				{
+				if (playerID == -1)
 					return false;
-				}
 				else
-				{
 					return this.hasPermission(-1, perm);
-				}
-			}
 
 			return perms.contains(perm);
 		}
@@ -176,9 +162,7 @@ public class SecurityCache implements ISecurityGrid
 	public int getOwner()
 	{
 		if (this.isAvailable())
-		{
 			return this.securityProvider.get(0).getOwner();
-		}
 		return -1;
 	}
 }

@@ -24,15 +24,20 @@ group= "appeng"
 archivesBaseName = "appliedenergistics2"
 
 minecraft {
-	version = "1.7.10-10.13.2.1291"
+	version = "1.7.10-10.13.4.1541-1.7.10"
 	runDir = "eclipse"
 }
 
 dependencies {
-	compile files('lib/CoFHLib-[1.7.10]1.0.1-151.jar', 'lib/industrialcraft-2-2.2.718-experimental-api.jar', 'lib/bukkit-api.jar', 'lib/WorldGuardEventWrapper.jar', 'lib/appliedenergistics2-rv2-stable-10-dev.jar', 'lib/buildcraft-7.0.11-api.jar')
+	compile fileTree(dir: 'lib', include: '*-dev.jar')
 }
 
 jar {
-	from zipTree('lib/appliedenergistics2-rv2-stable-10.jar')
+	manifest {
+		attributes 'FMLCorePlugin': 'appeng.transformer.AppEngCore'
+		attributes 'FMLCorePluginContainsFMLMod': 'true'
+    }
+
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from zipTree('lib/' + archivesBaseName + '-' + version + '.jar')
 }

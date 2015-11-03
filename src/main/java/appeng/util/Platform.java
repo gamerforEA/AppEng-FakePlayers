@@ -35,48 +35,8 @@ import java.util.WeakHashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.inventory.InventoryLargeChest;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagByte;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagDouble;
-import net.minecraft.nbt.NBTTagFloat;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.nbt.NBTTagString;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S21PacketChunkData;
-import net.minecraft.server.management.PlayerManager;
-import net.minecraft.stats.Achievement;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.StatCollector;
-import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.oredict.OreDictionary;
+import com.gamerforea.eventhelper.util.EventUtils;
+
 import appeng.api.AEApi;
 import appeng.api.config.AccessRestriction;
 import appeng.api.config.Actionable;
@@ -131,15 +91,54 @@ import appeng.util.item.OreHelper;
 import appeng.util.item.OreReference;
 import appeng.util.prioitylist.IPartitionList;
 import buildcraft.api.tools.IToolWrench;
-
-import com.gamerforea.ae.FakePlayerUtils;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.InventoryLargeChest;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagDouble;
+import net.minecraft.nbt.NBTTagFloat;
+import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S21PacketChunkData;
+import net.minecraft.server.management.PlayerManager;
+import net.minecraft.stats.Achievement;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.StatCollector;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * @author AlgorithmX2
@@ -183,7 +182,7 @@ public class Platform
 	 */
 	public static String formatPowerLong(long n, boolean isRate)
 	{
-		double p = ((double) n) / 100;
+		double p = (double) n / 100;
 
 		PowerUnits displayUnits = AEConfig.instance.selectedPowerUnit();
 		p = PowerUnits.AE.convertTo(displayUnits, p);
@@ -194,14 +193,10 @@ public class Platform
 		String unitName = displayUnits.name();
 
 		if (displayUnits == PowerUnits.WA)
-		{
 			unitName = "J";
-		}
 
 		if (displayUnits == PowerUnits.MK)
-		{
 			unitName = "J";
-		}
 
 		while (p > 1000 && offset < preFixes.length)
 		{
@@ -244,16 +239,10 @@ public class Platform
 	public static <T extends Enum> T rotateEnum(T ce, boolean backwards, EnumSet ValidOptions)
 	{
 		do
-		{
 			if (backwards)
-			{
 				ce = prevEnum(ce);
-			}
 			else
-			{
 				ce = nextEnum(ce);
-			}
-		}
 		while (!ValidOptions.contains(ce) || isNotValidSetting(ce));
 
 		return ce;
@@ -268,22 +257,16 @@ public class Platform
 
 		int pLoc = ce.ordinal() - 1;
 		if (pLoc < 0)
-		{
 			pLoc = valList.size() - 1;
-		}
 
 		if (pLoc < 0 || pLoc >= valList.size())
-		{
 			pLoc = 0;
-		}
 
 		int pos = 0;
 		for (Object g : valList)
 		{
 			if (pos == pLoc)
-			{
 				return (T) g;
-			}
 			pos++;
 		}
 
@@ -299,22 +282,16 @@ public class Platform
 
 		int pLoc = ce.ordinal() + 1;
 		if (pLoc >= valList.size())
-		{
 			pLoc = 0;
-		}
 
 		if (pLoc < 0 || pLoc >= valList.size())
-		{
 			pLoc = 0;
-		}
 
 		int pos = 0;
 		for (Object g : valList)
 		{
 			if (pos == pLoc)
-			{
 				return (T) g;
-			}
 			pos++;
 		}
 
@@ -324,19 +301,13 @@ public class Platform
 	private static boolean isNotValidSetting(Enum e)
 	{
 		if (e == SortOrder.INVTWEAKS && !AppEng.instance.isIntegrationEnabled(IntegrationType.InvTweaks))
-		{
 			return true;
-		}
 
 		if (e == SearchBoxMode.NEI_AUTOSEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI))
-		{
 			return true;
-		}
 
 		if (e == SearchBoxMode.NEI_MANUAL_SEARCH && !AppEng.instance.isIntegrationEnabled(IntegrationType.NEI))
-		{
 			return true;
-		}
 
 		return false;
 	}
@@ -344,9 +315,7 @@ public class Platform
 	public static void openGUI(@Nonnull EntityPlayer p, @Nullable TileEntity tile, @Nullable ForgeDirection side, @Nonnull GuiBridge type)
 	{
 		if (isClient())
-		{
 			return;
-		}
 
 		int x = (int) p.posX;
 		int y = (int) p.posY;
@@ -358,21 +327,13 @@ public class Platform
 			z = tile.zCoord;
 		}
 
-		if ((type.getType().isItem() && tile == null) || type.hasPermissions(tile, x, y, z, side, p))
-		{
+		if (type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
 			if (tile == null && type.getType() == GuiHostType.ITEM)
-			{
-				p.openGui(AppEng.instance, type.ordinal() << 4 | (0 << 3), p.getEntityWorld(), p.inventory.currentItem, 0, 0);
-			}
+				p.openGui(AppEng.instance, type.ordinal() << 4 | 0 << 3, p.getEntityWorld(), p.inventory.currentItem, 0, 0);
 			else if (tile == null || type.getType() == GuiHostType.ITEM)
-			{
-				p.openGui(AppEng.instance, type.ordinal() << 4 | (1 << 3), p.getEntityWorld(), x, y, z);
-			}
+				p.openGui(AppEng.instance, type.ordinal() << 4 | 1 << 3, p.getEntityWorld(), x, y, z);
 			else
-			{
-				p.openGui(AppEng.instance, type.ordinal() << 4 | (side.ordinal()), tile.getWorldObj(), x, y, z);
-			}
-		}
+				p.openGui(AppEng.instance, type.ordinal() << 4 | side.ordinal(), tile.getWorldObj(), x, y, z);
 	}
 
 	/*
@@ -386,8 +347,10 @@ public class Platform
 	public static boolean hasPermissions(DimensionalCoord dc, EntityPlayer player)
 	{
 		// TODO gamerforEA code start
-		if (FakePlayerUtils.cantBreak(player, dc.x, dc.y, dc.z)) return false;
+		if (EventUtils.cantBreak(player, dc.x, dc.y, dc.z))
+			return false;
 		// TODO gamerforEA code end
+
 		return dc.getWorld().canMineBlock(player, dc.x, dc.y, dc.z);
 	}
 
@@ -413,40 +376,26 @@ public class Platform
 	public static boolean sameStackStags(ItemStack a, ItemStack b)
 	{
 		if (a == null && b == null)
-		{
 			return true;
-		}
 		if (a == null || b == null)
-		{
 			return false;
-		}
 		if (a == b)
-		{
 			return true;
-		}
 
 		NBTTagCompound ta = a.getTagCompound();
 		NBTTagCompound tb = b.getTagCompound();
 		if (ta == tb)
-		{
 			return true;
-		}
 
-		if ((ta == null && tb == null) || (ta != null && ta.hasNoTags() && tb == null) || (tb != null && tb.hasNoTags() && ta == null) || (ta != null && ta.hasNoTags() && tb != null && tb.hasNoTags()))
-		{
+		if (ta == null && tb == null || ta != null && ta.hasNoTags() && tb == null || tb != null && tb.hasNoTags() && ta == null || ta != null && ta.hasNoTags() && tb != null && tb.hasNoTags())
 			return true;
-		}
 
-		if ((ta == null && tb != null) || (ta != null && tb == null))
-		{
+		if (ta == null && tb != null || ta != null && tb == null)
 			return false;
-		}
 
 		// if both tags are shared this is easy...
 		if (AESharedNBT.isShared(ta) && AESharedNBT.isShared(tb))
-		{
 			return ta == tb;
-		}
 
 		return NBTEqualityTest(ta, tb);
 	}
@@ -461,7 +410,6 @@ public class Platform
 		// same type?
 		byte id = A.getId();
 		if (id == B.getId())
-		{
 			switch (id)
 			{
 				case 10:
@@ -473,23 +421,17 @@ public class Platform
 					Set<String> cB = ctB.func_150296_c();
 
 					if (cA.size() != cB.size())
-					{
 						return false;
-					}
 
 					for (String name : cA)
 					{
 						NBTBase tag = ctA.getTag(name);
 						NBTBase aTag = ctB.getTag(name);
 						if (aTag == null)
-						{
 							return false;
-						}
 
 						if (!NBTEqualityTest(tag, aTag))
-						{
 							return false;
-						}
 					}
 
 					return true;
@@ -500,28 +442,20 @@ public class Platform
 					NBTTagList lA = (NBTTagList) A;
 					NBTTagList lB = (NBTTagList) B;
 					if (lA.tagCount() != lB.tagCount())
-					{
 						return false;
-					}
 
 					List<NBTBase> tag = tagList(lA);
 					List<NBTBase> aTag = tagList(lB);
 					if (tag.size() != aTag.size())
-					{
 						return false;
-					}
 
 					for (int x = 0; x < tag.size(); x++)
 					{
 						if (aTag.get(x) == null)
-						{
 							return false;
-						}
 
 						if (!NBTEqualityTest(tag.get(x), aTag.get(x)))
-						{
 							return false;
-						}
 					}
 
 					return true;
@@ -548,7 +482,6 @@ public class Platform
 				default:
 					return A.equals(B);
 			}
-		}
 
 		return false;
 	}
@@ -556,7 +489,6 @@ public class Platform
 	private static List<NBTBase> tagList(NBTTagList lB)
 	{
 		if (tagList == null)
-		{
 			try
 			{
 				tagList = lB.getClass().getDeclaredField("tagList");
@@ -573,7 +505,6 @@ public class Platform
 					AELog.error(z);
 				}
 			}
-		}
 
 		try
 		{
@@ -607,9 +538,7 @@ public class Platform
 				Set<String> cA = ctA.func_150296_c();
 
 				for (String name : cA)
-				{
 					hash += name.hashCode() ^ NBTOrderlessHash(ctA.getTag(name));
-				}
 
 				return hash;
 			}
@@ -621,9 +550,7 @@ public class Platform
 
 				List<NBTBase> l = tagList(lA);
 				for (int x = 0; x < l.size(); x++)
-				{
 					hash += ((Integer) x).hashCode() ^ NBTOrderlessHash(l.get(x));
-				}
 
 				return hash;
 			}
@@ -660,12 +587,8 @@ public class Platform
 		List<IRecipe> rl = cm.getRecipeList();
 
 		for (IRecipe r : rl)
-		{
 			if (r.matches(par1InventoryCrafting, par2World))
-			{
 				return r;
-			}
-		}
 
 		return null;
 	}
@@ -676,21 +599,16 @@ public class Platform
 		Block which = w.getBlock(x, y, z);
 
 		if (which != null)
-		{
 			out = which.getDrops(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
-		}
 
 		if (out == null)
-		{
 			return new ItemStack[0];
-		}
 		return out.toArray(new ItemStack[out.size()]);
 	}
 
 	public static ForgeDirection cycleOrientations(ForgeDirection dir, boolean upAndDown)
 	{
 		if (upAndDown)
-		{
 			switch (dir)
 			{
 				case NORTH:
@@ -708,9 +626,7 @@ public class Platform
 				case UNKNOWN:
 					return ForgeDirection.UNKNOWN;
 			}
-		}
 		else
-		{
 			switch (dir)
 			{
 				case UP:
@@ -728,7 +644,6 @@ public class Platform
 				case UNKNOWN:
 					return ForgeDirection.UNKNOWN;
 			}
-		}
 
 		return ForgeDirection.UNKNOWN;
 	}
@@ -741,9 +656,7 @@ public class Platform
 		NBTTagCompound compound = i.getTagCompound();
 
 		if (compound == null)
-		{
 			i.setTagCompound(compound = new NBTTagCompound());
-		}
 
 		return compound;
 	}
@@ -754,11 +667,8 @@ public class Platform
 	public static void spawnDrops(World w, int x, int y, int z, List<ItemStack> drops)
 	{
 		if (isServer())
-		{
 			for (ItemStack i : drops)
-			{
 				if (i != null)
-				{
 					if (i.stackSize > 0)
 					{
 						double offset_x = (getRandomInt() % 32 - 16) / 82;
@@ -767,9 +677,6 @@ public class Platform
 						EntityItem ei = new EntityItem(w, 0.5 + offset_x + x, 0.5 + offset_y + y, 0.2 + offset_z + z, i.copy());
 						w.spawnEntityInWorld(ei);
 					}
-				}
-			}
-		}
 	}
 
 	/*
@@ -798,20 +705,15 @@ public class Platform
 		{
 			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
 			if (!(teB instanceof TileEntityChest))
-			{
 				teB = null;
-			}
 		}
 
 		if (teB == null)
-		{
 			if (teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
 			{
 				teB = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
 				if (!(teB instanceof TileEntityChest))
-				{
 					teB = null;
-				}
 				else
 				{
 					TileEntityChest x = teA;
@@ -819,29 +721,21 @@ public class Platform
 					teB = x;
 				}
 			}
-		}
 
 		if (teB == null)
-		{
 			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
 			{
 				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
 				if (!(teB instanceof TileEntityChest))
-				{
 					teB = null;
-				}
 			}
-		}
 
 		if (teB == null)
-		{
 			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
 			{
 				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
 				if (!(teB instanceof TileEntityChest))
-				{
 					teB = null;
-				}
 				else
 				{
 					TileEntityChest x = teA;
@@ -849,12 +743,9 @@ public class Platform
 					teB = x;
 				}
 			}
-		}
 
 		if (teB == null)
-		{
 			return teA;
-		}
 
 		return new InventoryLargeChest("", teA, (TileEntityChest) teB);
 	}
@@ -871,12 +762,8 @@ public class Platform
 		}
 
 		for (ModContainer f : Loader.instance().getActiveModList())
-		{
 			if (f.getModId().equals(modid))
-			{
 				return true;
-			}
-		}
 		return false;
 	}
 
@@ -889,9 +776,7 @@ public class Platform
 	public static List getTooltip(Object o)
 	{
 		if (o == null)
-		{
 			return new ArrayList();
-		}
 
 		ItemStack itemStack = null;
 		if (o instanceof AEItemStack)
@@ -900,13 +785,9 @@ public class Platform
 			return ais.getToolTip();
 		}
 		else if (o instanceof ItemStack)
-		{
 			itemStack = (ItemStack) o;
-		}
 		else
-		{
 			return new ArrayList();
-		}
 
 		try
 		{
@@ -921,9 +802,7 @@ public class Platform
 	public static String getModId(IAEItemStack is)
 	{
 		if (is == null)
-		{
 			return "** Null";
-		}
 
 		String n = ((AEItemStack) is).getModID();
 		return n == null ? "** Null" : n;
@@ -932,9 +811,7 @@ public class Platform
 	public static String getItemDisplayName(Object o)
 	{
 		if (o == null)
-		{
 			return "** Null";
-		}
 
 		ItemStack itemStack = null;
 		if (o instanceof AEItemStack)
@@ -943,21 +820,15 @@ public class Platform
 			return n == null ? "** Null" : n;
 		}
 		else if (o instanceof ItemStack)
-		{
 			itemStack = (ItemStack) o;
-		}
 		else
-		{
 			return "**Invalid Object";
-		}
 
 		try
 		{
 			String name = itemStack.getDisplayName();
 			if (name == null || name.isEmpty())
-			{
 				name = itemStack.getItem().getUnlocalizedName(itemStack);
-			}
 			return name == null ? "** Null" : name;
 		}
 		catch (Exception errA)
@@ -977,26 +848,18 @@ public class Platform
 	public static boolean hasSpecialComparison(IAEItemStack willAdd)
 	{
 		if (willAdd == null)
-		{
 			return false;
-		}
 		IAETagCompound tag = willAdd.getTagCompound();
 		if (tag != null && tag.getSpecialComparison() != null)
-		{
 			return true;
-		}
 		return false;
 	}
 
 	public static boolean hasSpecialComparison(ItemStack willAdd)
 	{
 		if (AESharedNBT.isShared(willAdd.getTagCompound()))
-		{
 			if (((AESharedNBT) willAdd.getTagCompound()).getSpecialComparison() != null)
-			{
 				return true;
-			}
-		}
 		return false;
 	}
 
@@ -1005,8 +868,10 @@ public class Platform
 		if (eq != null)
 		{
 			// TODO gamerforEA code start
-			if (FakePlayerUtils.cantBreak(player, x, y, z)) return false;
+			if (EventUtils.cantBreak(player, x, y, z))
+				return false;
 			// TODO gamerforEA code end
+
 			try
 			{
 				if (eq.getItem() instanceof IToolWrench)
@@ -1032,29 +897,21 @@ public class Platform
 	public static boolean isChargeable(ItemStack i)
 	{
 		if (i == null)
-		{
 			return false;
-		}
 		Item it = i.getItem();
 		if (it instanceof IAEItemPowerStorage)
-		{
 			return ((IAEItemPowerStorage) it).getPowerFlow(i) != AccessRestriction.READ;
-		}
 		return false;
 	}
 
 	public static EntityPlayer getPlayer(WorldServer w)
 	{
 		if (w == null)
-		{
 			throw new InvalidParameterException("World is null.");
-		}
 
 		EntityPlayer wrp = FAKE_PLAYERS.get(w);
 		if (wrp != null)
-		{
 			return wrp;
-		}
 
 		EntityPlayer p = FakePlayerFactory.getMinecraft(w);
 		FAKE_PLAYERS.put(w, p);
@@ -1096,12 +953,8 @@ public class Platform
 	public static int findEmpty(Object[] l)
 	{
 		for (int x = 0; x < l.length; x++)
-		{
 			if (l[x] == null)
-			{
 				return x;
-			}
-		}
 		return -1;
 	}
 
@@ -1116,18 +969,14 @@ public class Platform
 		}
 		index--;
 		if (i.hasNext())
-		{
 			return i.next();
-		}
 		return null; // wtf?
 	}
 
 	public static ForgeDirection rotateAround(ForgeDirection forward, ForgeDirection axis)
 	{
 		if (axis == ForgeDirection.UNKNOWN || forward == ForgeDirection.UNKNOWN)
-		{
 			return forward;
-		}
 
 		switch (forward)
 		{
@@ -1243,19 +1092,13 @@ public class Platform
 	public static boolean isSameItemFuzzy(ItemStack a, ItemStack b, FuzzyMode Mode)
 	{
 		if (a == null && b == null)
-		{
 			return true;
-		}
 
 		if (a == null)
-		{
 			return false;
-		}
 
 		if (b == null)
-		{
 			return false;
-		}
 
 		/*
 		 * if ( a.itemID != 0 && b.itemID != 0 && a.isItemStackDamageable() && ! a.getHasSubtypes() && a.itemID ==
@@ -1264,52 +1107,40 @@ public class Platform
 
 		// test damageable items..
 		if (a.getItem() != null && b.getItem() != null && a.getItem().isDamageable() && a.getItem() == b.getItem())
-		{
 			try
 			{
 				if (Mode == FuzzyMode.IGNORE_ALL)
-				{
 					return true;
-				}
 				else if (Mode == FuzzyMode.PERCENT_99)
-				{
-					return (a.getItemDamageForDisplay() > 1) == (b.getItemDamageForDisplay() > 1);
-				}
+					return a.getItemDamageForDisplay() > 1 == b.getItemDamageForDisplay() > 1;
 				else
 				{
 					float APercentDamaged = 1.0f - (float) a.getItemDamageForDisplay() / (float) a.getMaxDamage();
 					float BPercentDamaged = 1.0f - (float) b.getItemDamageForDisplay() / (float) b.getMaxDamage();
 
-					return (APercentDamaged > Mode.breakPoint) == (BPercentDamaged > Mode.breakPoint);
+					return APercentDamaged > Mode.breakPoint == BPercentDamaged > Mode.breakPoint;
 				}
 			}
 			catch (Throwable e)
 			{
 				if (Mode == FuzzyMode.IGNORE_ALL)
-				{
 					return true;
-				}
 				else if (Mode == FuzzyMode.PERCENT_99)
-				{
-					return (a.getItemDamage() > 1) == (b.getItemDamage() > 1);
-				}
+					return a.getItemDamage() > 1 == b.getItemDamage() > 1;
 				else
 				{
 					float APercentDamaged = (float) a.getItemDamage() / (float) a.getMaxDamage();
 					float BPercentDamaged = (float) b.getItemDamage() / (float) b.getMaxDamage();
 
-					return (APercentDamaged > Mode.breakPoint) == (BPercentDamaged > Mode.breakPoint);
+					return APercentDamaged > Mode.breakPoint == BPercentDamaged > Mode.breakPoint;
 				}
 			}
-		}
 
 		OreReference aOR = OreHelper.INSTANCE.isOre(a);
 		OreReference bOR = OreHelper.INSTANCE.isOre(b);
 
 		if (OreHelper.INSTANCE.sameOre(aOR, bOR))
-		{
 			return true;
-		}
 
 		/*
 		 * // test ore dictionary.. int OreID = getOreID( a ); if ( OreID != -1 ) return OreID == getOreID( b );
@@ -1347,9 +1178,7 @@ public class Platform
 		double d3 = 5.0D;
 
 		if (player instanceof EntityPlayerMP)
-		{
 			d3 = ((EntityPlayerMP) player).theItemInWorldManager.getBlockReachDistance();
-		}
 		Vec3 vec31 = vec3.addVector(f7 * d3, f6 * d3, f8 * d3);
 		return new LookDirection(vec3, vec31);
 	}
@@ -1389,14 +1218,11 @@ public class Platform
 				Entity entity1 = (Entity) list.get(l);
 
 				if (!entity1.isDead && entity1 != p && !(entity1 instanceof EntityItem))
-				{
 					if (entity1.isEntityAlive())
 					{
 						// prevent killing / flying of mounts.
 						if (entity1.riddenByEntity == p)
-						{
 							continue;
-						}
 
 						f1 = 0.3F;
 						AxisAlignedBB boundingBox = entity1.boundingBox.expand(f1, f1, f1);
@@ -1413,7 +1239,6 @@ public class Platform
 							}
 						}
 					}
-				}
 			}
 		}
 
@@ -1427,13 +1252,9 @@ public class Platform
 		}
 
 		if (entity != null && pos != null && pos.hitVec.squareDistanceTo(vec) > closest)
-		{
 			pos = new MovingObjectPosition(entity);
-		}
 		else if (entity != null && pos == null)
-		{
 			pos = new MovingObjectPosition(entity);
-		}
 
 		return pos;
 	}
@@ -1451,9 +1272,7 @@ public class Platform
 
 		long retrieved = 0;
 		if (possible != null)
-		{
 			retrieved = possible.getStackSize();
-		}
 
 		double availablePower = energy.extractAEPower(retrieved, Actionable.SIMULATE, PowerMultiplier.CONFIG);
 
@@ -1467,9 +1286,7 @@ public class Platform
 			StackType ret = cell.extractItems(possible, Actionable.MODULATE, src);
 
 			if (ret != null && src.isPlayer())
-			{
 				Stats.ItemsExtracted.addToPlayer(((PlayerSource) src).player, (int) ret.getStackSize());
-			}
 
 			return ret;
 		}
@@ -1483,9 +1300,7 @@ public class Platform
 
 		long stored = input.getStackSize();
 		if (possible != null)
-		{
 			stored -= possible.getStackSize();
-		}
 
 		double availablePower = energy.extractAEPower(stored, Actionable.SIMULATE, PowerMultiplier.CONFIG);
 
@@ -1536,22 +1351,14 @@ public class Platform
 			IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.ITEMS);
 
 			if (myItems != null)
-			{
 				for (IAEItemStack is : myItems.getAvailableItems(itemChanges))
-				{
 					is.setStackSize(-is.getStackSize());
-				}
-			}
 
 			IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.FLUIDS);
 
 			if (myFluids != null)
-			{
 				for (IAEFluidStack is : myFluids.getAvailableItems(fluidChanges))
-				{
 					is.setStackSize(-is.getStackSize());
-				}
-			}
 		}
 
 		if (added != null)
@@ -1559,16 +1366,12 @@ public class Platform
 			IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.ITEMS);
 
 			if (myItems != null)
-			{
 				myItems.getAvailableItems(itemChanges);
-			}
 
 			IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.FLUIDS);
 
 			if (myFluids != null)
-			{
 				myFluids.getAvailableItems(fluidChanges);
-			}
 		}
 
 		gs.postAlterationOfStoredItems(StorageChannel.ITEMS, itemChanges, src);
@@ -1579,69 +1382,46 @@ public class Platform
 		LinkedList<T> changes = new LinkedList<T>();
 
 		for (T is : before)
-		{
 			is.setStackSize(-is.getStackSize());
-		}
 
 		for (T is : after)
-		{
 			before.add(is);
-		}
 
 		for (T is : before)
-		{
 			if (is.getStackSize() != 0)
-			{
 				changes.add(is);
-			}
-		}
 
 		if (!changes.isEmpty())
-		{
 			meMonitorPassthrough.postChange(null, changes, source);
-		}
 	}
 
 	public static int generateTileHash(TileEntity target)
 	{
 		if (target == null)
-		{
 			return 0;
-		}
 
 		int hash = target.hashCode();
 
 		if (target instanceof ITileStorageMonitorable)
-		{
 			return 0;
-		}
 		else if (target instanceof TileEntityChest)
 		{
 			TileEntityChest chest = (TileEntityChest) target;
 			chest.checkForAdjacentChests();
 			if (chest.adjacentChestZNeg != null)
-			{
 				hash ^= chest.adjacentChestZNeg.hashCode();
-			}
 			else if (chest.adjacentChestZPos != null)
-			{
 				hash ^= chest.adjacentChestZPos.hashCode();
-			}
 			else if (chest.adjacentChestXPos != null)
-			{
 				hash ^= chest.adjacentChestXPos.hashCode();
-			}
 			else if (chest.adjacentChestXNeg != null)
-			{
 				hash ^= chest.adjacentChestXNeg.hashCode();
-			}
 		}
 		else if (target instanceof IInventory)
 		{
 			hash ^= ((IInventory) target).getSizeInventory();
 
 			if (target instanceof ISidedInventory)
-			{
 				for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
 				{
 					int offset = 0;
@@ -1649,18 +1429,15 @@ public class Platform
 					int[] sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
 
 					if (sides == null)
-					{
 						return 0;
-					}
 
 					for (Integer Side : sides)
 					{
-						int c = (Side << (offset % 8)) ^ (1 << dir.ordinal());
+						int c = Side << offset % 8 ^ 1 << dir.ordinal();
 						offset++;
 						hash = c + (hash << 6) + (hash << 16) - hash;
 					}
 				}
-			}
 		}
 
 		return hash;
@@ -1669,37 +1446,25 @@ public class Platform
 	public static boolean securityCheck(GridNode a, GridNode b)
 	{
 		if (a.lastSecurityKey == -1 && b.lastSecurityKey == -1)
-		{
 			return false;
-		}
 		else if (a.lastSecurityKey == b.lastSecurityKey)
-		{
 			return false;
-		}
 
 		boolean a_isSecure = isPowered(a.getGrid()) && a.lastSecurityKey != -1;
 		boolean b_isSecure = isPowered(b.getGrid()) && b.lastSecurityKey != -1;
 
 		if (AEConfig.instance.isFeatureEnabled(AEFeature.LogSecurityAudits))
-		{
 			AELog.info("Audit: " + a_isSecure + " : " + b_isSecure + " @ " + a.lastSecurityKey + " vs " + b.lastSecurityKey + " & " + a.playerID + " vs " + b.playerID);
-		}
 
 		// can't do that son...
 		if (a_isSecure && b_isSecure)
-		{
 			return true;
-		}
 
 		if (!a_isSecure && b_isSecure)
-		{
 			return checkPlayerPermissions(b.getGrid(), a.playerID);
-		}
 
 		if (a_isSecure && !b_isSecure)
-		{
 			return checkPlayerPermissions(a.getGrid(), b.playerID);
-		}
 
 		return false;
 	}
@@ -1707,9 +1472,7 @@ public class Platform
 	private static boolean isPowered(IGrid grid)
 	{
 		if (grid == null)
-		{
 			return false;
-		}
 
 		IEnergyGrid eg = grid.getCache(IEnergyGrid.class);
 		return eg.isNetworkPowered();
@@ -1718,21 +1481,15 @@ public class Platform
 	private static boolean checkPlayerPermissions(IGrid grid, int playerID)
 	{
 		if (grid == null)
-		{
 			return false;
-		}
 
 		ISecurityGrid gs = grid.getCache(ISecurityGrid.class);
 
 		if (gs == null)
-		{
 			return false;
-		}
 
 		if (!gs.isAvailable())
-		{
 			return false;
-		}
 
 		return !gs.hasPermission(playerID, SecurityPermissions.BUILD);
 	}
@@ -1781,25 +1538,19 @@ public class Platform
 		try
 		{
 			if (src.isPlayer())
-			{
 				return gridProxy.getSecurity().hasPermission(((PlayerSource) src).player, SecurityPermissions.BUILD);
-			}
 			else if (src.isMachine())
 			{
 				IActionHost te = ((MachineSource) src).via;
 				IGridNode n = te.getActionableNode();
 				if (n == null)
-				{
 					return false;
-				}
 
 				int playerID = n.getPlayerID();
 				return gridProxy.getSecurity().hasPermission(playerID, SecurityPermissions.BUILD);
 			}
 			else
-			{
 				return false;
-			}
 		}
 		catch (GridAccessException gae)
 		{
@@ -1812,9 +1563,7 @@ public class Platform
 		if (energySrc.extractAEPower(1, Actionable.SIMULATE, PowerMultiplier.CONFIG) > 0.9)
 		{
 			if (providedTemplate == null)
-			{
 				return null;
-			}
 
 			AEItemStack ae_req = AEItemStack.create(providedTemplate);
 			ae_req.setStackSize(1);
@@ -1836,7 +1585,6 @@ public class Platform
 			boolean checkFuzzy = ae_req.isOre() || providedTemplate.getItemDamage() == OreDictionary.WILDCARD_VALUE || providedTemplate.hasTagCompound() || providedTemplate.isItemStackDamageable();
 
 			if (items != null && checkFuzzy)
-			{
 				for (IAEItemStack x : items)
 				{
 					ItemStack sh = x.getItemStack();
@@ -1862,7 +1610,6 @@ public class Platform
 						ci.setInventorySlotContents(slot, providedTemplate);
 					}
 				}
-			}
 		}
 		return null;
 	}
@@ -1872,9 +1619,7 @@ public class Platform
 		if (that != null && other != null && that.getItem() == other.getItem())
 		{
 			if (that.isItemStackDamageable())
-			{
 				return true;
-			}
 			return that.getItemDamage() == other.getItemDamage();
 		}
 		return false;
@@ -1893,9 +1638,7 @@ public class Platform
 	public static ItemStack getContainerItem(ItemStack stackInSlot)
 	{
 		if (stackInSlot == null)
-		{
 			return null;
-		}
 
 		Item i = stackInSlot.getItem();
 		if (i == null || !i.hasContainerItem(stackInSlot))
@@ -1910,9 +1653,7 @@ public class Platform
 
 		ItemStack ci = i.getContainerItem(stackInSlot.copy());
 		if (ci != null && ci.isItemStackDamageable() && ci.getItemDamage() == ci.getMaxDamage())
-		{
 			ci = null;
-		}
 
 		return ci;
 	}
@@ -1920,17 +1661,13 @@ public class Platform
 	public static void notifyBlocksOfNeighbors(World worldObj, int xCoord, int yCoord, int zCoord)
 	{
 		if (!worldObj.isRemote)
-		{
 			TickHandler.INSTANCE.addCallable(worldObj, new BlockUpdate(worldObj, xCoord, yCoord, zCoord));
-		}
 	}
 
 	public static boolean canRepair(AEFeature type, ItemStack a, ItemStack b)
 	{
 		if (b == null || a == null)
-		{
 			return false;
-		}
 
 		if (type == AEFeature.CertusQuartzTools)
 		{
@@ -1940,9 +1677,7 @@ public class Platform
 		}
 
 		if (type == AEFeature.NetherQuartzTools)
-		{
 			return Items.quartz == b.getItem();
-		}
 
 		return false;
 	}
@@ -1954,24 +1689,16 @@ public class Platform
 		for (ItemStack stack : is)
 		{
 			if (parts.cableGlass().sameAs(AEColor.Transparent, stack))
-			{
 				return stack;
-			}
 
 			if (parts.cableCovered().sameAs(AEColor.Transparent, stack))
-			{
 				return stack;
-			}
 
 			if (parts.cableSmart().sameAs(AEColor.Transparent, stack))
-			{
 				return stack;
-			}
 
 			if (parts.cableDense().sameAs(AEColor.Transparent, stack))
-			{
 				return stack;
-			}
 		}
 
 		return is;
@@ -1985,9 +1712,7 @@ public class Platform
 			PlayerManager pm = ws.getPlayerManager();
 
 			if (getOrCreateChunkWatcher == null)
-			{
 				getOrCreateChunkWatcher = ReflectionHelper.findMethod(PlayerManager.class, pm, new String[] { "getOrCreateChunkWatcher", "func_72690_a" }, int.class, int.class, boolean.class);
-			}
 
 			if (getOrCreateChunkWatcher != null)
 			{
@@ -1997,14 +1722,10 @@ public class Platform
 					Platform.playerInstance = playerInstance.getClass();
 
 					if (sendToAllPlayersWatchingChunk == null)
-					{
 						sendToAllPlayersWatchingChunk = ReflectionHelper.findMethod(Platform.playerInstance, playerInstance, new String[] { "sendToAllPlayersWatchingChunk", "func_151251_a" }, Packet.class);
-					}
 
 					if (sendToAllPlayersWatchingChunk != null)
-					{
 						sendToAllPlayersWatchingChunk.invoke(playerInstance, new S21PacketChunkData(c, false, verticalBits));
-					}
 				}
 			}
 		}
@@ -2019,17 +1740,17 @@ public class Platform
 		switch (side)
 		{
 			case DOWN:
-				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, (facadeThickness) / 16.0, 1.0);
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, facadeThickness / 16.0, 1.0);
 			case EAST:
 				return AxisAlignedBB.getBoundingBox((16.0 - facadeThickness) / 16.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 			case NORTH:
-				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, 1.0, (facadeThickness) / 16.0);
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, 1.0, facadeThickness / 16.0);
 			case SOUTH:
 				return AxisAlignedBB.getBoundingBox(0.0, 0.0, (16.0 - facadeThickness) / 16.0, 1.0, 1.0, 1.0);
 			case UP:
 				return AxisAlignedBB.getBoundingBox(0.0, (16.0 - facadeThickness) / 16.0, 0.0, 1.0, 1.0, 1.0);
 			case WEST:
-				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, (facadeThickness) / 16.0, 1.0, 1.0);
+				return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, facadeThickness / 16.0, 1.0, 1.0);
 			default:
 				break;
 		}
@@ -2046,9 +1767,7 @@ public class Platform
 	{
 		EntityPlayer p = AEApi.instance().registries().players().findPlayer(playerID);
 		if (p != null)
-		{
 			p.addStat(achievement, 1);
-		}
 	}
 
 	public static boolean isRecipePrioritized(ItemStack what)
