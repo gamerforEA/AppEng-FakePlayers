@@ -15,6 +15,12 @@ buildscript {
 	}
 }
 
+repositories {
+	flatDir {
+		dirs 'lib'
+	}
+}
+
 apply plugin: 'forge'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
@@ -24,12 +30,16 @@ group= "appeng"
 archivesBaseName = "appliedenergistics2"
 
 minecraft {
-	version = "1.7.10-10.13.4.1541-1.7.10"
+	version = "1.7.10-10.13.4.1614-1.7.10"
 	runDir = "eclipse"
 }
 
 dependencies {
-	compile fileTree(dir: 'lib', include: '*-dev.jar')
+	compile name: 'EventHelper-1.6-dev'
+	compile name: 'CoFHCore-[1.7.10]3.1.0-323-dev'
+	compile name: 'industrialcraft-2-2.2.814-experimental-dev'
+	compile name: 'buildcraft-7.1.14-dev'
+	compile name: archivesBaseName + '-' + version + '-dev'
 }
 
 jar {

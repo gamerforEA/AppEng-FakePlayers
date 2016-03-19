@@ -74,6 +74,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
@@ -178,7 +179,8 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 				}
 				else
 				{
-					if (Platform.isServer())
+					// TODO gamerforEA add condition [2]
+					if (Platform.isServer() && !(p instanceof FakePlayer))
 						p.addChatMessage(PlayerMessages.AmmoDepleted.get());
 					return item;
 				}
