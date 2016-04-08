@@ -18,8 +18,6 @@
 
 package appeng.tile.spatial;
 
-import java.util.concurrent.Callable;
-
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
 import com.gamerforea.eventhelper.fake.FakePlayerContainerTileEntity;
@@ -45,17 +43,19 @@ import appeng.tile.events.TileEventType;
 import appeng.tile.grid.AENetworkInvTile;
 import appeng.tile.inventory.AppEngInternalInventory;
 import appeng.tile.inventory.InvOperation;
+import appeng.util.IWorldCallable;
 import appeng.util.Platform;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileSpatialIOPort extends AENetworkInvTile implements Callable
+public class TileSpatialIOPort extends AENetworkInvTile implements IWorldCallable<Void>
 {
-	final int[] sides = { 0, 1 };
-	final AppEngInternalInventory inv = new AppEngInternalInventory(this, 2);
-	YesNo lastRedstoneState = YesNo.UNDECIDED;
+	private final int[] sides = { 0, 1 };
+	private final AppEngInternalInventory inv = new AppEngInternalInventory(this, 2);
+	private YesNo lastRedstoneState = YesNo.UNDECIDED;
 
 	// TODO gamerforEA code start
 	public final FakePlayerContainer fake = new FakePlayerContainerTileEntity(ModUtils.profile, this);
@@ -63,11 +63,11 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 
 	public TileSpatialIOPort()
 	{
-		this.gridProxy.setFlags(GridFlags.REQUIRE_CHANNEL);
+		this.getProxy().setFlags(GridFlags.REQUIRE_CHANNEL);
 	}
 
 	@TileEvent(TileEventType.WORLD_NBT_WRITE)
-	public void writeToNBT_TileSpatialIOPort(NBTTagCompound data)
+	public void writeToNBT_TileSpatialIOPort(final NBTTagCompound data)
 	{
 		data.setInteger("lastRedstoneState", this.lastRedstoneState.ordinal());
 
@@ -77,7 +77,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	}
 
 	@TileEvent(TileEventType.WORLD_NBT_READ)
-	public void readFromNBT_TileSpatialIOPort(NBTTagCompound data)
+	public void readFromNBT_TileSpatialIOPort(final NBTTagCompound data)
 	{
 		if (data.hasKey("lastRedstoneState"))
 			this.lastRedstoneState = YesNo.values()[data.getInteger("lastRedstoneState")];
@@ -97,7 +97,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 
 	public void updateRedstoneState()
 	{
-		YesNo currentState = this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord) ? YesNo.YES : YesNo.NO;
+		final YesNo currentState = this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord) ? YesNo.YES : YesNo.NO;
 		if (this.lastRedstoneState != currentState)
 		{
 			this.lastRedstoneState = currentState;
@@ -110,41 +110,41 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	{
 		if (Platform.isServer())
 		{
-			ItemStack cell = this.getStackInSlot(0);
+			final ItemStack cell = this.getStackInSlot(0);
 			if (this.isSpatialCell(cell))
 				TickHandler.INSTANCE.addCallable(null, this);// this needs to be cross world synced.
 		}
 	}
 
-	private boolean isSpatialCell(ItemStack cell)
+	private boolean isSpatialCell(final ItemStack cell)
 	{
 		if (cell != null && cell.getItem() instanceof ISpatialStorageCell)
 		{
-			ISpatialStorageCell sc = (ISpatialStorageCell) cell.getItem();
+			final ISpatialStorageCell sc = (ISpatialStorageCell) cell.getItem();
 			return sc != null && sc.isSpatialStorage(cell);
 		}
 		return false;
 	}
 
 	@Override
-	public Object call() throws Exception
+	public Void call(final World world) throws Exception
 	{
-		ItemStack cell = this.getStackInSlot(0);
+		final ItemStack cell = this.getStackInSlot(0);
 		if (this.isSpatialCell(cell) && this.getStackInSlot(1) == null)
 		{
-			IGrid gi = this.gridProxy.getGrid();
-			IEnergyGrid energy = this.gridProxy.getEnergy();
+			final IGrid gi = this.getProxy().getGrid();
+			final IEnergyGrid energy = this.getProxy().getEnergy();
 
-			ISpatialStorageCell sc = (ISpatialStorageCell) cell.getItem();
+			final ISpatialStorageCell sc = (ISpatialStorageCell) cell.getItem();
 
-			SpatialPylonCache spc = gi.getCache(ISpatialCache.class);
+			final SpatialPylonCache spc = gi.getCache(ISpatialCache.class);
 			if (spc.hasRegion() && spc.isValidRegion())
 			{
-				double req = spc.requiredPower();
-				double pr = energy.extractAEPower(req, Actionable.SIMULATE, PowerMultiplier.CONFIG);
+				final double req = spc.requiredPower();
+				final double pr = energy.extractAEPower(req, Actionable.SIMULATE, PowerMultiplier.CONFIG);
 				if (Math.abs(pr - req) < req * 0.001)
 				{
-					MENetworkEvent res = gi.postEvent(new MENetworkSpatialEvent(this, req));
+					final MENetworkEvent res = gi.postEvent(new MENetworkSpatialEvent(this, req));
 					if (!res.isCanceled())
 					{
 						// TODO gamerforEA code replace, old code: TransitionResult tr = sc.doSpatialTransition(cell, this.worldObj, spc.getMin(), spc.getMax(), true);
@@ -170,7 +170,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	}
 
 	@Override
-	public AECableType getCableConnectionType(ForgeDirection dir)
+	public AECableType getCableConnectionType(final ForgeDirection dir)
 	{
 		return AECableType.SMART;
 	}
@@ -188,30 +188,30 @@ public class TileSpatialIOPort extends AENetworkInvTile implements Callable
 	}
 
 	@Override
-	public boolean isItemValidForSlot(int i, ItemStack itemstack)
+	public boolean isItemValidForSlot(final int i, final ItemStack itemstack)
 	{
 		return i == 0 && this.isSpatialCell(itemstack);
 	}
 
 	@Override
-	public void onChangeInventory(IInventory inv, int slot, InvOperation mc, ItemStack removed, ItemStack added)
+	public void onChangeInventory(final IInventory inv, final int slot, final InvOperation mc, final ItemStack removed, final ItemStack added)
 	{
 	}
 
 	@Override
-	public boolean canInsertItem(int slotIndex, ItemStack insertingItem, int side)
+	public boolean canInsertItem(final int slotIndex, final ItemStack insertingItem, final int side)
 	{
 		return this.isItemValidForSlot(slotIndex, insertingItem);
 	}
 
 	@Override
-	public boolean canExtractItem(int slotIndex, ItemStack extractedItem, int side)
+	public boolean canExtractItem(final int slotIndex, final ItemStack extractedItem, final int side)
 	{
 		return slotIndex == 1;
 	}
 
 	@Override
-	public int[] getAccessibleSlotsBySide(ForgeDirection side)
+	public int[] getAccessibleSlotsBySide(final ForgeDirection side)
 	{
 		return this.sides;
 	}

@@ -1,6 +1,6 @@
 /*
  * This file is part of Applied Energistics 2.
- * Copyright (c) 2013 - 2014, AlgorithmX2, All rights reserved.
+ * Copyright (c) 2013 - 2015, AlgorithmX2, All rights reserved.
  *
  * Applied Energistics 2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,6 @@
 
 package appeng.spatial;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import com.gamerforea.ae.ModUtils;
@@ -42,9 +41,7 @@ import net.minecraftforge.common.util.FakePlayer;
 
 public class StorageHelper
 {
-
 	private static StorageHelper instance;
-	Method onEntityRemoved;
 
 	public static StorageHelper getInstance()
 	{
@@ -57,15 +54,15 @@ public class StorageHelper
 	 * Mostly from dimensional doors.. which mostly got it form X-Comp.
 	 *
 	 * @param entity to be teleported entity
-	 * @param link   destination
+	 * @param link destination
 	 *
 	 * @return teleported entity
 	 */
-	public Entity teleportEntity(Entity entity, TelDestination link)
+	private Entity teleportEntity(Entity entity, final TelDestination link)
 	{
-		WorldServer oldWorld;
-		WorldServer newWorld;
-		EntityPlayerMP player;
+		final WorldServer oldWorld;
+		final WorldServer newWorld;
+		final EntityPlayerMP player;
 
 		try
 		{
@@ -73,7 +70,7 @@ public class StorageHelper
 			newWorld = (WorldServer) link.dim;
 			player = entity instanceof EntityPlayerMP ? (EntityPlayerMP) entity : null;
 		}
-		catch (Throwable e)
+		catch (final Throwable e)
 		{
 			return entity;
 		}
@@ -98,7 +95,7 @@ public class StorageHelper
 		// load the chunk!
 		WorldServer.class.cast(newWorld).getChunkProvider().loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
 
-		boolean diffDestination = newWorld != oldWorld;
+		final boolean diffDestination = newWorld != oldWorld;
 		if (diffDestination)
 			if (player != null)
 			{
@@ -109,8 +106,8 @@ public class StorageHelper
 			}
 			else
 			{
-				int entX = entity.chunkCoordX;
-				int entZ = entity.chunkCoordZ;
+				final int entX = entity.chunkCoordX;
+				final int entZ = entity.chunkCoordZ;
 
 				if (entity.addedToChunk && oldWorld.getChunkProvider().chunkExists(entX, entZ))
 				{
@@ -118,7 +115,7 @@ public class StorageHelper
 					oldWorld.getChunkFromChunkCoords(entX, entZ).isModified = true;
 				}
 
-				Entity newEntity = EntityList.createEntityByName(EntityList.getEntityString(entity), newWorld);
+				final Entity newEntity = EntityList.createEntityByName(EntityList.getEntityString(entity), newWorld);
 				if (newEntity != null)
 				{
 					entity.lastTickPosX = entity.prevPosX = entity.posX = link.x;
@@ -127,7 +124,7 @@ public class StorageHelper
 
 					if (entity instanceof EntityHanging)
 					{
-						EntityHanging h = (EntityHanging) entity;
+						final EntityHanging h = (EntityHanging) entity;
 						h.field_146063_b += link.xOff;
 						h.field_146064_c += link.yOff;
 						h.field_146062_d += link.zOff;
@@ -162,7 +159,7 @@ public class StorageHelper
 		return entity;
 	}
 
-	public void transverseEdges(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, ISpatialVisitor visitor)
+	private void transverseEdges(final int minX, final int minY, final int minZ, final int maxX, final int maxY, final int maxZ, final ISpatialVisitor visitor)
 	{
 		for (int y = minY; y < maxY; y++)
 			for (int z = minZ; z < maxZ; z++)
@@ -187,41 +184,40 @@ public class StorageHelper
 	}
 
 	// TODO gamerforEA code start
-	public void swapRegions(World src, World dst, int x, int y, int z, int i, int j, int k, int scaleX, int scaleY, int scaleZ)
+	public void swapRegions(final World src, final World dst, final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
 	{
 		this.swapRegions(ModUtils.getModFake(src), src, dst, x, y, z, i, j, k, scaleX, scaleY, scaleZ);
 	}
 	// TODO gamerforEA code end
 
-	/**
-	 * @param src - over world
-	 * @param dst - storage cell
-	 */
-	public void swapRegions(FakePlayer player, World src, World dst, int x, int y, int z, int i, int j, int k, int scaleX, int scaleY, int scaleZ) // TODO gamerforEA add EntityPlayer parameter
+	// TODO gamerforEA add EntityPlayer parameter
+	public void swapRegions(final FakePlayer player, final World src /** over world **/
+	, final World dst/** storage cell **/
+	,final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
 	{
 		// TODO gamerforEA code start
-		World playerWorld = player.worldObj;
+		final World playerWorld = player.worldObj;
 		// TODO gamerforEA code end
 
-		for (Block matrixFrameBlock : AEApi.instance().definitions().blocks().matrixFrame().maybeBlock().asSet())
+		for (final Block matrixFrameBlock : AEApi.instance().definitions().blocks().matrixFrame().maybeBlock().asSet())
 			this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new WrapInMatrixFrame(matrixFrameBlock, 0, dst));
 
-		AxisAlignedBB srcBox = AxisAlignedBB.getBoundingBox(x, y, z, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1);
-		AxisAlignedBB dstBox = AxisAlignedBB.getBoundingBox(i, j, k, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1);
+		final AxisAlignedBB srcBox = AxisAlignedBB.getBoundingBox(x, y, z, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1);
+		final AxisAlignedBB dstBox = AxisAlignedBB.getBoundingBox(i, j, k, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1);
 
 		// TODO gamerforEA add EntityPlayer parameter
-		CachedPlane cDst = new CachedPlane(player, dst, i, j, k, i + scaleX, j + scaleY, k + scaleZ);
+		final CachedPlane cDst = new CachedPlane(player, dst, i, j, k, i + scaleX, j + scaleY, k + scaleZ);
 		// TODO gamerforEA add EntityPlayer parameter
-		CachedPlane cSrc = new CachedPlane(player, src, x, y, z, x + scaleX, y + scaleY, z + scaleZ);
+		final CachedPlane cSrc = new CachedPlane(player, src, x, y, z, x + scaleX, y + scaleY, z + scaleZ);
 
 		// do nearly all the work... swaps blocks, tiles, and block ticks
 		// TODO gamerforEA add EntityPlayer parameter
-		cSrc.Swap(player, cDst);
+		cSrc.swap(player, cDst);
 
-		List<Entity> srcE = src.getEntitiesWithinAABB(Entity.class, srcBox);
-		List<Entity> dstE = dst.getEntitiesWithinAABB(Entity.class, dstBox);
+		final List<Entity> srcE = src.getEntitiesWithinAABB(Entity.class, srcBox);
+		final List<Entity> dstE = dst.getEntitiesWithinAABB(Entity.class, dstBox);
 
-		for (Entity e : dstE)
+		for (final Entity e : dstE)
 		{
 			// TODO gamerforEA code start
 			if (e instanceof Entity)
@@ -234,7 +230,7 @@ public class StorageHelper
 			this.teleportEntity(e, new TelDestination(src, srcBox, e.posX, e.posY, e.posZ, -i + x, -j + y, -k + z));
 		}
 
-		for (Entity e : srcE)
+		for (final Entity e : srcE)
 		{
 			// TODO gamerforEA code start
 			if (e instanceof Entity)
@@ -251,11 +247,11 @@ public class StorageHelper
 		player.worldObj = playerWorld;
 		// TODO gamerforEA code end
 
-		for (WorldCoord wc : cDst.updates)
-			cDst.world.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR);
+		for (final WorldCoord wc : cDst.getUpdates())
+			cDst.getWorld().notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
 
-		for (WorldCoord wc : cSrc.updates)
-			cSrc.world.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR);
+		for (final WorldCoord wc : cSrc.getUpdates())
+			cSrc.getWorld().notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
 
 		this.transverseEdges(x - 1, y - 1, z - 1, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1, new TriggerUpdates(src));
 		this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new TriggerUpdates(dst));
@@ -264,38 +260,38 @@ public class StorageHelper
 		this.transverseEdges(i, j, k, i + scaleX, j + scaleY, k + scaleZ, new TriggerUpdates(dst));
 
 		/*
-		 * IChunkProvider cp = destination.getChunkProvider(); if ( cp instanceof ChunkProviderServer ) { ChunkProviderServer
+		 * IChunkProvider cp = destination.getChunkProvider(); if ( cp instanceof ChunkProviderServer ) {
+		 * ChunkProviderServer
 		 * srv = (ChunkProviderServer) cp; srv.unloadAllChunks(); }
-		 *
 		 * cp.unloadQueuedChunks();
 		 */
 	}
 
-	static class TriggerUpdates implements ISpatialVisitor
+	private static class TriggerUpdates implements ISpatialVisitor
 	{
-		final World dst;
+		private final World dst;
 
-		public TriggerUpdates(World dst2)
+		public TriggerUpdates(final World dst2)
 		{
 			this.dst = dst2;
 		}
 
 		@Override
-		public void visit(int x, int y, int z)
+		public void visit(final int x, final int y, final int z)
 		{
-			Block blk = this.dst.getBlock(x, y, z);
-			blk.onNeighborBlockChange(this.dst, x, y, z, Platform.AIR);
+			final Block blk = this.dst.getBlock(x, y, z);
+			blk.onNeighborBlockChange(this.dst, x, y, z, Platform.AIR_BLOCK);
 		}
 	}
 
-	static class WrapInMatrixFrame implements ISpatialVisitor
+	private static class WrapInMatrixFrame implements ISpatialVisitor
 	{
 
-		final World dst;
-		final Block blkID;
-		final int Meta;
+		private final World dst;
+		private final Block blkID;
+		private final int Meta;
 
-		public WrapInMatrixFrame(Block blockID, int metaData, World dst2)
+		public WrapInMatrixFrame(final Block blockID, final int metaData, final World dst2)
 		{
 			this.dst = dst2;
 			this.blkID = blockID;
@@ -303,67 +299,65 @@ public class StorageHelper
 		}
 
 		@Override
-		public void visit(int x, int y, int z)
+		public void visit(final int x, final int y, final int z)
 		{
 			this.dst.setBlock(x, y, z, this.blkID, this.Meta, 3);
 		}
 	}
 
-	static class TelDestination
+	private static class TelDestination
 	{
+		private final World dim;
+		private final double x;
+		private final double y;
+		private final double z;
+		private final int xOff;
+		private final int yOff;
+		private final int zOff;
 
-		final World dim;
-		final double x;
-		final double y;
-		final double z;
-		final int xOff;
-		final int yOff;
-		final int zOff;
-
-		TelDestination(World _dim, AxisAlignedBB srcBox, double _x, double _y, double _z, int tileX, int tileY, int tileZ)
+		TelDestination(final World dimension, final AxisAlignedBB srcBox, final double x, final double y, final double z, final int tileX, final int tileY, final int tileZ)
 		{
-			this.dim = _dim;
-			this.x = Math.min(srcBox.maxX - 0.5, Math.max(srcBox.minX + 0.5, _x + tileX));
-			this.y = Math.min(srcBox.maxY - 0.5, Math.max(srcBox.minY + 0.5, _y + tileY));
-			this.z = Math.min(srcBox.maxZ - 0.5, Math.max(srcBox.minZ + 0.5, _z + tileZ));
+			this.dim = dimension;
+			this.x = Math.min(srcBox.maxX - 0.5, Math.max(srcBox.minX + 0.5, x + tileX));
+			this.y = Math.min(srcBox.maxY - 0.5, Math.max(srcBox.minY + 0.5, y + tileY));
+			this.z = Math.min(srcBox.maxZ - 0.5, Math.max(srcBox.minZ + 0.5, z + tileZ));
 			this.xOff = tileX;
 			this.yOff = tileY;
 			this.zOff = tileZ;
 		}
 	}
 
-	static class METeleporter extends Teleporter
+	private static class METeleporter extends Teleporter
 	{
+		private final TelDestination destination;
 
-		final TelDestination destination;
-
-		public METeleporter(WorldServer par1WorldServer, TelDestination d)
+		public METeleporter(final WorldServer par1WorldServer, final TelDestination d)
 		{
 			super(par1WorldServer);
 			this.destination = d;
 		}
 
 		@Override
-		public void placeInPortal(Entity par1Entity, double par2, double par4, double par6, float par8)
+		public void placeInPortal(final Entity par1Entity, final double par2, final double par4, final double par6, final float par8)
 		{
 			par1Entity.setLocationAndAngles(this.destination.x, this.destination.y, this.destination.z, par1Entity.rotationYaw, 0.0F);
 			par1Entity.motionX = par1Entity.motionY = par1Entity.motionZ = 0.0D;
 		}
 
 		@Override
-		public boolean placeInExistingPortal(Entity par1Entity, double par2, double par4, double par6, float par8)
+		public boolean placeInExistingPortal(final Entity par1Entity, final double par2, final double par4, final double par6, final float par8)
 		{
 			return false;
 		}
 
 		@Override
-		public boolean makePortal(Entity par1Entity)
+		public boolean makePortal(final Entity par1Entity)
 		{
 			return false;
 		}
 
 		@Override
-		public void removeStalePortalLocations(long par1)
+		public void removeStalePortalLocations(final long par1)
 		{
 
 		}

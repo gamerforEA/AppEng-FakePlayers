@@ -13,7 +13,7 @@ public final class ModUtils
 	public static final GameProfile profile = new GameProfile(UUID.fromString("2c6e6150-dcf8-4e8c-a6e0-7ea1935eb0cf"), "[AppEng]");
 	private static FakePlayer player = null;
 
-	public static final FakePlayer getModFake(World world)
+	public static final FakePlayer getModFake(final World world)
 	{
 		if (player == null)
 			player = FastUtils.getFake(world, profile);

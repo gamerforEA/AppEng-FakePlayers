@@ -11,13 +11,13 @@ public final class FakePlayerContainerUpgradeableHost extends FakePlayerContaine
 {
 	private final IUpgradeableHost host;
 
-	public FakePlayerContainerUpgradeableHost(FakePlayer modFake, IUpgradeableHost host)
+	public FakePlayerContainerUpgradeableHost(final FakePlayer modFake, final IUpgradeableHost host)
 	{
 		super(modFake);
 		this.host = host;
 	}
 
-	public FakePlayerContainerUpgradeableHost(GameProfile modFakeProfile, IUpgradeableHost host)
+	public FakePlayerContainerUpgradeableHost(final GameProfile modFakeProfile, final IUpgradeableHost host)
 	{
 		super(modFakeProfile);
 		this.host = host;

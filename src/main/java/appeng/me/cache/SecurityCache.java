@@ -1,6 +1,6 @@
 /*
  * This file is part of Applied Energistics 2.
- * Copyright (c) 2013 - 2014, AlgorithmX2, All rights reserved.
+ * Copyright (c) 2013 - 2015, AlgorithmX2, All rights reserved.
  *
  * Applied Energistics 2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+import com.mojang.authlib.GameProfile;
+
 import appeng.api.config.SecurityPermissions;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
@@ -32,25 +35,25 @@ import appeng.api.networking.events.MENetworkEventSubscribe;
 import appeng.api.networking.events.MENetworkSecurityChange;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.ISecurityProvider;
-import appeng.core.WorldSettings;
+import appeng.core.worlddata.WorldData;
 import appeng.me.GridNode;
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.player.EntityPlayer;
 
 public class SecurityCache implements ISecurityGrid
 {
-	public final IGrid myGrid;
+	private final IGrid myGrid;
 	private final List<ISecurityProvider> securityProvider = new ArrayList<ISecurityProvider>();
 	private final HashMap<Integer, EnumSet<SecurityPermissions>> playerPerms = new HashMap<Integer, EnumSet<SecurityPermissions>>();
 	private long securityKey = -1;
 
-	public SecurityCache(IGrid g)
+	public SecurityCache(final IGrid g)
 	{
 		this.myGrid = g;
 	}
 
 	@MENetworkEventSubscribe
-	public void updatePermissions(MENetworkSecurityChange ev)
+	public void updatePermissions(final MENetworkSecurityChange ev)
 	{
 		this.playerPerms.clear();
 		if (this.securityProvider.isEmpty())
@@ -70,7 +73,7 @@ public class SecurityCache implements ISecurityGrid
 	}
 
 	@Override
-	public void removeNode(IGridNode gridNode, IGridHost machine)
+	public void removeNode(final IGridNode gridNode, final IGridHost machine)
 	{
 		if (machine instanceof ISecurityProvider)
 		{
@@ -81,7 +84,7 @@ public class SecurityCache implements ISecurityGrid
 
 	private void updateSecurityKey()
 	{
-		long lastCode = this.securityKey;
+		final long lastCode = this.securityKey;
 
 		if (this.securityProvider.size() == 1)
 			this.securityKey = this.securityProvider.get(0).getSecurityKey();
@@ -90,14 +93,14 @@ public class SecurityCache implements ISecurityGrid
 
 		if (lastCode != this.securityKey)
 		{
-			this.myGrid.postEvent(new MENetworkSecurityChange());
-			for (IGridNode n : this.myGrid.getNodes())
-				((GridNode) n).lastSecurityKey = this.securityKey;
+			this.getGrid().postEvent(new MENetworkSecurityChange());
+			for (final IGridNode n : this.getGrid().getNodes())
+				((GridNode) n).setLastSecurityKey(this.securityKey);
 		}
 	}
 
 	@Override
-	public void addNode(IGridNode gridNode, IGridHost machine)
+	public void addNode(final IGridNode gridNode, final IGridHost machine)
 	{
 		if (machine instanceof ISecurityProvider)
 		{
@@ -105,21 +108,21 @@ public class SecurityCache implements ISecurityGrid
 			this.updateSecurityKey();
 		}
 		else
-			((GridNode) gridNode).lastSecurityKey = this.securityKey;
+			((GridNode) gridNode).setLastSecurityKey(this.securityKey);
 	}
 
 	@Override
-	public void onSplit(IGridStorage destinationStorage)
+	public void onSplit(final IGridStorage destinationStorage)
 	{
 	}
 
 	@Override
-	public void onJoin(IGridStorage sourceStorage)
+	public void onJoin(final IGridStorage sourceStorage)
 	{
 	}
 
 	@Override
-	public void populateGridStorage(IGridStorage destinationStorage)
+	public void populateGridStorage(final IGridStorage destinationStorage)
 	{
 	}
 
@@ -130,22 +133,29 @@ public class SecurityCache implements ISecurityGrid
 	}
 
 	@Override
-	public boolean hasPermission(EntityPlayer player, SecurityPermissions perm)
+	public boolean hasPermission(final EntityPlayer player, final SecurityPermissions perm)
 	{
+		Preconditions.checkNotNull(player);
+		Preconditions.checkNotNull(perm);
+
+		final GameProfile profile = player.getGameProfile();
+
 		// TODO gamerforEA code start
-		if (FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152596_g(player.getGameProfile()))
+		if (FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152596_g(profile))
 			return true;
 		// TODO gamerforEA code end
 
-		return this.hasPermission(player == null ? -1 : WorldSettings.getInstance().getPlayerID(player.getGameProfile()), perm);
+		final int playerID = WorldData.instance().playerData().getPlayerID(profile);
+
+		return this.hasPermission(playerID, perm);
 	}
 
 	@Override
-	public boolean hasPermission(int playerID, SecurityPermissions perm)
+	public boolean hasPermission(final int playerID, final SecurityPermissions perm)
 	{
 		if (this.isAvailable())
 		{
-			EnumSet<SecurityPermissions> perms = this.playerPerms.get(playerID);
+			final EnumSet<SecurityPermissions> perms = this.playerPerms.get(playerID);
 
 			if (perms == null)
 				if (playerID == -1)
@@ -164,5 +174,10 @@ public class SecurityCache implements ISecurityGrid
 		if (this.isAvailable())
 			return this.securityProvider.get(0).getOwner();
 		return -1;
+	}
+
+	public IGrid getGrid()
+	{
+		return this.myGrid;
 	}
 }

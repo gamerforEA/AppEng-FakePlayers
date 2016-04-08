@@ -33,20 +33,14 @@ import net.minecraft.world.World;
 
 public abstract class PartSharedItemBus extends PartUpgradeable implements IGridTickable
 {
+	private final AppEngInternalAEInventory config = new AppEngInternalAEInventory(this, 9);
+	private int adaptorHash = 0;
+	private InventoryAdaptor adaptor;
+	private boolean lastRedstone = false;
 
-	final AppEngInternalAEInventory config = new AppEngInternalAEInventory(this, 9);
-	int adaptorHash = 0;
-	InventoryAdaptor adaptor;
-	boolean lastRedstone = false;
-
-	public PartSharedItemBus(ItemStack is)
+	public PartSharedItemBus(final ItemStack is)
 	{
 		super(is);
-	}
-
-	protected int availableSlots()
-	{
-		return Math.min(1 + this.getInstalledUpgrades(Upgrades.CAPACITY) * 4, this.config.getSizeInventory());
 	}
 
 	@Override
@@ -56,79 +50,33 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	}
 
 	@Override
-	public void readFromNBT(net.minecraft.nbt.NBTTagCompound extra)
+	public void readFromNBT(final net.minecraft.nbt.NBTTagCompound extra)
 	{
 		super.readFromNBT(extra);
-		this.config.readFromNBT(extra, "config");
+		this.getConfig().readFromNBT(extra, "config");
 	}
 
 	@Override
-	public void writeToNBT(net.minecraft.nbt.NBTTagCompound extra)
+	public void writeToNBT(final net.minecraft.nbt.NBTTagCompound extra)
 	{
 		super.writeToNBT(extra);
-		this.config.writeToNBT(extra, "config");
+		this.getConfig().writeToNBT(extra, "config");
 	}
 
 	@Override
-	public IInventory getInventoryByName(String name)
+	public IInventory getInventoryByName(final String name)
 	{
 		if (name.equals("config"))
-			return this.config;
+			return this.getConfig();
 
 		return super.getInventoryByName(name);
-	}
-
-	private void updateState()
-	{
-		try
-		{
-			if (!this.isSleeping())
-				this.proxy.getTick().wakeDevice(this.proxy.getNode());
-			else
-				this.proxy.getTick().sleepDevice(this.proxy.getNode());
-		}
-		catch (GridAccessException e)
-		{
-			// :P
-		}
-	}
-
-	InventoryAdaptor getHandler()
-	{
-		TileEntity self = this.getHost().getTile();
-		TileEntity target = this.getTileEntity(self, self.xCoord + this.side.offsetX, self.yCoord + this.side.offsetY, self.zCoord + this.side.offsetZ);
-
-		// TODO gamerforEA code start (fix ExNihilo crash)
-		if (target != null && target.getClass().getName().equals("exnihilo.blocks.tileentities.TileEntityBarrel"))
-			return null;
-		// TODO gamerforEA code end
-
-		int newAdaptorHash = Platform.generateTileHash(target);
-
-		if (this.adaptorHash == newAdaptorHash && newAdaptorHash != 0)
-			return this.adaptor;
-
-		this.adaptorHash = newAdaptorHash;
-		this.adaptor = InventoryAdaptor.getAdaptor(target, this.side.getOpposite());
-
-		return this.adaptor;
-	}
-
-	private TileEntity getTileEntity(TileEntity self, int x, int y, int z)
-	{
-		World w = self.getWorldObj();
-
-		if (w.getChunkProvider().chunkExists(x >> 4, z >> 4))
-			return w.getTileEntity(x, y, z);
-
-		return null;
 	}
 
 	@Override
 	public void onNeighborChanged()
 	{
 		this.updateState();
-		if (this.lastRedstone != this.host.hasRedstone(this.side))
+		if (this.lastRedstone != this.getHost().hasRedstone(this.getSide()))
 		{
 			this.lastRedstone = !this.lastRedstone;
 			if (this.lastRedstone && this.getRSMode() == RedstoneMode.SIGNAL_PULSE)
@@ -136,5 +84,96 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 		}
 	}
 
-	abstract TickRateModulation doBusWork();
+	protected InventoryAdaptor getHandler()
+	{
+		final TileEntity self = this.getHost().getTile();
+		final TileEntity target = this.getTileEntity(self, self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
+
+		// TODO gamerforEA code start (fix ExNihilo crash)
+		if (target != null && target.getClass().getName().equals("exnihilo.blocks.tileentities.TileEntityBarrel"))
+			return null;
+		// TODO gamerforEA code end
+
+		final int newAdaptorHash = Platform.generateTileHash(target);
+
+		if (this.adaptorHash == newAdaptorHash && newAdaptorHash != 0)
+			return this.adaptor;
+
+		this.adaptorHash = newAdaptorHash;
+		this.adaptor = InventoryAdaptor.getAdaptor(target, this.getSide().getOpposite());
+
+		return this.adaptor;
+	}
+
+	protected int availableSlots()
+	{
+		return Math.min(1 + this.getInstalledUpgrades(Upgrades.CAPACITY) * 4, this.getConfig().getSizeInventory());
+	}
+
+	protected int calculateItemsToSend()
+	{
+		switch (this.getInstalledUpgrades(Upgrades.SPEED))
+		{
+			default:
+			case 0:
+				return 1;
+			case 1:
+				return 8;
+			case 2:
+				return 32;
+			case 3:
+				return 64;
+			case 4:
+				return 96;
+		}
+	}
+
+	/**
+	 * Checks if the bus can actually do something.
+	 *
+	 * Currently this tests if the chunk for the target is actually loaded.
+	 *
+	 * @return true, if the the bus should do its work.
+	 */
+	protected boolean canDoBusWork()
+	{
+		final TileEntity self = this.getHost().getTile();
+		final World world = self.getWorldObj();
+		final int xCoordinate = self.xCoord + this.getSide().offsetX;
+		final int zCoordinate = self.zCoord + this.getSide().offsetZ;
+
+		return world != null && world.getChunkProvider().chunkExists(xCoordinate >> 4, zCoordinate >> 4);
+	}
+
+	private void updateState()
+	{
+		try
+		{
+			if (!this.isSleeping())
+				this.getProxy().getTick().wakeDevice(this.getProxy().getNode());
+			else
+				this.getProxy().getTick().sleepDevice(this.getProxy().getNode());
+		}
+		catch (final GridAccessException e)
+		{
+			// :P
+		}
+	}
+
+	private TileEntity getTileEntity(final TileEntity self, final int x, final int y, final int z)
+	{
+		final World w = self.getWorldObj();
+
+		if (w.getChunkProvider().chunkExists(x >> 4, z >> 4))
+			return w.getTileEntity(x, y, z);
+
+		return null;
+	}
+
+	protected abstract TickRateModulation doBusWork();
+
+	AppEngInternalAEInventory getConfig()
+	{
+		return this.config;
+	}
 }

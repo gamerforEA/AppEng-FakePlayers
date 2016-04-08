@@ -20,7 +20,7 @@ package appeng.block.spatial;
 
 import java.util.EnumSet;
 
-import appeng.block.AEBaseBlock;
+import appeng.block.AEBaseTileBlock;
 import appeng.core.features.AEFeature;
 import appeng.core.sync.GuiBridge;
 import appeng.tile.spatial.TileSpatialIOPort;
@@ -34,30 +34,30 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class BlockSpatialIOPort extends AEBaseBlock
+public class BlockSpatialIOPort extends AEBaseTileBlock
 {
 	public BlockSpatialIOPort()
 	{
-		super(BlockSpatialIOPort.class, Material.iron);
+		super(Material.iron);
 		this.setTileEntity(TileSpatialIOPort.class);
 		this.setFeature(EnumSet.of(AEFeature.SpatialIO));
 	}
 
 	@Override
-	public final void onNeighborBlockChange(World w, int x, int y, int z, Block junk)
+	public final void onNeighborBlockChange(final World w, final int x, final int y, final int z, final Block junk)
 	{
-		TileSpatialIOPort te = this.getTileEntity(w, x, y, z);
+		final TileSpatialIOPort te = this.getTileEntity(w, x, y, z);
 		if (te != null)
 			te.updateRedstoneState();
 	}
 
 	@Override
-	public boolean onActivated(World w, int x, int y, int z, EntityPlayer p, int side, float hitX, float hitY, float hitZ)
+	public boolean onActivated(final World w, final int x, final int y, final int z, final EntityPlayer p, final int side, final float hitX, final float hitY, final float hitZ)
 	{
 		if (p.isSneaking())
 			return false;
 
-		TileSpatialIOPort tg = this.getTileEntity(w, x, y, z);
+		final TileSpatialIOPort tg = this.getTileEntity(w, x, y, z);
 		if (tg != null)
 		{
 			if (Platform.isServer())
@@ -69,10 +69,10 @@ public class BlockSpatialIOPort extends AEBaseBlock
 
 	// TODO gamerforEA code start
 	@Override
-	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack)
+	public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLivingBase entity, final ItemStack stack)
 	{
 		super.onBlockPlacedBy(world, x, y, z, entity, stack);
-		TileEntity tile = world.getTileEntity(x, y, z);
+		final TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile instanceof TileSpatialIOPort && entity instanceof EntityPlayer)
 			((TileSpatialIOPort) tile).fake.profile = ((EntityPlayer) entity).getGameProfile();
 	}

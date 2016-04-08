@@ -42,7 +42,7 @@ public class ToolChargedStaff extends AEBasePoweredItem
 	}
 
 	@Override
-	public boolean hitEntity(ItemStack item, EntityLivingBase target, EntityLivingBase hitter)
+	public boolean hitEntity(final ItemStack item, final EntityLivingBase target, final EntityLivingBase hitter)
 	{
 		if (this.getAECurrentPower(item) > 300D)
 		{
@@ -56,9 +56,9 @@ public class ToolChargedStaff extends AEBasePoweredItem
 			if (Platform.isServer())
 				for (int x = 0; x < 2; x++)
 				{
-					float dx = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minX);
-					float dy = (float) (Platform.getRandomFloat() * target.height + target.boundingBox.minY);
-					float dz = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minZ);
+					final float dx = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minX);
+					final float dy = (float) (Platform.getRandomFloat() * target.height + target.boundingBox.minY);
+					final float dz = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minZ);
 					CommonHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32D, target.worldObj, new PacketLightning(dx, dy, dz));
 				}
 			target.attackEntityFrom(DamageSource.magic, 6F);

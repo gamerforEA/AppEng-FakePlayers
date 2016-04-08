@@ -73,7 +73,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.flowing_lava, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(new ItemStack(Blocks.obsidian)));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.grass, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(new ItemStack(Blocks.dirt)));
 
-		List<ItemStack> snowBalls = new ArrayList<ItemStack>();
+		final List<ItemStack> snowBalls = new ArrayList<ItemStack>();
 		snowBalls.add(new ItemStack(Items.snowball));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.flowing_water, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(null, snowBalls));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.water, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(new ItemStack(Blocks.ice)));
@@ -96,7 +96,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 		private final Block blockID;
 		private final int metadata;
 
-		public InWorldToolOperationIngredient(Block blockID, int metadata)
+		public InWorldToolOperationIngredient(final Block blockID, final int metadata)
 		{
 			this.blockID = blockID;
 			this.metadata = metadata;
@@ -109,34 +109,34 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 		}
 
 		@Override
-		public boolean equals(Object obj)
+		public boolean equals(final Object obj)
 		{
 			if (obj == null)
 				return false;
 			if (this.getClass() != obj.getClass())
 				return false;
-			InWorldToolOperationIngredient other = (InWorldToolOperationIngredient) obj;
+			final InWorldToolOperationIngredient other = (InWorldToolOperationIngredient) obj;
 			return this.blockID == other.blockID && this.metadata == other.metadata;
 		}
 	}
 
-	private void heat(Block blockID, int metadata, World w, int x, int y, int z)
+	private void heat(final Block blockID, final int metadata, final World w, final int x, final int y, final int z)
 	{
 		InWorldToolOperationResult r = this.heatUp.get(new InWorldToolOperationIngredient(blockID, metadata));
 
 		if (r == null)
 			r = this.heatUp.get(new InWorldToolOperationIngredient(blockID, OreDictionary.WILDCARD_VALUE));
 
-		if (r.BlockItem != null)
-			w.setBlock(x, y, z, Block.getBlockFromItem(r.BlockItem.getItem()), r.BlockItem.getItemDamage(), 3);
+		if (r.getBlockItem() != null)
+			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem().getItem()), r.getBlockItem().getItemDamage(), 3);
 		else
-			w.setBlock(x, y, z, Platform.AIR, 0, 3);
+			w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 
-		if (r.Drops != null)
-			Platform.spawnDrops(w, x, y, z, r.Drops);
+		if (r.getDrops() != null)
+			Platform.spawnDrops(w, x, y, z, r.getDrops());
 	}
 
-	private boolean canHeat(Block blockID, int metadata)
+	private boolean canHeat(final Block blockID, final int metadata)
 	{
 		InWorldToolOperationResult r = this.heatUp.get(new InWorldToolOperationIngredient(blockID, metadata));
 
@@ -146,23 +146,23 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 		return r != null;
 	}
 
-	private void cool(Block blockID, int metadata, World w, int x, int y, int z)
+	private void cool(final Block blockID, final int metadata, final World w, final int x, final int y, final int z)
 	{
 		InWorldToolOperationResult r = this.coolDown.get(new InWorldToolOperationIngredient(blockID, metadata));
 
 		if (r == null)
 			r = this.coolDown.get(new InWorldToolOperationIngredient(blockID, OreDictionary.WILDCARD_VALUE));
 
-		if (r.BlockItem != null)
-			w.setBlock(x, y, z, Block.getBlockFromItem(r.BlockItem.getItem()), r.BlockItem.getItemDamage(), 3);
+		if (r.getBlockItem() != null)
+			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem().getItem()), r.getBlockItem().getItemDamage(), 3);
 		else
-			w.setBlock(x, y, z, Platform.AIR, 0, 3);
+			w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 
-		if (r.Drops != null)
-			Platform.spawnDrops(w, x, y, z, r.Drops);
+		if (r.getDrops() != null)
+			Platform.spawnDrops(w, x, y, z, r.getDrops());
 	}
 
-	private boolean canCool(Block blockID, int metadata)
+	private boolean canCool(final Block blockID, final int metadata)
 	{
 		InWorldToolOperationResult r = this.coolDown.get(new InWorldToolOperationIngredient(blockID, metadata));
 
@@ -173,7 +173,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 	}
 
 	@Override
-	public boolean hitEntity(ItemStack item, EntityLivingBase target, EntityLivingBase hitter)
+	public boolean hitEntity(final ItemStack item, final EntityLivingBase target, final EntityLivingBase hitter)
 	{
 		if (this.getAECurrentPower(item) > 1600)
 		{
@@ -185,17 +185,17 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 	}
 
 	@Override
-	public ItemStack onItemRightClick(ItemStack item, World w, EntityPlayer p)
+	public ItemStack onItemRightClick(final ItemStack item, final World w, final EntityPlayer p)
 	{
-		MovingObjectPosition target = this.getMovingObjectPositionFromPlayer(w, p, true);
+		final MovingObjectPosition target = this.getMovingObjectPositionFromPlayer(w, p, true);
 
 		if (target == null)
 			return item;
 		else if (target.typeOfHit == MovingObjectType.BLOCK)
 		{
-			int x = target.blockX;
-			int y = target.blockY;
-			int z = target.blockZ;
+			final int x = target.blockX;
+			final int y = target.blockY;
+			final int z = target.blockZ;
 
 			if (w.getBlock(x, y, z).getMaterial() == Material.lava || w.getBlock(x, y, z).getMaterial() == Material.water)
 				if (Platform.hasPermissions(new DimensionalCoord(w, x, y, z), p))
@@ -206,7 +206,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 	}
 
 	@Override
-	public boolean onItemUse(ItemStack item, EntityPlayer p, World w, int x, int y, int z, int side, float hitX, float hitY, float hitZ)
+	public boolean onItemUse(final ItemStack item, final EntityPlayer p, final World w, int x, int y, int z, final int side, final float hitX, final float hitY, final float hitZ)
 	{
 		if (this.getAECurrentPower(item) > 1600)
 		{
@@ -218,8 +218,8 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 				return false;
 			// TODO gamerforEA code end
 
-			Block blockID = w.getBlock(x, y, z);
-			int metadata = w.getBlockMetadata(x, y, z);
+			final Block blockID = w.getBlock(x, y, z);
+			final int metadata = w.getBlockMetadata(x, y, z);
 
 			if (p.isSneaking())
 			{
@@ -234,14 +234,14 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			{
 				if (blockID instanceof BlockTNT)
 				{
-					w.setBlock(x, y, z, Platform.AIR, 0, 3);
+					w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 					((BlockTNT) blockID).func_150114_a(w, x, y, z, 1, p);
 					return true;
 				}
 
 				if (blockID instanceof BlockTinyTNT)
 				{
-					w.setBlock(x, y, z, Platform.AIR, 0, 3);
+					w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 					((BlockTinyTNT) blockID).startFuse(w, x, y, z, p);
 					return true;
 				}
@@ -253,14 +253,14 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 					return true;
 				}
 
-				ItemStack[] stack = Platform.getBlockDrops(w, x, y, z);
-				List<ItemStack> out = new ArrayList<ItemStack>();
+				final ItemStack[] stack = Platform.getBlockDrops(w, x, y, z);
+				final List<ItemStack> out = new ArrayList<ItemStack>();
 				boolean hasFurnaceable = false;
 				boolean canFurnaceable = true;
 
-				for (ItemStack i : stack)
+				for (final ItemStack i : stack)
 				{
-					ItemStack result = FurnaceRecipes.smelting().getSmeltingResult(i);
+					final ItemStack result = FurnaceRecipes.smelting().getSmeltingResult(i);
 
 					if (result != null)
 					{
@@ -280,22 +280,22 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 				if (hasFurnaceable && canFurnaceable)
 				{
 					this.extractAEPower(item, 1600);
-					InWorldToolOperationResult or = InWorldToolOperationResult.getBlockOperationResult(out.toArray(new ItemStack[out.size()]));
+					final InWorldToolOperationResult or = InWorldToolOperationResult.getBlockOperationResult(out.toArray(new ItemStack[out.size()]));
 					w.playSoundEffect(x + 0.5D, y + 0.5D, z + 0.5D, "fire.ignite", 1.0F, itemRand.nextFloat() * 0.4F + 0.8F);
 
-					if (or.BlockItem == null)
-						w.setBlock(x, y, z, Platform.AIR, 0, 3);
+					if (or.getBlockItem() == null)
+						w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 					else
-						w.setBlock(x, y, z, Block.getBlockFromItem(or.BlockItem.getItem()), or.BlockItem.getItemDamage(), 3);
+						w.setBlock(x, y, z, Block.getBlockFromItem(or.getBlockItem().getItem()), or.getBlockItem().getItemDamage(), 3);
 
-					if (or.Drops != null)
-						Platform.spawnDrops(w, x, y, z, or.Drops);
+					if (or.getDrops() != null)
+						Platform.spawnDrops(w, x, y, z, or.getDrops());
 
 					return true;
 				}
 				else
 				{
-					ForgeDirection dir = ForgeDirection.getOrientation(side);
+					final ForgeDirection dir = ForgeDirection.getOrientation(side);
 					x += dir.offsetX;
 					y += dir.offsetY;
 					z += dir.offsetZ;

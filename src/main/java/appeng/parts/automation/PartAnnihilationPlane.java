@@ -18,12 +18,11 @@
 
 package appeng.parts.automation;
 
-import java.util.concurrent.Callable;
+import java.util.List;
 
 import com.gamerforea.ae.FakePlayerContainerUpgradeableHost;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.util.EventUtils;
 import com.google.common.collect.Lists;
 
 import appeng.api.config.Actionable;
@@ -51,6 +50,7 @@ import appeng.core.sync.packets.PacketTransitionEffect;
 import appeng.hooks.TickHandler;
 import appeng.me.GridAccessException;
 import appeng.parts.PartBasicState;
+import appeng.util.IWorldCallable;
 import appeng.util.Platform;
 import appeng.util.item.AEItemStack;
 import cpw.mods.fml.relauncher.Side;
@@ -66,11 +66,18 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.IIcon;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class PartAnnihilationPlane extends PartBasicState implements IGridTickable, Callable<TickRateModulation>
+public class PartAnnihilationPlane extends PartBasicState implements IGridTickable, IWorldCallable<TickRateModulation>
 {
+	private static final IIcon SIDE_ICON = CableBusTextures.PartPlaneSides.getIcon();
+	private static final IIcon BACK_ICON = CableBusTextures.PartTransitionPlaneBack.getIcon();
+	private static final IIcon STATUS_ICON = CableBusTextures.PartMonitorSidesStatus.getIcon();
+	private static final IIcon ACTIVE_ICON = CableBusTextures.BlockAnnihilationPlaneOn.getIcon();
+
 	private final BaseActionSource mySrc = new MachineSource(this);
 	private boolean isAccepting = true;
 	private boolean breaking = false;
@@ -79,7 +86,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	public FakePlayerContainer fake = new FakePlayerContainerUpgradeableHost(ModUtils.profile, this);
 
 	@Override
-	public void onPlacement(EntityPlayer player, ItemStack held, ForgeDirection side)
+	public void onPlacement(final EntityPlayer player, final ItemStack held, final ForgeDirection side)
 	{
 		if (player != null)
 			this.fake.profile = player.getGameProfile();
@@ -87,34 +94,34 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound data)
+	public void readFromNBT(final NBTTagCompound data)
 	{
 		super.readFromNBT(data);
 		this.fake.readFromNBT(data);
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound data)
+	public void writeToNBT(final NBTTagCompound data)
 	{
 		super.writeToNBT(data);
 		this.fake.writeToNBT(data);
 	}
 	// TODO gamerforEA code end
 
-	public PartAnnihilationPlane(ItemStack is)
+	public PartAnnihilationPlane(final ItemStack is)
 	{
 		super(is);
 	}
 
 	@Override
-	public TickRateModulation call() throws Exception
+	public TickRateModulation call(final World world) throws Exception
 	{
 		this.breaking = false;
 		return this.breakBlock(true);
 	}
 
 	@Override
-	public void getBoxes(IPartCollisionHelper bch)
+	public void getBoxes(final IPartCollisionHelper bch)
 	{
 		int minX = 1;
 		int minY = 1;
@@ -133,16 +140,16 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 			final ForgeDirection e = bch.getWorldX();
 			final ForgeDirection u = bch.getWorldY();
 
-			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - e.offsetX, y - e.offsetY, z - e.offsetZ), this.side))
+			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - e.offsetX, y - e.offsetY, z - e.offsetZ), this.getSide()))
 				minX = 0;
 
-			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + e.offsetX, y + e.offsetY, z + e.offsetZ), this.side))
+			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + e.offsetX, y + e.offsetY, z + e.offsetZ), this.getSide()))
 				maxX = 16;
 
-			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - u.offsetX, y - u.offsetY, z - u.offsetZ), this.side))
+			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - u.offsetX, y - u.offsetY, z - u.offsetZ), this.getSide()))
 				minY = 0;
 
-			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + u.offsetX, y + u.offsetY, z + u.offsetZ), this.side))
+			if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + u.offsetX, y + u.offsetY, z + u.offsetZ), this.getSide()))
 				maxY = 16;
 		}
 
@@ -152,9 +159,9 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void renderInventory(IPartRenderHelper rh, RenderBlocks renderer)
+	public void renderInventory(final IPartRenderHelper rh, final RenderBlocks renderer)
 	{
-		rh.setTexture(CableBusTextures.PartPlaneSides.getIcon(), CableBusTextures.PartPlaneSides.getIcon(), CableBusTextures.PartTransitionPlaneBack.getIcon(), this.is.getIconIndex(), CableBusTextures.PartPlaneSides.getIcon(), CableBusTextures.PartPlaneSides.getIcon());
+		rh.setTexture(SIDE_ICON, SIDE_ICON, BACK_ICON, this.getItemStack().getIconIndex(), SIDE_ICON, SIDE_ICON);
 
 		rh.setBounds(1, 1, 15, 15, 15, 16);
 		rh.renderInventoryBox(renderer);
@@ -165,39 +172,44 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void renderStatic(int x, int y, int z, IPartRenderHelper rh, RenderBlocks renderer)
+	public void renderStatic(final int x, final int y, final int z, final IPartRenderHelper rh, final RenderBlocks renderer)
+	{
+		this.renderStaticWithIcon(x, y, z, rh, renderer, ACTIVE_ICON);
+	}
+
+	protected void renderStaticWithIcon(final int x, final int y, final int z, final IPartRenderHelper rh, final RenderBlocks renderer, final IIcon activeIcon)
 	{
 		int minX = 1;
-		int minY = 1;
-		int maxX = 15;
-		int maxY = 15;
 
 		final ForgeDirection e = rh.getWorldX();
 		final ForgeDirection u = rh.getWorldY();
 
 		final TileEntity te = this.getHost().getTile();
 
-		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - e.offsetX, y - e.offsetY, z - e.offsetZ), this.side))
+		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - e.offsetX, y - e.offsetY, z - e.offsetZ), this.getSide()))
 			minX = 0;
 
-		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + e.offsetX, y + e.offsetY, z + e.offsetZ), this.side))
+		int maxX = 15;
+		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + e.offsetX, y + e.offsetY, z + e.offsetZ), this.getSide()))
 			maxX = 16;
 
-		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - u.offsetX, y - u.offsetY, z - u.offsetZ), this.side))
+		int minY = 1;
+		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x - u.offsetX, y - u.offsetY, z - u.offsetZ), this.getSide()))
 			minY = 0;
 
-		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + u.offsetX, y + u.offsetY, z + u.offsetZ), this.side))
+		int maxY = 15;
+		if (this.isAnnihilationPlane(te.getWorldObj().getTileEntity(x + u.offsetX, y + u.offsetY, z + u.offsetZ), this.getSide()))
 			maxY = 16;
 
-		final boolean isActive = (this.clientFlags & (this.POWERED_FLAG | this.CHANNEL_FLAG)) == (this.POWERED_FLAG | this.CHANNEL_FLAG);
+		final boolean isActive = (this.getClientFlags() & (PartBasicState.POWERED_FLAG | PartBasicState.CHANNEL_FLAG)) == (PartBasicState.POWERED_FLAG | PartBasicState.CHANNEL_FLAG);
 
-		this.renderCache = rh.useSimplifiedRendering(x, y, z, this, this.renderCache);
-		rh.setTexture(CableBusTextures.PartPlaneSides.getIcon(), CableBusTextures.PartPlaneSides.getIcon(), CableBusTextures.PartTransitionPlaneBack.getIcon(), isActive ? CableBusTextures.BlockAnnihilationPlaneOn.getIcon() : this.is.getIconIndex(), CableBusTextures.PartPlaneSides.getIcon(), CableBusTextures.PartPlaneSides.getIcon());
+		this.setRenderCache(rh.useSimplifiedRendering(x, y, z, this, this.getRenderCache()));
+		rh.setTexture(SIDE_ICON, SIDE_ICON, BACK_ICON, isActive ? activeIcon : this.getItemStack().getIconIndex(), SIDE_ICON, SIDE_ICON);
 
 		rh.setBounds(minX, minY, 15, maxX, maxY, 16);
 		rh.renderBlock(x, y, z, renderer);
 
-		rh.setTexture(CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartTransitionPlaneBack.getIcon(), isActive ? CableBusTextures.BlockAnnihilationPlaneOn.getIcon() : this.is.getIconIndex(), CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorSidesStatus.getIcon());
+		rh.setTexture(STATUS_ICON, STATUS_ICON, BACK_ICON, isActive ? activeIcon : this.getItemStack().getIconIndex(), STATUS_ICON, STATUS_ICON);
 
 		rh.setBounds(5, 5, 14, 11, 11, 15);
 		rh.renderBlock(x, y, z, renderer);
@@ -211,7 +223,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 		this.isAccepting = true;
 		try
 		{
-			this.proxy.getTick().alertDevice(this.proxy.getNode());
+			this.getProxy().getTick().alertDevice(this.getProxy().getNode());
 		}
 		catch (final GridAccessException e)
 		{
@@ -220,33 +232,33 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	}
 
 	@Override
-	public void onEntityCollision(Entity entity)
+	public void onEntityCollision(final Entity entity)
 	{
-		if (this.isAccepting && entity instanceof EntityItem && !entity.isDead && Platform.isServer() && this.proxy.isActive())
+		if (this.isAccepting && entity instanceof EntityItem && !entity.isDead && Platform.isServer() && this.getProxy().isActive())
 		{
 			boolean capture = false;
 
-			switch (this.side)
+			switch (this.getSide())
 			{
 				case DOWN:
 				case UP:
-					if (entity.posX > this.tile.xCoord && entity.posX < this.tile.xCoord + 1)
-						if (entity.posZ > this.tile.zCoord && entity.posZ < this.tile.zCoord + 1)
-							if (entity.posY > this.tile.yCoord + 0.9 && this.side == ForgeDirection.UP || entity.posY < this.tile.yCoord + 0.1 && this.side == ForgeDirection.DOWN)
+					if (entity.posX > this.getTile().xCoord && entity.posX < this.getTile().xCoord + 1)
+						if (entity.posZ > this.getTile().zCoord && entity.posZ < this.getTile().zCoord + 1)
+							if (entity.posY > this.getTile().yCoord + 0.9 && this.getSide() == ForgeDirection.UP || entity.posY < this.getTile().yCoord + 0.1 && this.getSide() == ForgeDirection.DOWN)
 								capture = true;
 					break;
 				case SOUTH:
 				case NORTH:
-					if (entity.posX > this.tile.xCoord && entity.posX < this.tile.xCoord + 1)
-						if (entity.posY > this.tile.yCoord && entity.posY < this.tile.yCoord + 1)
-							if (entity.posZ > this.tile.zCoord + 0.9 && this.side == ForgeDirection.SOUTH || entity.posZ < this.tile.zCoord + 0.1 && this.side == ForgeDirection.NORTH)
+					if (entity.posX > this.getTile().xCoord && entity.posX < this.getTile().xCoord + 1)
+						if (entity.posY > this.getTile().yCoord && entity.posY < this.getTile().yCoord + 1)
+							if (entity.posZ > this.getTile().zCoord + 0.9 && this.getSide() == ForgeDirection.SOUTH || entity.posZ < this.getTile().zCoord + 0.1 && this.getSide() == ForgeDirection.NORTH)
 								capture = true;
 					break;
 				case EAST:
 				case WEST:
-					if (entity.posZ > this.tile.zCoord && entity.posZ < this.tile.zCoord + 1)
-						if (entity.posY > this.tile.yCoord && entity.posY < this.tile.yCoord + 1)
-							if (entity.posX > this.tile.xCoord + 0.9 && this.side == ForgeDirection.EAST || entity.posX < this.tile.xCoord + 0.1 && this.side == ForgeDirection.WEST)
+					if (entity.posZ > this.getTile().zCoord && entity.posZ < this.getTile().zCoord + 1)
+						if (entity.posY > this.getTile().yCoord && entity.posY < this.getTile().yCoord + 1)
+							if (entity.posX > this.getTile().xCoord + 0.9 && this.getSide() == ForgeDirection.EAST || entity.posX < this.getTile().xCoord + 0.1 && this.getSide() == ForgeDirection.WEST)
 								capture = true;
 					break;
 				default:
@@ -256,8 +268,10 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 			if (capture)
 			{
-				CommonHelper.proxy.sendToAllNearExcept(null, this.tile.xCoord, this.tile.yCoord, this.tile.zCoord, 64, this.tile.getWorldObj(), new PacketTransitionEffect(entity.posX, entity.posY, entity.posZ, this.side, false));
-				this.storeEntityItem((EntityItem) entity);
+				final boolean changed = this.storeEntityItem((EntityItem) entity);
+
+				if (changed)
+					CommonHelper.proxy.sendToAllNearExcept(null, this.getTile().xCoord, this.getTile().yCoord, this.getTile().zCoord, 64, this.getTile().getWorldObj(), new PacketTransitionEffect(entity.posX, entity.posY, entity.posZ, this.getSide(), false));
 			}
 		}
 	}
@@ -273,79 +287,108 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	 *
 	 * @param entityItem {@link EntityItem} to store
 	 */
-	private void storeEntityItem(EntityItem entityItem)
+	private boolean storeEntityItem(final EntityItem entityItem)
 	{
 		if (!entityItem.isDead)
 		{
-			this.storeItemStack(entityItem.getEntityItem());
-			entityItem.setDead();
+			final IAEItemStack overflow = this.storeItemStack(entityItem.getEntityItem());
+
+			return this.handleOverflow(entityItem, overflow);
 		}
+
+		return false;
 	}
 
 	/**
 	 * Stores an {@link ItemStack} inside the network.
 	 *
 	 * @param item {@link ItemStack} to store
+	 * @return the leftover items, which could not be stored inside the network
 	 */
-	private void storeItemStack(ItemStack item)
+	private IAEItemStack storeItemStack(final ItemStack item)
 	{
 		final IAEItemStack itemToStore = AEItemStack.create(item);
 		try
 		{
-			final IStorageGrid storage = this.proxy.getStorage();
-			final IEnergyGrid energy = this.proxy.getEnergy();
+			final IStorageGrid storage = this.getProxy().getStorage();
+			final IEnergyGrid energy = this.getProxy().getEnergy();
 			final IAEItemStack overflow = Platform.poweredInsert(energy, storage.getItemInventory(), itemToStore, this.mySrc);
 
-			this.spawnOverflowItemStack(overflow);
-
 			this.isAccepting = overflow == null;
+
+			return overflow;
 		}
 		catch (final GridAccessException e1)
 		{
 			// :P
 		}
+
+		return null;
 	}
 
-	private void spawnOverflowItemStack(IAEItemStack overflow)
+	/**
+	 * Handles a possible overflow or none at all.
+	 * It will update the entity to match the leftover stack size as well as mark it as dead without any leftover
+	 * amount.
+	 *
+	 * @param entityItem the entity to update or destroy
+	 * @param overflow the leftover {@link IAEItemStack}
+	 * @return true, if the entity was changed otherwise false.
+	 */
+	private boolean handleOverflow(final EntityItem entityItem, final IAEItemStack overflow)
+	{
+		if (overflow == null || overflow.getStackSize() == 0)
+		{
+			entityItem.setDead();
+			return true;
+		}
+
+		final int oldStackSize = entityItem.getEntityItem().stackSize;
+		final int newStackSize = (int) overflow.getStackSize();
+		final boolean changed = oldStackSize != newStackSize;
+
+		entityItem.getEntityItem().stackSize = newStackSize;
+
+		return changed;
+	}
+
+	/**
+	 * Spawns an overflow item as new {@link EntityItem} into the {@link World}
+	 *
+	 * @param overflow the item to spawn
+	 */
+	private void spawnOverflow(final IAEItemStack overflow)
 	{
 		if (overflow == null)
 			return;
 
-		final TileEntity tileEntity = this.getTile();
-		final WorldServer world = (WorldServer) tileEntity.getWorldObj();
+		final TileEntity te = this.getTile();
+		final WorldServer w = (WorldServer) te.getWorldObj();
+		final double x = te.xCoord + this.getSide().offsetX + .5d;
+		final double y = te.yCoord + this.getSide().offsetY + .5d;
+		final double z = te.zCoord + this.getSide().offsetZ + .5d;
 
-		final int x = tileEntity.xCoord + this.side.offsetX;
-		final int y = tileEntity.yCoord + this.side.offsetY;
-		final int z = tileEntity.zCoord + this.side.offsetZ;
+		final EntityItem overflowEntity = new EntityItem(w, x, y, z, overflow.getItemStack());
+		overflowEntity.motionX = 0;
+		overflowEntity.motionY = 0;
+		overflowEntity.motionZ = 0;
 
-		Platform.spawnDrops(world, x, y, z, Lists.newArrayList(overflow.getItemStack()));
+		w.spawnEntityInWorld(overflowEntity);
 	}
 
-	private boolean isAnnihilationPlane(TileEntity blockTileEntity, ForgeDirection side)
+	protected boolean isAnnihilationPlane(final TileEntity blockTileEntity, final ForgeDirection side)
 	{
 		if (blockTileEntity instanceof IPartHost)
 		{
 			final IPart p = ((IPartHost) blockTileEntity).getPart(side);
-			return p instanceof PartAnnihilationPlane;
+			return p != null && p.getClass() == this.getClass();
 		}
 		return false;
 	}
 
-	/**
-	 * If the plane is accepting items.
-	 *
-	 * This might be improved if a performance problem shows up.
-	 *
-	 * @return true if planes accepts items.
-	 */
-	private boolean isAccepting()
-	{
-		return this.isAccepting;
-	}
-
 	@Override
 	@MENetworkEventSubscribe
-	public void chanRender(MENetworkChannelsChanged c)
+	public void chanRender(final MENetworkChannelsChanged c)
 	{
 		this.onNeighborChanged();
 		this.getHost().markForUpdate();
@@ -353,78 +396,48 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 	@Override
 	@MENetworkEventSubscribe
-	public void powerRender(MENetworkPowerStatusChange c)
+	public void powerRender(final MENetworkPowerStatusChange c)
 	{
 		this.onNeighborChanged();
 		this.getHost().markForUpdate();
 	}
 
-	public TickRateModulation breakBlock(boolean modulate)
+	private TickRateModulation breakBlock(final boolean modulate)
 	{
-		if (this.isAccepting && this.proxy.isActive())
+		if (this.isAccepting && this.getProxy().isActive())
 			try
 			{
 				final TileEntity te = this.getTile();
 				final WorldServer w = (WorldServer) te.getWorldObj();
 
-				final int x = te.xCoord + this.side.offsetX;
-				final int y = te.yCoord + this.side.offsetY;
-				final int z = te.zCoord + this.side.offsetZ;
+				final int x = te.xCoord + this.getSide().offsetX;
+				final int y = te.yCoord + this.getSide().offsetY;
+				final int z = te.zCoord + this.getSide().offsetZ;
 
-				final Block blk = w.getBlock(x, y, z);
+				final IEnergyGrid energy = this.getProxy().getEnergy();
 
-				final IEnergyGrid energy = this.proxy.getEnergy();
-
-				final Material mat = blk.getMaterial();
-				final boolean ignore = mat == Material.air || mat == Material.lava || mat == Material.water || mat.isLiquid() || blk == Blocks.bedrock || blk == Blocks.end_portal || blk == Blocks.end_portal_frame || blk == Blocks.command_block;
-
-				if (!ignore && !w.isAirBlock(x, y, z) && w.blockExists(x, y, z) && w.canMineBlock(Platform.getPlayer(w), x, y, z))
+				if (this.canHandleBlock(w, x, y, z))
 				{
-					final float hardness = blk.getBlockHardness(w, x, y, z);
+					final List<ItemStack> items = this.obtainBlockDrops(w, x, y, z);
+					final float requiredPower = this.calculateEnergyUsage(w, x, y, z, items);
 
-					if (hardness >= 0.0)
+					final boolean hasPower = energy.extractAEPower(requiredPower, Actionable.SIMULATE, PowerMultiplier.CONFIG) > requiredPower - 0.1;
+					final boolean canStore = this.canStoreItemStacks(items);
+
+					if (hasPower && canStore)
 					{
-						final ItemStack[] out = Platform.getBlockDrops(w, x, y, z);
-
-						float total = 1 + hardness;
-						for (final ItemStack is : out)
-							total += is.stackSize;
-
-						final boolean hasPower = energy.extractAEPower(total, Actionable.SIMULATE, PowerMultiplier.CONFIG) > total - 0.1;
-						final boolean canStore = this.canStoreItemStacks(out);
-
-						if (hasPower && canStore)
+						if (modulate)
 						{
-							if (modulate)
-							{
-								// TODO gamerforEA code start
-								if (EventUtils.cantBreak(this.fake.getPlayer(), x, y, z))
-									return TickRateModulation.URGENT;
-								// TODO gameroforEA code end
-
-								w.setBlock(x, y, z, Platform.AIR, 0, 3);
-								energy.extractAEPower(total, Actionable.MODULATE, PowerMultiplier.CONFIG);
-
-								final AxisAlignedBB box = AxisAlignedBB.getBoundingBox(x - 0.2, y - 0.2, z - 0.2, x + 1.2, y + 1.2, z + 1.2);
-								for (final Object ei : w.getEntitiesWithinAABB(EntityItem.class, box))
-									if (ei instanceof EntityItem)
-									{
-										final EntityItem entityItem = (EntityItem) ei;
-										this.storeEntityItem(entityItem);
-									}
-
-								for (final ItemStack snaggedItem : out)
-									this.storeItemStack(snaggedItem);
-
-								CommonHelper.proxy.sendToAllNearExcept(null, x, y, z, 64, w, new PacketTransitionEffect(x, y, z, this.side, true));
-							}
-							else
-							{
-								this.breaking = true;
-								TickHandler.INSTANCE.addCallable(this.tile.getWorldObj(), this);
-							}
-							return TickRateModulation.URGENT;
+							energy.extractAEPower(requiredPower, Actionable.MODULATE, PowerMultiplier.CONFIG);
+							this.breakBlockAndStoreItems(w, x, y, z, items);
+							CommonHelper.proxy.sendToAllNearExcept(null, x, y, z, 64, w, new PacketTransitionEffect(x, y, z, this.getSide(), true));
 						}
+						else
+						{
+							this.breaking = true;
+							TickHandler.INSTANCE.addCallable(this.getTile().getWorldObj(), this);
+						}
+						return TickRateModulation.URGENT;
 					}
 				}
 			}
@@ -438,19 +451,54 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	}
 
 	@Override
-	public TickingRequest getTickingRequest(IGridNode node)
+	public TickingRequest getTickingRequest(final IGridNode node)
 	{
-		return new TickingRequest(TickRates.AnnihilationPlane.min, TickRates.AnnihilationPlane.max, false, true);
+		return new TickingRequest(TickRates.AnnihilationPlane.getMin(), TickRates.AnnihilationPlane.getMax(), false, true);
 	}
 
 	@Override
-	public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall)
+	public TickRateModulation tickingRequest(final IGridNode node, final int ticksSinceLastCall)
 	{
 		if (this.breaking)
 			return TickRateModulation.URGENT;
 
 		this.isAccepting = true;
 		return this.breakBlock(false);
+	}
+
+	/**
+	 * Checks if this plane can handle the block at the specific coordinates.
+	 */
+	private boolean canHandleBlock(final WorldServer w, final int x, final int y, final int z)
+	{
+		final Block block = w.getBlock(x, y, z);
+		final Material material = block.getMaterial();
+		final float hardness = block.getBlockHardness(w, x, y, z);
+		final boolean ignoreMaterials = material == Material.air || material == Material.lava || material == Material.water || material.isLiquid();
+		final boolean ignoreBlocks = block == Blocks.bedrock || block == Blocks.end_portal || block == Blocks.end_portal_frame || block == Blocks.command_block;
+
+		return !ignoreMaterials && !ignoreBlocks && !w.isAirBlock(x, y, z) && w.blockExists(x, y, z) && w.canMineBlock(Platform.getPlayer(w), x, y, z) && hardness >= 0f;
+	}
+
+	protected List<ItemStack> obtainBlockDrops(final WorldServer w, final int x, final int y, final int z)
+	{
+		final ItemStack[] out = Platform.getBlockDrops(w, x, y, z);
+		return Lists.newArrayList(out);
+	}
+
+	/**
+	 * Checks if this plane can handle the block at the specific coordinates.
+	 */
+	protected float calculateEnergyUsage(final WorldServer w, final int x, final int y, final int z, final List<ItemStack> items)
+	{
+		final Block block = w.getBlock(x, y, z);
+		final float hardness = block.getBlockHardness(w, x, y, z);
+
+		float requiredEnergy = 1 + hardness;
+		for (final ItemStack is : items)
+			requiredEnergy += is.stackSize;
+
+		return requiredEnergy;
 	}
 
 	/**
@@ -462,13 +510,13 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	 *
 	 * @return true, if the network can store at least a single item of all drops or no drops are reported
 	 */
-	private boolean canStoreItemStacks(ItemStack[] itemStacks)
+	private boolean canStoreItemStacks(final List<ItemStack> itemStacks)
 	{
-		boolean canStore = itemStacks.length == 0;
+		boolean canStore = itemStacks.isEmpty();
 
 		try
 		{
-			final IStorageGrid storage = this.proxy.getStorage();
+			final IStorageGrid storage = this.getProxy().getStorage();
 
 			for (final ItemStack itemStack : itemStacks)
 			{
@@ -485,5 +533,24 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 		this.isAccepting = canStore;
 		return canStore;
+	}
+
+	private void breakBlockAndStoreItems(final WorldServer w, final int x, final int y, final int z, final List<ItemStack> items)
+	{
+		w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
+
+		final AxisAlignedBB box = AxisAlignedBB.getBoundingBox(x - 0.2, y - 0.2, z - 0.2, x + 1.2, y + 1.2, z + 1.2);
+		for (final Object ei : w.getEntitiesWithinAABB(EntityItem.class, box))
+			if (ei instanceof EntityItem)
+			{
+				final EntityItem entityItem = (EntityItem) ei;
+				this.storeEntityItem(entityItem);
+			}
+
+		for (final ItemStack snaggedItem : items)
+		{
+			final IAEItemStack overflow = this.storeItemStack(snaggedItem);
+			this.spawnOverflow(overflow);
+		}
 	}
 }

@@ -15,11 +15,11 @@ public final class EventConfig
 	{
 		try
 		{
-			Configuration config = FastUtils.getConfig("AppEng");
+			final Configuration config = FastUtils.getConfig("AppEng");
 			pilonBlackList = Sets.newHashSet(config.getStringList("pilonBlackList", Configuration.CATEGORY_GENERAL, pilonBlackList.toArray(new String[pilonBlackList.size()]), "Чёрный список блоков для Пилонов"));
 			config.save();
 		}
-		catch (Throwable throwable)
+		catch (final Throwable throwable)
 		{
 			System.err.println("Failed load config. Use default values.");
 			throwable.printStackTrace();
