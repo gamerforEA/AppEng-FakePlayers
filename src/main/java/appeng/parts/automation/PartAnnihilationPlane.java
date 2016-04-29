@@ -23,6 +23,7 @@ import java.util.List;
 import com.gamerforea.ae.FakePlayerContainerUpgradeableHost;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
+import com.gamerforea.eventhelper.util.EventUtils;
 import com.google.common.collect.Lists;
 
 import appeng.api.config.Actionable;
@@ -429,6 +430,12 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 						if (modulate)
 						{
 							energy.extractAEPower(requiredPower, Actionable.MODULATE, PowerMultiplier.CONFIG);
+
+							// TODO gamerforEA code start
+							if (EventUtils.cantBreak(this.fake.getPlayer(), x, y, z))
+								return TickRateModulation.URGENT;
+							// TODO gamerforEA code end
+
 							this.breakBlockAndStoreItems(w, x, y, z, items);
 							CommonHelper.proxy.sendToAllNearExcept(null, x, y, z, 64, w, new PacketTransitionEffect(x, y, z, this.getSide(), true));
 						}

@@ -20,6 +20,7 @@ package appeng.items.tools.powered;
 
 import java.util.EnumSet;
 
+import com.gamerforea.ae.EventConfig;
 import com.gamerforea.eventhelper.util.EventUtils;
 import com.google.common.base.Optional;
 
@@ -61,7 +62,9 @@ public class ToolChargedStaff extends AEBasePoweredItem
 					final float dz = (float) (Platform.getRandomFloat() * target.width + target.boundingBox.minZ);
 					CommonHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32D, target.worldObj, new PacketLightning(dx, dy, dz));
 				}
-			target.attackEntityFrom(DamageSource.magic, 6F);
+
+			// TODO gamerforEA argument replace, old argument: 6F
+			target.attackEntityFrom(DamageSource.magic, EventConfig.chargedStaffDamage);
 			return true;
 		}
 

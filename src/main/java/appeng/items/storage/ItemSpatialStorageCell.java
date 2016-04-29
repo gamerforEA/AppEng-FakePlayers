@@ -145,7 +145,8 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 	}
 	// TODO gamerforEA code end
 
-	public TransitionResult doSpatialTransition(final FakePlayer player, final ItemStack is, final World w, final WorldCoord min, final WorldCoord max, final boolean doTransition) // TODO gamerforEA add EntityPlayer parameter
+	// TODO gamerforEA add EntityPlayer parameter
+	public TransitionResult doSpatialTransition(final FakePlayer player, final ItemStack is, final World w, final WorldCoord min, final WorldCoord max, final boolean doTransition)
 	{
 		final WorldCoord scale = this.getStoredSize(is);
 
