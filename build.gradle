@@ -25,7 +25,7 @@ apply plugin: 'forge'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-version = "rv3-beta-5"
+version = "rv3-beta-6"
 group= "appeng"
 archivesBaseName = "appliedenergistics2"
 
@@ -39,6 +39,9 @@ dependencies {
 	compile name: 'CoFHCore-[1.7.10]3.1.0-323-dev'
 	compile name: 'industrialcraft-2-2.2.817-experimental-dev'
 	compile name: 'buildcraft-7.1.16-dev'
+	compile name: 'MekanismAPI-1.7.10-8.1.9.265-dev'
+	compile name: 'DragonAPI-1.7.10-V13b-dev'
+	compile name: 'RotaryCraftAPI-1.7.1-V13a-dev'
 	compile name: archivesBaseName + '-' + version + '-dev'
 }
 
