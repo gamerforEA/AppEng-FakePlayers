@@ -229,7 +229,8 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 	{
 		if (this.cluster != null)
 		{
-			this.cluster.cancel();
+			// TODO gamerforEA code clear: this.cluster.cancel();
+
 			final IMEInventory<IAEItemStack> inv = this.cluster.getInventory();
 
 			final LinkedList<WorldCoord> places = new LinkedList<WorldCoord>();
@@ -249,6 +250,11 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 						final WorldCoord wc = new WorldCoord(te);
 						wc.add(d, 1);
 
+						// TODO gamerforEA code start
+						if (!this.worldObj.getChunkFromBlockCoords(wc.x, wc.z).isChunkLoaded)
+							return;
+						// TODO gamerforEA code end
+
 						if (this.worldObj.isAirBlock(wc.x, wc.y, wc.z))
 							places.add(wc);
 					}
@@ -260,7 +266,7 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 			if (places.isEmpty())
 				throw new IllegalStateException(this.cluster + " does not contain any kind of blocks, which were destroyed.");
 
-			/* TODO gamerforEA code clear (experimental):
+			/* TODO gamerforEA code replace, old code:
 			for (IAEItemStack ais : inv.getAvailableItems(AEApi.instance().storage().createItemList()))
 			{
 				ais = ais.copy();
@@ -270,13 +276,15 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 					final IAEItemStack g = inv.extractItems(ais.copy(), Actionable.MODULATE, this.cluster.getActionSource());
 					if (g == null)
 						break;
-
+			
 					final WorldCoord wc = places.poll();
 					places.add(wc);
-
+			
 					Platform.spawnDrops(this.worldObj, wc.x, wc.y, wc.z, Collections.singletonList(g.getItemStack()));
 				}
 			} */
+			this.cluster.cancel();
+			// TODO gamerforEA code end
 
 			this.cluster.destroy();
 		}
