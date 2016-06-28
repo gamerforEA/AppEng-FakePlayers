@@ -35,8 +35,6 @@ import appeng.api.util.WorldCoord;
 import appeng.core.AELog;
 import appeng.core.worlddata.WorldData;
 import appeng.util.Platform;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkPosition;
@@ -208,26 +206,16 @@ public class CachedPlane
 	public boolean inBlackList(final CachedPlane dst, final int x, final int z, final int src_y, final int dst_y)
 	{
 		final Block srcBlock = this.world.getBlock(x + this.x_offset, src_y, z + this.z_offset);
-		final UniqueIdentifier srcBlockId = GameRegistry.findUniqueIdentifierFor(srcBlock);
+		final int srcMeta = this.world.getBlockMetadata(x + this.x_offset, src_y, z + this.z_offset);
 
-		if (srcBlockId != null)
-		{
-			final int srcMeta = this.world.getBlockMetadata(x + this.x_offset, src_y, z + this.z_offset);
-			final String name = srcBlockId.modId + ":" + srcBlockId.name;
-			if (EventConfig.pilonBlackList.contains(name) || EventConfig.pilonBlackList.contains(name + ":" + srcMeta))
-				return true;
-		}
+		if (EventConfig.inBlackList(EventConfig.pilonBlackList, srcBlock, srcMeta))
+			return true;
 
 		final Block dstBlock = dst.world.getBlock(x + dst.x_offset, dst_y, z + dst.z_offset);
-		final UniqueIdentifier dstBlockId = GameRegistry.findUniqueIdentifierFor(dstBlock);
+		final int dstMeta = dst.world.getBlockMetadata(x + dst.x_offset, dst_y, z + dst.z_offset);
 
-		if (dstBlockId != null)
-		{
-			final int dstMeta = dst.world.getBlockMetadata(x + dst.x_offset, dst_y, z + dst.z_offset);
-			final String name = dstBlockId.modId + ":" + dstBlockId.name;
-			if (EventConfig.pilonBlackList.contains(name) || EventConfig.pilonBlackList.contains(name + ":" + dstMeta))
-				return true;
-		}
+		if (EventConfig.inBlackList(EventConfig.pilonBlackList, dstBlock, dstMeta))
+			return true;
 
 		return false;
 	}
