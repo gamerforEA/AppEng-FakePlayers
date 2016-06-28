@@ -21,6 +21,7 @@ package appeng.parts.automation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gamerforea.ae.EventConfig;
 import com.gamerforea.ae.FakePlayerContainerUpgradeableHost;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
@@ -425,6 +426,9 @@ public class PartFormationPlane extends PartUpgradeable implements ICellContaine
 
 		// TODO gamerforEA code start
 		if (EventUtils.cantBreak(this.fake.getPlayer(), x, y, z))
+			return input;
+
+		if (i != null && EventConfig.inBlackList(EventConfig.formationPlaneBlackList, i, is.getItemDamage()))
 			return input;
 		// TODO gamerforEA code end
 
