@@ -36,6 +36,10 @@ minecraft {
 
 dependencies {
 	compile name: 'EventHelper-1.6-dev'
+	compile name: 'CodeChickenLib-1.7.10-1.1.3.140-dev'
+	compile name: 'CodeChickenCore-1.7.10-1.0.4.29-dev'
+	compile name: 'NotEnoughItems-1.7.10-1.0.3.74-dev'
+	compile name: 'ForgeMultipart-1.7.10-1.2.0.347-dev'
 	compile name: 'CoFHCore-[1.7.10]3.1.0-323-dev'
 	compile name: 'industrialcraft-2-2.2.817-experimental-dev'
 	compile name: 'buildcraft-7.1.16-dev'

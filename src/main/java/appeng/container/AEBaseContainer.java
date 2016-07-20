@@ -424,7 +424,7 @@ public abstract class AEBaseContainer extends Container
 			{
 				tis = this.shiftStoreItem(tis);
 
-				// TODO gamerofrEA code start
+				// TODO gamerforEA code start
 				clickSlot.putStack(tis != null ? tis.copy() : null);
 				// TODO gamerforEA code end
 
