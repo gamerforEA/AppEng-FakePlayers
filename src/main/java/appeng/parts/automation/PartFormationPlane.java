@@ -512,7 +512,8 @@ public class PartFormationPlane extends PartUpgradeable implements ICellContaine
 						if (!w.spawnEntityInWorld(result))
 						{
 							result.setDead();
-							worked = false;
+							// TODO gamerforEA code clear (dupe fix): worked = false;
+							;
 						}
 					}
 				}
