@@ -18,6 +18,8 @@ public final class EventConfig
 {
 	public static final Set<String> pilonBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
 	public static final Set<String> formationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
+	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
+	public static final Set<String> autoCraftBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
 	public static float chargedStaffDamage = 6F;
 
 	static
@@ -27,6 +29,8 @@ public final class EventConfig
 			final Configuration cfg = FastUtils.getConfig("AppEng");
 			readStringSet(cfg, "pilonBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Пилонов", pilonBlackList);
 			readStringSet(cfg, "formationPlaneBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Плоскости формирования", formationPlaneBlackList);
+			readStringSet(cfg, "annihilationPlaneBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
+			readStringSet(cfg, "autoCraftBlackList", CATEGORY_GENERAL, "Чёрный список блоков для автокрафта", autoCraftBlackList);
 			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", CATEGORY_GENERAL, chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
 			cfg.save();
 		}

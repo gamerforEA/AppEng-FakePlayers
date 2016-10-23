@@ -20,6 +20,7 @@ package appeng.parts.automation;
 
 import java.util.List;
 
+import com.gamerforea.ae.EventConfig;
 import com.gamerforea.ae.FakePlayerContainerUpgradeableHost;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
@@ -433,6 +434,11 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 							// TODO gamerforEA code start
 							if (EventUtils.cantBreak(this.fake.getPlayer(), x, y, z))
+								return TickRateModulation.URGENT;
+
+							Block block = w.getBlock(x, y, z);
+							int meta = w.getBlockMetadata(x, y, z);
+							if (EventConfig.inBlackList(EventConfig.annihilationPlaneBlackList, block, meta))
 								return TickRateModulation.URGENT;
 							// TODO gamerforEA code end
 
