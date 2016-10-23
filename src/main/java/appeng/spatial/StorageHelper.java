@@ -192,8 +192,8 @@ public class StorageHelper
 
 	// TODO gamerforEA add EntityPlayer parameter
 	public void swapRegions(final FakePlayer player, final World src /** over world **/
-	, final World dst/** storage cell **/
-	,final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
+			, final World dst/** storage cell **/
+			,final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
 	{
 		// TODO gamerforEA code start
 		final World playerWorld = player.worldObj;
