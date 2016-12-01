@@ -23,7 +23,10 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import com.gamerforea.ae.EventConfig;
+
 import appeng.api.AEApi;
+import appeng.api.config.Actionable;
 import appeng.api.implementations.IPowerChannelState;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridHost;
@@ -229,13 +232,15 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 	{
 		if (this.cluster != null)
 		{
-			// TODO gamerforEA code clear: this.cluster.cancel();
+			// TODO gamerforEA code replace, old code: this.cluster.cancel();
+			if (EventConfig.autoCraftFixMode == 2)
+				this.cluster.cancel();
+			// TODO gamerforEA code end
 
 			final IMEInventory<IAEItemStack> inv = this.cluster.getInventory();
-
 			final LinkedList<WorldCoord> places = new LinkedList<WorldCoord>();
-
 			final Iterator<IGridHost> i = this.cluster.getTiles();
+
 			while (i.hasNext())
 			{
 				final IGridHost h = i.next();
@@ -276,14 +281,34 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 					final IAEItemStack g = inv.extractItems(ais.copy(), Actionable.MODULATE, this.cluster.getActionSource());
 					if (g == null)
 						break;
-			
+
 					final WorldCoord wc = places.poll();
 					places.add(wc);
-			
+
 					Platform.spawnDrops(this.worldObj, wc.x, wc.y, wc.z, Collections.singletonList(g.getItemStack()));
 				}
 			} */
-			this.cluster.cancel();
+			if (EventConfig.autoCraftFixMode != 0)
+				for (IAEItemStack ais : inv.getAvailableItems(AEApi.instance().storage().createItemList()))
+				{
+					ais = ais.copy();
+					ais.setStackSize(ais.getItemStack().getMaxStackSize());
+					while (true)
+					{
+						final IAEItemStack g = inv.extractItems(ais.copy(), Actionable.MODULATE, this.cluster.getActionSource());
+						if (g == null)
+							break;
+
+						final WorldCoord wc = places.poll();
+						places.add(wc);
+
+						if (EventConfig.autoCraftFixMode == 1)
+							Platform.spawnDrops(this.worldObj, wc.x, wc.y, wc.z, Collections.singletonList(g.getItemStack()));
+					}
+				}
+
+			if (EventConfig.autoCraftFixMode == 0)
+				this.cluster.cancel();
 			// TODO gamerforEA code end
 
 			this.cluster.destroy();

@@ -21,6 +21,7 @@ public final class EventConfig
 	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
 	public static final Set<String> autoCraftBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
 	public static float chargedStaffDamage = 6F;
+	public static int autoCraftFixMode = 0;
 
 	static
 	{
@@ -32,6 +33,7 @@ public final class EventConfig
 			readStringSet(cfg, "annihilationPlaneBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
 			readStringSet(cfg, "autoCraftBlackList", CATEGORY_GENERAL, "Чёрный список блоков для автокрафта", autoCraftBlackList);
 			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", CATEGORY_GENERAL, chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
+			autoCraftFixMode = cfg.getInt("autoCraftFixMode", CATEGORY_GENERAL, autoCraftFixMode, 0, 2, "Режим фикса дюпа с автокрафтом [0 - старый фикс; 1 - ненадёжный фикс; 2 - экспериментальный фикс]");
 			cfg.save();
 		}
 		catch (final Throwable throwable)
