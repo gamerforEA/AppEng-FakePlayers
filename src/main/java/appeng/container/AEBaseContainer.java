@@ -47,6 +47,7 @@ import appeng.client.me.InternalSlotME;
 import appeng.client.me.SlotME;
 import appeng.container.guisync.GuiSync;
 import appeng.container.guisync.SyncData;
+import appeng.container.implementations.ContainerCraftingTerm;
 import appeng.container.slot.AppEngSlot;
 import appeng.container.slot.SlotCraftingMatrix;
 import appeng.container.slot.SlotCraftingTerm;
@@ -624,6 +625,11 @@ public abstract class AEBaseContainer extends Container
 
 	public void doAction(final EntityPlayerMP player, final InventoryAction action, final int slot, final long id)
 	{
+		// TODO gamerforEA code start
+		if (action == InventoryAction.MOVE_REGION && !(this instanceof ContainerCraftingTerm))
+			return;
+		// TODO gamerforEA code end
+
 		if (slot >= 0 && slot < this.inventorySlots.size())
 		{
 			final Slot s = this.getSlot(slot);
