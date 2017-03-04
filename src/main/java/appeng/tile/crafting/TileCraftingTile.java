@@ -281,10 +281,10 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 					final IAEItemStack g = inv.extractItems(ais.copy(), Actionable.MODULATE, this.cluster.getActionSource());
 					if (g == null)
 						break;
-
+			
 					final WorldCoord wc = places.poll();
 					places.add(wc);
-
+			
 					Platform.spawnDrops(this.worldObj, wc.x, wc.y, wc.z, Collections.singletonList(g.getItemStack()));
 				}
 			} */

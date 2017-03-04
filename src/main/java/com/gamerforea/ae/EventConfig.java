@@ -1,17 +1,15 @@
 package com.gamerforea.ae;
 
-import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
-
 import java.util.Set;
 
 import com.gamerforea.eventhelper.util.FastUtils;
 import com.google.common.collect.Sets;
 
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
+import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.config.Configuration;
 
 public final class EventConfig
@@ -20,20 +18,28 @@ public final class EventConfig
 	public static final Set<String> formationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
 	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
 	public static final Set<String> autoCraftBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
+	public static final Set<String> busBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
+	public static String securityBypassPermission = "appeng.security.bypass";
 	public static float chargedStaffDamage = 6F;
 	public static int autoCraftFixMode = 0;
+	public static boolean clearInvOnBreak = true;
+	public static boolean annihilationPlaneNoBreakInv = true;
 
 	static
 	{
 		try
 		{
 			final Configuration cfg = FastUtils.getConfig("AppEng");
-			readStringSet(cfg, "pilonBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Пилонов", pilonBlackList);
-			readStringSet(cfg, "formationPlaneBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Плоскости формирования", formationPlaneBlackList);
-			readStringSet(cfg, "annihilationPlaneBlackList", CATEGORY_GENERAL, "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
-			readStringSet(cfg, "autoCraftBlackList", CATEGORY_GENERAL, "Чёрный список блоков для автокрафта", autoCraftBlackList);
-			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", CATEGORY_GENERAL, chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
-			autoCraftFixMode = cfg.getInt("autoCraftFixMode", CATEGORY_GENERAL, autoCraftFixMode, 0, 2, "Режим фикса дюпа с автокрафтом [0 - старый фикс; 1 - ненадёжный фикс; 2 - экспериментальный фикс]");
+			readStringSet(cfg, "pilonBlackList", "general", "Чёрный список блоков для Пилонов", pilonBlackList);
+			readStringSet(cfg, "formationPlaneBlackList", "general", "Чёрный список блоков для Плоскости формирования", formationPlaneBlackList);
+			readStringSet(cfg, "annihilationPlaneBlackList", "general", "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
+			readStringSet(cfg, "autoCraftBlackList", "general", "Чёрный список блоков для автокрафта", autoCraftBlackList);
+			readStringSet(cfg, "busBlackList", "general", "Чёрный список блоков для шин импорта/экспорта и интерфейсов", busBlackList);
+			securityBypassPermission = cfg.getString("securityBypassPermission", "general", securityBypassPermission, "Permission для игнорирования защиты AE2-сети");
+			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", "general", chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
+			autoCraftFixMode = cfg.getInt("autoCraftFixMode", "general", autoCraftFixMode, 0, 2, "Режим фикса дюпа с автокрафтом [0 - старый фикс; 1 - ненадёжный фикс; 2 - экспериментальный фикс]");
+			clearInvOnBreak = cfg.getBoolean("clearInvOnBreak", "general", clearInvOnBreak, "Очистка инвентаря блока при его разрушении (защита от дюпа)");
+			annihilationPlaneNoBreakInv = cfg.getBoolean("annihilationPlaneNoBreakInv", "general", annihilationPlaneNoBreakInv, "Плоскость истребления не может ломать блоки с инвентарями");
 			cfg.save();
 		}
 		catch (final Throwable throwable)
@@ -43,29 +49,27 @@ public final class EventConfig
 		}
 	}
 
-	public static final boolean inBlackList(Set<String> blackList, Item item, int meta)
+	public static final boolean inList(Set<String> list, ItemStack stack)
+	{
+		return inList(list, stack.getItem(), stack.getItemDamage());
+	}
+
+	public static final boolean inList(Set<String> list, Item item, int meta)
 	{
 		if (item instanceof ItemBlock)
-			return inBlackList(blackList, ((ItemBlock) item).field_150939_a, meta);
+			return inList(list, ((ItemBlock) item).field_150939_a, meta);
 
-		return inBlackList(blackList, GameRegistry.findUniqueIdentifierFor(item), meta);
+		return inList(list, getId(item), meta);
 	}
 
-	public static final boolean inBlackList(Set<String> blackList, Block block, int meta)
+	public static final boolean inList(Set<String> list, Block block, int meta)
 	{
-		return inBlackList(blackList, GameRegistry.findUniqueIdentifierFor(block), meta);
+		return inList(list, getId(block), meta);
 	}
 
-	private static final boolean inBlackList(Set<String> blackList, UniqueIdentifier id, int meta)
+	private static final boolean inList(Set<String> list, String id, int meta)
 	{
-		if (id != null)
-		{
-			String name = id.modId + ':' + id.name;
-			if (blackList.contains(name) || blackList.contains(name + ':' + meta))
-				return true;
-		}
-
-		return false;
+		return id != null && (list.contains(id) || list.contains(id + ':' + meta));
 	}
 
 	private static final void readStringSet(final Configuration cfg, final String name, final String category, final String comment, final Set<String> def)
@@ -83,5 +87,15 @@ public final class EventConfig
 	private static final Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final String... def)
 	{
 		return Sets.newHashSet(cfg.getStringList(name, category, def, comment));
+	}
+
+	private static final String getId(Item item)
+	{
+		return GameData.getItemRegistry().getNameForObject(item);
+	}
+
+	private static final String getId(Block block)
+	{
+		return GameData.getBlockRegistry().getNameForObject(block);
 	}
 }

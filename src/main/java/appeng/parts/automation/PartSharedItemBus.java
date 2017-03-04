@@ -18,6 +18,8 @@
 
 package appeng.parts.automation;
 
+import com.gamerforea.ae.EventConfig;
+
 import appeng.api.config.RedstoneMode;
 import appeng.api.config.Upgrades;
 import appeng.api.networking.ticking.IGridTickable;
@@ -26,6 +28,7 @@ import appeng.me.GridAccessException;
 import appeng.tile.inventory.AppEngInternalAEInventory;
 import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
+import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -89,9 +92,17 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 		final TileEntity self = this.getHost().getTile();
 		final TileEntity target = this.getTileEntity(self, self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
 
-		// TODO gamerforEA code start (fix ExNihilo crash)
-		if (target != null && target.getClass().getName().equals("exnihilo.blocks.tileentities.TileEntityBarrel"))
-			return null;
+		// TODO gamerforEA code start
+		if (target != null)
+		{
+			if (target.getClass().getName().equals("exnihilo.blocks.tileentities.TileEntityBarrel"))
+				return null;
+
+			Block block = target.getBlockType();
+			int meta = target.getBlockMetadata();
+			if (EventConfig.inList(EventConfig.busBlackList, block, meta))
+				return null;
+		}
 		// TODO gamerforEA code end
 
 		final int newAdaptorHash = Platform.generateTileHash(target);

@@ -139,7 +139,7 @@ public class CraftingJob implements Runnable, ICraftingJob
 				Item item = this.output.getItem();
 				int meta = this.output.getItemDamage();
 
-				if (EventConfig.inBlackList(EventConfig.autoCraftBlackList, item, meta))
+				if (EventConfig.inList(EventConfig.autoCraftBlackList, item, meta))
 				{
 					this.finish();
 					return;

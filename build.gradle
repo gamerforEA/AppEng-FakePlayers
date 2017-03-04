@@ -35,7 +35,8 @@ minecraft {
 }
 
 dependencies {
-	compile name: 'EventHelper-1.6-dev'
+	compile name: 'bukkit-1.7.10'
+	compile name: 'EventHelper-1.7-dev'
 	compile name: 'CodeChickenLib-1.7.10-1.1.3.140-dev'
 	compile name: 'CodeChickenCore-1.7.10-1.0.4.29-dev'
 	compile name: 'NotEnoughItems-1.7.10-1.0.3.74-dev'

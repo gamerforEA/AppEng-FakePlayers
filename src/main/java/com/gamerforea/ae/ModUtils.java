@@ -2,9 +2,12 @@ package com.gamerforea.ae;
 
 import java.util.UUID;
 
+import com.gamerforea.eventhelper.EventHelper;
+import com.gamerforea.eventhelper.util.ConvertUtils;
 import com.gamerforea.eventhelper.util.FastUtils;
 import com.mojang.authlib.GameProfile;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 
@@ -21,5 +24,19 @@ public final class ModUtils
 			player.worldObj = world;
 
 		return player;
+	}
+
+	public static final boolean hasPermission(EntityPlayer player, String permisssion)
+	{
+		try
+		{
+			return ConvertUtils.toBukkitEntity(player).hasPermission(permisssion);
+		}
+		catch (Exception e)
+		{
+			if (EventHelper.debug)
+				e.printStackTrace();
+			return false;
+		}
 	}
 }

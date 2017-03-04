@@ -23,6 +23,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 
+import com.gamerforea.ae.EventConfig;
+import com.gamerforea.ae.ModUtils;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 
@@ -37,7 +39,6 @@ import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.ISecurityProvider;
 import appeng.core.worlddata.WorldData;
 import appeng.me.GridNode;
-import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.player.EntityPlayer;
 
 public class SecurityCache implements ISecurityGrid
@@ -141,7 +142,7 @@ public class SecurityCache implements ISecurityGrid
 		final GameProfile profile = player.getGameProfile();
 
 		// TODO gamerforEA code start
-		if (FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152596_g(profile))
+		if (ModUtils.hasPermission(player, EventConfig.securityBypassPermission))
 			return true;
 		// TODO gamerforEA code end
 

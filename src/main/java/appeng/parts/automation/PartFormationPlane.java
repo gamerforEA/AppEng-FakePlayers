@@ -25,7 +25,6 @@ import com.gamerforea.ae.EventConfig;
 import com.gamerforea.ae.FakePlayerContainerUpgradeableHost;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.util.EventUtils;
 
 import appeng.api.AEApi;
 import appeng.api.config.AccessRestriction;
@@ -101,7 +100,7 @@ public class PartFormationPlane extends PartUpgradeable implements ICellContaine
 	public void onPlacement(final EntityPlayer player, final ItemStack held, final ForgeDirection side)
 	{
 		if (player != null)
-			this.fake.profile = player.getGameProfile();
+			this.fake.setProfile(player.getGameProfile());
 		super.onPlacement(player, held, side);
 	}
 	// TODO gamerforEA code end
@@ -425,10 +424,10 @@ public class PartFormationPlane extends PartUpgradeable implements ICellContaine
 		final int z = te.zCoord + side.offsetZ;
 
 		// TODO gamerforEA code start
-		if (EventUtils.cantBreak(this.fake.getPlayer(), x, y, z))
+		if (i != null && EventConfig.inList(EventConfig.formationPlaneBlackList, is))
 			return input;
 
-		if (i != null && EventConfig.inBlackList(EventConfig.formationPlaneBlackList, i, is.getItemDamage()))
+		if (this.fake.cantBreak(x, y, z))
 			return input;
 		// TODO gamerforEA code end
 

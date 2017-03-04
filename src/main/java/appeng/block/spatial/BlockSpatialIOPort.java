@@ -74,7 +74,7 @@ public class BlockSpatialIOPort extends AEBaseTileBlock
 		super.onBlockPlacedBy(world, x, y, z, entity, stack);
 		final TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile instanceof TileSpatialIOPort && entity instanceof EntityPlayer)
-			((TileSpatialIOPort) tile).fake.profile = ((EntityPlayer) entity).getGameProfile();
+			((TileSpatialIOPort) tile).fake.setProfile(((EntityPlayer) entity).getGameProfile());
 	}
 	// TODO gamerforEA code end
 }

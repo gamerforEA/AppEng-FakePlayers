@@ -19,7 +19,8 @@
 package appeng.entity;
 
 import com.gamerforea.ae.ModUtils;
-import com.gamerforea.eventhelper.util.EventUtils;
+import com.gamerforea.eventhelper.fake.FakePlayerContainer;
+import com.gamerforea.eventhelper.fake.FakePlayerContainerEntity;
 
 import appeng.api.AEApi;
 import appeng.core.AEConfig;
@@ -38,6 +39,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityTNTPrimed;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.Explosion;
@@ -45,6 +47,24 @@ import net.minecraft.world.World;
 
 public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntityAdditionalSpawnData
 {
+	// TODO gamerforEA code start
+	public final FakePlayerContainer fake = new FakePlayerContainerEntity(ModUtils.profile, this);
+
+	@Override
+	protected void writeEntityToNBT(NBTTagCompound nbt)
+	{
+		super.writeEntityToNBT(nbt);
+		this.fake.writeToNBT(nbt);
+	}
+
+	@Override
+	protected void readEntityFromNBT(NBTTagCompound nbt)
+	{
+		super.readEntityFromNBT(nbt);
+		this.fake.readFromNBT(nbt);
+	}
+	// TODO gamerforEA code end
+
 	@Reflected
 	public EntityTinyTNTPrimed(final World w)
 	{
@@ -57,6 +77,11 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 		super(w, x, y, z, igniter);
 		this.setSize(0.55F, 0.55F);
 		this.yOffset = this.height / 2.0F;
+
+		// TODO gamerforEA code start
+		if (igniter instanceof EntityPlayer)
+			this.fake.setRealPlayer((EntityPlayer) igniter);
+		// TODO gamerforEA code end
 	}
 
 	/**
@@ -121,7 +146,7 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 
 		for (final Object e : this.worldObj.getEntitiesWithinAABBExcludingEntity(this, AxisAlignedBB.getBoundingBox(this.posX - 1.5, this.posY - 1.5f, this.posZ - 1.5, this.posX + 1.5, this.posY + 1.5, this.posZ + 1.5)))
 			// TODO gamerforEA add condition [2]
-			if (e instanceof Entity && !EventUtils.cantDamage(this.getTntPlacedBy() != null ? this.getTntPlacedBy() : ModUtils.getModFake(this.worldObj), (Entity) e))
+			if (e instanceof Entity && !this.fake.cantDamage((Entity) e))
 				((Entity) e).attackEntityFrom(DamageSource.setExplosionSource(null), 6);
 
 		if (AEConfig.instance.isFeatureEnabled(AEFeature.TinyTNTBlockDamage))
@@ -145,7 +170,7 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 								if (block.getMaterial() != Material.air)
 								{
 									// TODO gamerforEA code start
-									if (EventUtils.cantBreak(this.getTntPlacedBy() instanceof EntityPlayer ? (EntityPlayer) this.getTntPlacedBy() : ModUtils.getModFake(this.worldObj), x, y, z))
+									if (this.fake.cantBreak(x, y, z))
 										continue;
 									// TODO gamerforEA code end
 

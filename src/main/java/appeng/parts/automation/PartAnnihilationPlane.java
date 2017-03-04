@@ -24,7 +24,6 @@ import com.gamerforea.ae.EventConfig;
 import com.gamerforea.ae.FakePlayerContainerUpgradeableHost;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.util.EventUtils;
 import com.google.common.collect.Lists;
 
 import appeng.api.config.Actionable;
@@ -64,6 +63,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -91,7 +91,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	public void onPlacement(final EntityPlayer player, final ItemStack held, final ForgeDirection side)
 	{
 		if (player != null)
-			this.fake.profile = player.getGameProfile();
+			this.fake.setProfile(player.getGameProfile());
 		super.onPlacement(player, held, side);
 	}
 
@@ -433,12 +433,15 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 							energy.extractAEPower(requiredPower, Actionable.MODULATE, PowerMultiplier.CONFIG);
 
 							// TODO gamerforEA code start
-							if (EventUtils.cantBreak(this.fake.getPlayer(), x, y, z))
+							if (EventConfig.annihilationPlaneNoBreakInv && w.getTileEntity(x, y, z) instanceof IInventory)
 								return TickRateModulation.URGENT;
 
 							Block block = w.getBlock(x, y, z);
 							int meta = w.getBlockMetadata(x, y, z);
-							if (EventConfig.inBlackList(EventConfig.annihilationPlaneBlackList, block, meta))
+							if (EventConfig.inList(EventConfig.annihilationPlaneBlackList, block, meta))
+								return TickRateModulation.URGENT;
+
+							if (this.fake.cantBreak(x, y, z))
 								return TickRateModulation.URGENT;
 							// TODO gamerforEA code end
 
