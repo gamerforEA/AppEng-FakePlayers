@@ -27,6 +27,7 @@ public final class EventConfig
 	public static boolean guiOnePlayer = false;
 
 	public static boolean busSameChunk = false;
+	public static boolean busSameChunkStorageOnly = false;
 	public static boolean busSameChunkMessage = false;
 
 	static
@@ -49,6 +50,7 @@ public final class EventConfig
 			guiOnePlayer = cfg.getBoolean("guiOnePlayer", c, guiOnePlayer, "GUI может открыть только один игрок одновременно");
 
 			busSameChunk = cfg.getBoolean("busSameChunk", c, busSameChunk, "Шины работают с блоками, только если находятся в одном чанке");
+			busSameChunkStorageOnly = cfg.getBoolean("busSameChunkStorageOnly", c, busSameChunkStorageOnly, "Проверять чанки только для Шины хранения");
 			busSameChunkMessage = cfg.getBoolean("busSameChunkMessage", c, busSameChunkMessage, "Отправка сообщений ближайшим игрокам, если шина и блок находятся в разных чанках");
 
 			cfg.save();

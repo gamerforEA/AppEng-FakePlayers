@@ -22,6 +22,11 @@ public final class BusUtils
 
 	public static final boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile)
 	{
+		return checkBusCanInteract(busTile, targetTile, false);
+	}
+
+	public static final boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile, boolean isStorage)
+	{
 		if (busTile != null && targetTile != null)
 		{
 			Block targetBlock = targetTile.getBlockType();
@@ -29,7 +34,7 @@ public final class BusUtils
 			if (EventConfig.inList(EventConfig.busBlackList, targetBlock, targetMeta))
 				return false;
 
-			if (EventConfig.busSameChunk && !isSameChunk(busTile, targetTile))
+			if (EventConfig.busSameChunk && (!EventConfig.busSameChunkStorageOnly || isStorage) && !isSameChunk(busTile, targetTile))
 			{
 				if (EventConfig.busSameChunkMessage && notifyCache.getIfPresent(busTile) == null)
 				{
