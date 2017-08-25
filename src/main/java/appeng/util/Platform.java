@@ -171,8 +171,10 @@ public class Platform
 	/**
 	 * This displays the value for encoded longs ( double *100 )
 	 *
-	 * @param n to be formatted long value
-	 * @param isRate if true it adds a /t to the formatted string
+	 * @param n
+	 *            to be formatted long value
+	 * @param isRate
+	 *            if true it adds a /t to the formatted string
 	 *
 	 * @return formatted long value
 	 */
@@ -323,7 +325,8 @@ public class Platform
 			z = tile.zCoord;
 		}
 
-		if (type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
+		if (type.getType()
+				.isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
 			if (tile == null && type.getType() == GuiHostType.ITEM)
 				p.openGui(AppEng.instance(), type.ordinal() << 4, p.getEntityWorld(), p.inventory.currentItem, 0, 0);
 			else if (tile == null || type.getType() == GuiHostType.ITEM)
@@ -337,7 +340,9 @@ public class Platform
 	 */
 	public static boolean isClient()
 	{
-		return FMLCommonHandler.instance().getEffectiveSide().isClient();
+		return FMLCommonHandler	.instance()
+								.getEffectiveSide()
+								.isClient();
 	}
 
 	public static boolean hasPermissions(final DimensionalCoord dc, final EntityPlayer player)
@@ -347,7 +352,8 @@ public class Platform
 			return false;
 		// TODO gamerforEA code end
 
-		return dc.getWorld().canMineBlock(player, dc.x, dc.y, dc.z);
+		return dc	.getWorld()
+					.canMineBlock(player, dc.x, dc.y, dc.z);
 	}
 
 	/*
@@ -357,7 +363,8 @@ public class Platform
 	{
 		try
 		{
-			return w.getBlock(x, y, z).isAir(w, x, y, z);
+			return w.getBlock(x, y, z)
+					.isAir(w, x, y, z);
 		}
 		catch (final Throwable e)
 		{
@@ -464,7 +471,9 @@ public class Platform
 					return ((NBTBase.NBTPrimitive) left).func_150291_c() == ((NBTBase.NBTPrimitive) right).func_150291_c();
 
 				case 8: // else if ( A instanceof NBTTagString )
-					return ((NBTTagString) left).func_150285_a_().equals(((NBTTagString) right).func_150285_a_()) || ((NBTTagString) left).func_150285_a_().equals(((NBTTagString) right).func_150285_a_());
+					return ((NBTTagString) left).func_150285_a_()
+												.equals(((NBTTagString) right).func_150285_a_()) || ((NBTTagString) left)	.func_150285_a_()
+																															.equals(((NBTTagString) right).func_150285_a_());
 
 				case 6: // else if ( A instanceof NBTTagDouble )
 					return ((NBTBase.NBTPrimitive) left).func_150286_g() == ((NBTBase.NBTPrimitive) right).func_150286_g();
@@ -487,13 +496,15 @@ public class Platform
 		if (tagList == null)
 			try
 			{
-				tagList = lB.getClass().getDeclaredField("tagList");
+				tagList = lB.getClass()
+							.getDeclaredField("tagList");
 			}
 			catch (final Throwable t)
 			{
 				try
 				{
-					tagList = lB.getClass().getDeclaredField("field_74747_a");
+					tagList = lB.getClass()
+								.getDeclaredField("field_74747_a");
 				}
 				catch (final Throwable z)
 				{
@@ -558,7 +569,8 @@ public class Platform
 				return hash + (int) ((NBTBase.NBTPrimitive) nbt).func_150291_c();
 
 			case 8: // else if ( A instanceof NBTTagString )
-				return hash + ((NBTTagString) nbt).func_150285_a_().hashCode();
+				return hash + ((NBTTagString) nbt)	.func_150285_a_()
+													.hashCode();
 
 			case 6: // else if ( A instanceof NBTTagDouble )
 				return hash + (int) ((NBTBase.NBTPrimitive) nbt).func_150286_g();
@@ -680,7 +692,9 @@ public class Platform
 	 */
 	public static boolean isServer()
 	{
-		return FMLCommonHandler.instance().getEffectiveSide().isServer();
+		return FMLCommonHandler	.instance()
+								.getEffectiveSide()
+								.isServer();
 	}
 
 	public static int getRandomInt()
@@ -695,19 +709,24 @@ public class Platform
 	{
 		TileEntityChest teA = (TileEntityChest) te;
 		TileEntity teB = null;
-		final Block myBlockID = teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
+		final Block myBlockID = teA	.getWorldObj()
+									.getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
 
-		if (teA.getWorldObj().getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
+		if (teA	.getWorldObj()
+				.getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
 		{
-			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
+			teB = teA	.getWorldObj()
+						.getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
 			if (!(teB instanceof TileEntityChest))
 				teB = null;
 		}
 
 		if (teB == null)
-			if (teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
+			if (teA	.getWorldObj()
+					.getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
 			{
-				teB = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
+				teB = teA	.getWorldObj()
+							.getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
 				if (!(teB instanceof TileEntityChest))
 					teB = null;
 				else
@@ -719,17 +738,21 @@ public class Platform
 			}
 
 		if (teB == null)
-			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
+			if (teA	.getWorldObj()
+					.getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
 			{
-				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
+				teB = teA	.getWorldObj()
+							.getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
 				if (!(teB instanceof TileEntityChest))
 					teB = null;
 			}
 
 		if (teB == null)
-			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
+			if (teA	.getWorldObj()
+					.getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
 			{
-				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
+				teB = teA	.getWorldObj()
+							.getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
 				if (!(teB instanceof TileEntityChest))
 					teB = null;
 				else
@@ -757,15 +780,18 @@ public class Platform
 		{
 		}
 
-		for (final ModContainer f : Loader.instance().getActiveModList())
-			if (f.getModId().equals(modid))
+		for (final ModContainer f : Loader	.instance()
+											.getActiveModList())
+			if (f	.getModId()
+					.equals(modid))
 				return true;
 		return false;
 	}
 
 	public static ItemStack findMatchingRecipeOutput(final InventoryCrafting ic, final World worldObj)
 	{
-		return CraftingManager.getInstance().findMatchingRecipe(ic, worldObj);
+		return CraftingManager	.getInstance()
+								.findMatchingRecipe(ic, worldObj);
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -824,7 +850,8 @@ public class Platform
 		{
 			String name = itemStack.getDisplayName();
 			if (name == null || name.isEmpty())
-				name = itemStack.getItem().getUnlocalizedName(itemStack);
+				name = itemStack.getItem()
+								.getUnlocalizedName(itemStack);
 			return name == null ? "** Null" : name;
 		}
 		catch (final Exception errA)
@@ -1102,7 +1129,8 @@ public class Platform
 		 */
 
 		// test damageable items..
-		if (a.getItem() != null && b.getItem() != null && a.getItem().isDamageable() && a.getItem() == b.getItem())
+		if (a.getItem() != null && b.getItem() != null && a	.getItem()
+															.isDamageable() && a.getItem() == b.getItem())
 			try
 			{
 				if (mode == FuzzyMode.IGNORE_ALL)
@@ -1197,7 +1225,8 @@ public class Platform
 
 		final Vec3 vec31 = vec3.addVector(f7 * d3, f6 * d3, f8 * d3);
 
-		final AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord)).expand(16, 16, 16);
+		final AxisAlignedBB bb = AxisAlignedBB	.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord))
+												.expand(16, 16, 16);
 
 		Entity entity = null;
 		double closest = 9999999.0D;
@@ -1335,18 +1364,28 @@ public class Platform
 
 	public static void postChanges(final IStorageGrid gs, final ItemStack removed, final ItemStack added, final BaseActionSource src)
 	{
-		final IItemList<IAEItemStack> itemChanges = AEApi.instance().storage().createItemList();
-		final IItemList<IAEFluidStack> fluidChanges = AEApi.instance().storage().createFluidList();
+		final IItemList<IAEItemStack> itemChanges = AEApi	.instance()
+															.storage()
+															.createItemList();
+		final IItemList<IAEFluidStack> fluidChanges = AEApi	.instance()
+															.storage()
+															.createFluidList();
 
 		if (removed != null)
 		{
-			final IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.ITEMS);
+			final IMEInventory<IAEItemStack> myItems = AEApi.instance()
+															.registries()
+															.cell()
+															.getCellInventory(removed, null, StorageChannel.ITEMS);
 
 			if (myItems != null)
 				for (final IAEItemStack is : myItems.getAvailableItems(itemChanges))
 					is.setStackSize(-is.getStackSize());
 
-			final IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.FLUIDS);
+			final IMEInventory<IAEFluidStack> myFluids = AEApi	.instance()
+																.registries()
+																.cell()
+																.getCellInventory(removed, null, StorageChannel.FLUIDS);
 
 			if (myFluids != null)
 				for (final IAEFluidStack is : myFluids.getAvailableItems(fluidChanges))
@@ -1355,12 +1394,18 @@ public class Platform
 
 		if (added != null)
 		{
-			final IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.ITEMS);
+			final IMEInventory<IAEItemStack> myItems = AEApi.instance()
+															.registries()
+															.cell()
+															.getCellInventory(added, null, StorageChannel.ITEMS);
 
 			if (myItems != null)
 				myItems.getAvailableItems(itemChanges);
 
-			final IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.FLUIDS);
+			final IMEInventory<IAEFluidStack> myFluids = AEApi	.instance()
+																.registries()
+																.cell()
+																.getCellInventory(added, null, StorageChannel.FLUIDS);
 
 			if (myFluids != null)
 				myFluids.getAvailableItems(fluidChanges);
@@ -1529,7 +1574,8 @@ public class Platform
 		try
 		{
 			if (src.isPlayer())
-				return gridProxy.getSecurity().hasPermission(((PlayerSource) src).player, SecurityPermissions.BUILD);
+				return gridProxy.getSecurity()
+								.hasPermission(((PlayerSource) src).player, SecurityPermissions.BUILD);
 			else if (src.isMachine())
 			{
 				final IActionHost te = ((MachineSource) src).via;
@@ -1538,7 +1584,8 @@ public class Platform
 					return false;
 
 				final int playerID = n.getPlayerID();
-				return gridProxy.getSecurity().hasPermission(playerID, SecurityPermissions.BUILD);
+				return gridProxy.getSecurity()
+								.hasPermission(playerID, SecurityPermissions.BUILD);
 			}
 			else
 				return false;
@@ -1662,7 +1709,10 @@ public class Platform
 
 		if (type == AEFeature.CertusQuartzTools)
 		{
-			final IItemDefinition certusQuartzCrystal = AEApi.instance().definitions().materials().certusQuartzCrystal();
+			final IItemDefinition certusQuartzCrystal = AEApi	.instance()
+																.definitions()
+																.materials()
+																.certusQuartzCrystal();
 
 			return certusQuartzCrystal.isSameAs(b);
 		}
@@ -1675,20 +1725,26 @@ public class Platform
 
 	public static Object findPreferred(final ItemStack[] is)
 	{
-		final IParts parts = AEApi.instance().definitions().parts();
+		final IParts parts = AEApi	.instance()
+									.definitions()
+									.parts();
 
 		for (final ItemStack stack : is)
 		{
-			if (parts.cableGlass().sameAs(AEColor.Transparent, stack))
+			if (parts	.cableGlass()
+						.sameAs(AEColor.Transparent, stack))
 				return stack;
 
-			if (parts.cableCovered().sameAs(AEColor.Transparent, stack))
+			if (parts	.cableCovered()
+						.sameAs(AEColor.Transparent, stack))
 				return stack;
 
-			if (parts.cableSmart().sameAs(AEColor.Transparent, stack))
+			if (parts	.cableSmart()
+						.sameAs(AEColor.Transparent, stack))
 				return stack;
 
-			if (parts.cableDense().sameAs(AEColor.Transparent, stack))
+			if (parts	.cableDense()
+						.sameAs(AEColor.Transparent, stack))
 				return stack;
 		}
 
@@ -1756,18 +1812,26 @@ public class Platform
 
 	public static void addStat(final int playerID, final Achievement achievement)
 	{
-		final EntityPlayer p = AEApi.instance().registries().players().findPlayer(playerID);
+		final EntityPlayer p = AEApi.instance()
+									.registries()
+									.players()
+									.findPlayer(playerID);
 		if (p != null)
 			p.addStat(achievement, 1);
 	}
 
 	public static boolean isRecipePrioritized(final ItemStack what)
 	{
-		final IMaterials materials = AEApi.instance().definitions().materials();
+		final IMaterials materials = AEApi	.instance()
+											.definitions()
+											.materials();
 
-		boolean isPurified = materials.purifiedCertusQuartzCrystal().isSameAs(what);
-		isPurified |= materials.purifiedFluixCrystal().isSameAs(what);
-		isPurified |= materials.purifiedNetherQuartzCrystal().isSameAs(what);
+		boolean isPurified = materials	.purifiedCertusQuartzCrystal()
+										.isSameAs(what);
+		isPurified |= materials	.purifiedFluixCrystal()
+								.isSameAs(what);
+		isPurified |= materials	.purifiedNetherQuartzCrystal()
+								.isSameAs(what);
 
 		return isPurified;
 	}

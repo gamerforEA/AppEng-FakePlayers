@@ -179,7 +179,8 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 
 	private void surface(final NetworkInventoryHandler<T> networkInventoryHandler, final Actionable type)
 	{
-		if (this.getDepth(type).pop() != this)
+		if (this.getDepth(type)
+				.pop() != this)
 			throw new IllegalStateException("Invalid Access to Networked Storage API detected.");
 	}
 
@@ -207,7 +208,9 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 			return null;
 		}
 
-		final Iterator<List<IMEInventoryHandler<T>>> i = this.priorityInventory.descendingMap().values().iterator();// priorityInventory.asMap().descendingMap().entrySet().iterator();
+		final Iterator<List<IMEInventoryHandler<T>>> i = this.priorityInventory	.descendingMap()
+																				.values()
+																				.iterator();// priorityInventory.asMap().descendingMap().entrySet().iterator();
 
 		final T output = request.copy();
 		request = request.copy();

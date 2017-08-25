@@ -53,8 +53,10 @@ public class StorageHelper
 	/**
 	 * Mostly from dimensional doors.. which mostly got it form X-Comp.
 	 *
-	 * @param entity to be teleported entity
-	 * @param link destination
+	 * @param entity
+	 *            to be teleported entity
+	 * @param link
+	 *            destination
 	 *
 	 * @return teleported entity
 	 */
@@ -93,7 +95,9 @@ public class StorageHelper
 		}
 
 		// load the chunk!
-		WorldServer.class.cast(newWorld).getChunkProvider().loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
+		WorldServer.class	.cast(newWorld)
+							.getChunkProvider()
+							.loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
 
 		final boolean diffDestination = newWorld != oldWorld;
 		if (diffDestination)
@@ -102,16 +106,19 @@ public class StorageHelper
 				if (link.dim.provider instanceof StorageWorldProvider)
 					Achievements.SpatialIOExplorer.addToPlayer(player);
 
-				player.mcServer.getConfigurationManager().transferPlayerToDimension(player, link.dim.provider.dimensionId, new METeleporter(newWorld, link));
+				player.mcServer	.getConfigurationManager()
+								.transferPlayerToDimension(player, link.dim.provider.dimensionId, new METeleporter(newWorld, link));
 			}
 			else
 			{
 				final int entX = entity.chunkCoordX;
 				final int entZ = entity.chunkCoordZ;
 
-				if (entity.addedToChunk && oldWorld.getChunkProvider().chunkExists(entX, entZ))
+				if (entity.addedToChunk && oldWorld	.getChunkProvider()
+													.chunkExists(entX, entZ))
 				{
-					oldWorld.getChunkFromChunkCoords(entX, entZ).removeEntity(entity);
+					oldWorld.getChunkFromChunkCoords(entX, entZ)
+							.removeEntity(entity);
 					oldWorld.getChunkFromChunkCoords(entX, entZ).isModified = true;
 				}
 
@@ -191,7 +198,10 @@ public class StorageHelper
 	// TODO gamerforEA code end
 
 	// TODO gamerforEA add EntityPlayer parameter
-	public void swapRegions(final FakePlayer player, final World src /** over world **/
+	public void swapRegions(final FakePlayer player, final World src /**
+																		 * over
+																		 * world
+																		 **/
 			, final World dst/** storage cell **/
 			,final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
 	{
@@ -199,7 +209,12 @@ public class StorageHelper
 		final World playerWorld = player.worldObj;
 		// TODO gamerforEA code end
 
-		for (final Block matrixFrameBlock : AEApi.instance().definitions().blocks().matrixFrame().maybeBlock().asSet())
+		for (final Block matrixFrameBlock : AEApi	.instance()
+													.definitions()
+													.blocks()
+													.matrixFrame()
+													.maybeBlock()
+													.asSet())
 			this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new WrapInMatrixFrame(matrixFrameBlock, 0, dst));
 
 		final AxisAlignedBB srcBox = AxisAlignedBB.getBoundingBox(x, y, z, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1);
@@ -248,10 +263,12 @@ public class StorageHelper
 		// TODO gamerforEA code end
 
 		for (final WorldCoord wc : cDst.getUpdates())
-			cDst.getWorld().notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
+			cDst.getWorld()
+				.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
 
 		for (final WorldCoord wc : cSrc.getUpdates())
-			cSrc.getWorld().notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
+			cSrc.getWorld()
+				.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
 
 		this.transverseEdges(x - 1, y - 1, z - 1, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1, new TriggerUpdates(src));
 		this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new TriggerUpdates(dst));

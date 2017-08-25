@@ -109,7 +109,12 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 		}
 
 		if (this.isInWater() && Platform.isServer())
-			for (final ItemStack tntStack : AEApi.instance().definitions().blocks().tinyTNT().maybeStack(1).asSet())
+			for (final ItemStack tntStack : AEApi	.instance()
+													.definitions()
+													.blocks()
+													.tinyTNT()
+													.maybeStack(1)
+													.asSet())
 			{
 				final EntityItem item = new EntityItem(this.worldObj, this.posX, this.posY, this.posZ, tntStack);
 

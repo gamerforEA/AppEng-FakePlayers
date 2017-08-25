@@ -26,6 +26,7 @@ public final class FakePlayerContainerUpgradeableHost extends FakePlayerContaine
 	@Override
 	public World getWorld()
 	{
-		return this.host.getTile().getWorldObj();
+		return this.host.getTile()
+						.getWorldObj();
 	}
 }

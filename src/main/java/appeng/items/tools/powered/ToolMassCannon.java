@@ -97,7 +97,10 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 	{
 		super.addCheckedInformation(stack, player, lines, displayMoreInfo);
 
-		final IMEInventory<IAEItemStack> cdi = AEApi.instance().registries().cell().getCellInventory(stack, null, StorageChannel.ITEMS);
+		final IMEInventory<IAEItemStack> cdi = AEApi.instance()
+													.registries()
+													.cell()
+													.getCellInventory(stack, null, StorageChannel.ITEMS);
 
 		if (cdi instanceof CellInventoryHandler)
 		{
@@ -121,10 +124,15 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 			if (cu != null)
 				shots += cu.getInstalledUpgrades(Upgrades.SPEED);
 
-			final IMEInventory inv = AEApi.instance().registries().cell().getCellInventory(item, null, StorageChannel.ITEMS);
+			final IMEInventory inv = AEApi	.instance()
+											.registries()
+											.cell()
+											.getCellInventory(item, null, StorageChannel.ITEMS);
 			if (inv != null)
 			{
-				final IItemList itemList = inv.getAvailableItems(AEApi.instance().storage().createItemList());
+				final IItemList itemList = inv.getAvailableItems(AEApi	.instance()
+																		.storage()
+																		.createItemList());
 				IAEStack aeAmmo = itemList.getFirstItem();
 				if (aeAmmo instanceof IAEItemStack)
 				{
@@ -165,7 +173,10 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 						final Vec3 direction = Vec3.createVectorHelper(f7 * d3, f6 * d3, f8 * d3);
 						direction.normalize();
 
-						final float penetration = AEApi.instance().registries().matterCannon().getPenetration(ammo); // 196.96655f;
+						final float penetration = AEApi	.instance()
+														.registries()
+														.matterCannon()
+														.getPenetration(ammo); // 196.96655f;
 						if (penetration <= 0)
 						{
 							final ItemStack type = ((IAEItemStack) aeAmmo).getItemStack();
@@ -191,7 +202,8 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 
 	private void shootPaintBalls(final ItemStack type, final World w, final EntityPlayer p, final Vec3 vec3, final Vec3 vec31, final Vec3 direction, final double d0, final double d1, final double d2)
 	{
-		final AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord)).expand(16, 16, 16);
+		final AxisAlignedBB bb = AxisAlignedBB	.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord))
+												.expand(16, 16, 16);
 
 		Entity entity = null;
 		final List list = w.getEntitiesWithinAABBExcludingEntity(p, bb);
@@ -259,7 +271,8 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 
 				final int id = pos.entityHit.getEntityId();
 				final PlayerColor marker = new PlayerColor(id, col, 20 * 30);
-				TickHandler.INSTANCE.getPlayerColors().put(id, marker);
+				TickHandler.INSTANCE.getPlayerColors()
+									.put(id, marker);
 
 				if (pos.entityHit instanceof EntitySheep)
 				{
@@ -283,7 +296,12 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 
 				final Block whatsThere = w.getBlock(x, y, z);
 				if (whatsThere.isReplaceable(w, x, y, z) && w.isAirBlock(x, y, z))
-					for (final Block paintBlock : AEApi.instance().definitions().blocks().paint().maybeBlock().asSet())
+					for (final Block paintBlock : AEApi	.instance()
+														.definitions()
+														.blocks()
+														.paint()
+														.maybeBlock()
+														.asSet())
 						w.setBlock(x, y, z, paintBlock, 0, 3);
 
 				final TileEntity te = w.getTileEntity(x, y, z);
@@ -305,7 +323,8 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 		{
 			hasDestroyed = false;
 
-			final AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord)).expand(16, 16, 16);
+			final AxisAlignedBB bb = AxisAlignedBB	.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord))
+													.expand(16, 16, 16);
 
 			Entity entity = null;
 			final List list = w.getEntitiesWithinAABBExcludingEntity(p, bb);
@@ -436,7 +455,8 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 	@Override
 	public FuzzyMode getFuzzyMode(final ItemStack is)
 	{
-		final String fz = Platform.openNbtData(is).getString("FuzzyMode");
+		final String fz = Platform	.openNbtData(is)
+									.getString("FuzzyMode");
 		try
 		{
 			return FuzzyMode.valueOf(fz);
@@ -450,7 +470,8 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 	@Override
 	public void setFuzzyMode(final ItemStack is, final FuzzyMode fzMode)
 	{
-		Platform.openNbtData(is).setString("FuzzyMode", fzMode.name());
+		Platform.openNbtData(is)
+				.setString("FuzzyMode", fzMode.name());
 	}
 
 	@Override
@@ -480,7 +501,10 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 	@Override
 	public boolean isBlackListed(final ItemStack cellItem, final IAEItemStack requestedAddition)
 	{
-		final float pen = AEApi.instance().registries().matterCannon().getPenetration(requestedAddition.getItemStack());
+		final float pen = AEApi	.instance()
+								.registries()
+								.matterCannon()
+								.getPenetration(requestedAddition.getItemStack());
 		if (pen > 0)
 			return false;
 

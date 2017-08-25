@@ -30,7 +30,8 @@ public final class ModUtils
 	{
 		try
 		{
-			return ConvertUtils.toBukkitEntity(player).hasPermission(permisssion);
+			return ConvertUtils	.toBukkitEntity(player)
+								.hasPermission(permisssion);
 		}
 		catch (Exception e)
 		{

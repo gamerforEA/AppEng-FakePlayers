@@ -103,7 +103,9 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 			if (Platform.isServer())
 			{
 				final int dim = c.getInteger("StorageDim");
-				return WorldData.instance().dimensionData().getStoredSize(dim);
+				return WorldData.instance()
+								.dimensionData()
+								.getStoredSize(dim);
 			}
 			else
 				return new WorldCoord(c.getInteger("sizeX"), c.getInteger("sizeY"), c.getInteger("sizeZ"));
@@ -117,7 +119,8 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 		final World w = this.getWorld(is);
 		if (w != null)
 		{
-			final NBTTagCompound info = (NBTTagCompound) w.getWorldInfo().getAdditionalProperty("storageCell");
+			final NBTTagCompound info = (NBTTagCompound) w	.getWorldInfo()
+															.getAdditionalProperty("storageCell");
 			if (info != null)
 				return new WorldCoord(info.getInteger("minX"), info.getInteger("minY"), info.getInteger("minZ"));
 		}
@@ -130,7 +133,8 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 		final World w = this.getWorld(is);
 		if (w != null)
 		{
-			final NBTTagCompound info = (NBTTagCompound) w.getWorldInfo().getAdditionalProperty("storageCell");
+			final NBTTagCompound info = (NBTTagCompound) w	.getWorldInfo()
+															.getAdditionalProperty("storageCell");
 			if (info != null)
 				return new WorldCoord(info.getInteger("maxX"), info.getInteger("maxY"), info.getInteger("maxZ"));
 		}
@@ -166,7 +170,8 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 				final int floorBuffer = 64;
 
 				// TODO gamerforEA add EntityPlayer parameter
-				StorageHelper.getInstance().swapRegions(player, w, destination, min.x + 1, min.y + 1, min.z + 1, 1, floorBuffer + 1, 1, targetX - 1, targetY - 1, targetZ - 1);
+				StorageHelper	.getInstance()
+								.swapRegions(player, w, destination, min.x + 1, min.y + 1, min.z + 1, 1, floorBuffer + 1, 1, targetX - 1, targetY - 1, targetZ - 1);
 				this.setStoredSize(is, targetX, targetY, targetZ);
 
 				return new TransitionResult(true, 0);
@@ -180,7 +185,9 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 		final NBTTagCompound c = Platform.openNbtData(is);
 		final int newDim = DimensionManager.getNextFreeDimId();
 		c.setInteger("StorageDim", newDim);
-		WorldData.instance().dimensionData().addStorageCell(newDim);
+		WorldData	.instance()
+					.dimensionData()
+					.addStorageCell(newDim);
 		DimensionManager.initDimension(newDim);
 		return DimensionManager.getWorld(newDim);
 	}
@@ -194,7 +201,9 @@ public class ItemSpatialStorageCell extends AEBaseItem implements ISpatialStorag
 			c.setInteger("sizeX", targetX);
 			c.setInteger("sizeY", targetY);
 			c.setInteger("sizeZ", targetZ);
-			WorldData.instance().dimensionData().setStoredSize(dim, targetX, targetY, targetZ);
+			WorldData	.instance()
+						.dimensionData()
+						.setStoredSize(dim, targetX, targetY, targetZ);
 		}
 	}
 }

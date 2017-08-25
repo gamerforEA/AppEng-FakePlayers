@@ -60,7 +60,8 @@ public class SecurityCache implements ISecurityGrid
 		if (this.securityProvider.isEmpty())
 			return;
 
-		this.securityProvider.get(0).readPermissions(this.playerPerms);
+		this.securityProvider	.get(0)
+								.readPermissions(this.playerPerms);
 	}
 
 	public long getSecurityKey()
@@ -88,14 +89,17 @@ public class SecurityCache implements ISecurityGrid
 		final long lastCode = this.securityKey;
 
 		if (this.securityProvider.size() == 1)
-			this.securityKey = this.securityProvider.get(0).getSecurityKey();
+			this.securityKey = this.securityProvider.get(0)
+													.getSecurityKey();
 		else
 			this.securityKey = -1;
 
 		if (lastCode != this.securityKey)
 		{
-			this.getGrid().postEvent(new MENetworkSecurityChange());
-			for (final IGridNode n : this.getGrid().getNodes())
+			this.getGrid()
+				.postEvent(new MENetworkSecurityChange());
+			for (final IGridNode n : this	.getGrid()
+											.getNodes())
 				((GridNode) n).setLastSecurityKey(this.securityKey);
 		}
 	}
@@ -130,7 +134,8 @@ public class SecurityCache implements ISecurityGrid
 	@Override
 	public boolean isAvailable()
 	{
-		return this.securityProvider.size() == 1 && this.securityProvider.get(0).isSecurityEnabled();
+		return this.securityProvider.size() == 1 && this.securityProvider	.get(0)
+																			.isSecurityEnabled();
 	}
 
 	@Override
@@ -146,7 +151,9 @@ public class SecurityCache implements ISecurityGrid
 			return true;
 		// TODO gamerforEA code end
 
-		final int playerID = WorldData.instance().playerData().getPlayerID(profile);
+		final int playerID = WorldData	.instance()
+										.playerData()
+										.getPlayerID(profile);
 
 		return this.hasPermission(playerID, perm);
 	}
@@ -173,7 +180,8 @@ public class SecurityCache implements ISecurityGrid
 	public int getOwner()
 	{
 		if (this.isAvailable())
-			return this.securityProvider.get(0).getOwner();
+			return this.securityProvider.get(0)
+										.getOwner();
 		return -1;
 	}
 

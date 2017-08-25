@@ -55,8 +55,12 @@ public class CraftingJob implements Runnable, ICraftingJob
 
 	private final MECraftingInventory original;
 	private final World world;
-	private final IItemList<IAEItemStack> crafting = AEApi.instance().storage().createItemList();
-	private final IItemList<IAEItemStack> missing = AEApi.instance().storage().createItemList();
+	private final IItemList<IAEItemStack> crafting = AEApi	.instance()
+															.storage()
+															.createItemList();
+	private final IItemList<IAEItemStack> missing = AEApi	.instance()
+															.storage()
+															.createItemList();
 	private final HashMap<String, TwoIntegers> opsAndMultiplier = new HashMap<String, TwoIntegers>();
 	private final Object monitor = new Object();
 	private final Stopwatch watch = Stopwatch.createUnstarted();
@@ -158,8 +162,10 @@ public class CraftingJob implements Runnable, ICraftingJob
 				craftingInventory.ignore(this.output);
 
 				this.availableCheck = new MECraftingInventory(this.original, false, false, false);
-				this.getTree().request(craftingInventory, this.output.getStackSize(), this.actionSrc);
-				this.getTree().dive(this);
+				this.getTree()
+					.request(craftingInventory, this.output.getStackSize(), this.actionSrc);
+				this.getTree()
+					.dive(this);
 
 				for (final String s : this.opsAndMultiplier.keySet())
 				{
@@ -183,9 +189,12 @@ public class CraftingJob implements Runnable, ICraftingJob
 
 					this.availableCheck = new MECraftingInventory(this.original, false, false, false);
 
-					this.getTree().setSimulate();
-					this.getTree().request(craftingInventory, this.output.getStackSize(), this.actionSrc);
-					this.getTree().dive(this);
+					this.getTree()
+						.setSimulate();
+					this.getTree()
+						.request(craftingInventory, this.output.getStackSize(), this.actionSrc);
+					this.getTree()
+						.dive(this);
 
 					for (final String s : this.opsAndMultiplier.keySet())
 					{
@@ -295,7 +304,8 @@ public class CraftingJob implements Runnable, ICraftingJob
 	public void populatePlan(final IItemList<IAEItemStack> plan)
 	{
 		if (this.getTree() != null)
-			this.getTree().getPlan(plan);
+			this.getTree()
+				.getPlan(plan);
 	}
 
 	@Override
@@ -317,7 +327,8 @@ public class CraftingJob implements Runnable, ICraftingJob
 	/**
 	 * returns true if this needs more simulation.
 	 *
-	 * @param milli milliseconds of simulation
+	 * @param milli
+	 *            milliseconds of simulation
 	 *
 	 * @return true if this needs more simulation
 	 */
@@ -381,7 +392,8 @@ public class CraftingJob implements Runnable, ICraftingJob
 				final IActionHost machineSource = ((MachineSource) this.actionSrc).via;
 				final IGridNode actionableNode = machineSource.getActionableNode();
 				final IGridHost machine = actionableNode.getMachine();
-				final DimensionalCoord location = actionableNode.getGridBlock().getLocation();
+				final DimensionalCoord location = actionableNode.getGridBlock()
+																.getLocation();
 
 				actionSource = String.format(LOG_MACHINE_SOURCE_DETAILS, machine, location);
 			}

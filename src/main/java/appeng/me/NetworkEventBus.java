@@ -95,7 +95,8 @@ public class NetworkEventBus
 				for (final Entry<Class, MENetworkEventInfo> subscriber : subscribers.entrySet())
 				{
 					final MENetworkEventInfo target = subscriber.getValue();
-					final GridCacheWrapper cache = g.getCaches().get(subscriber.getKey());
+					final GridCacheWrapper cache = g.getCaches()
+													.get(subscriber.getKey());
 					if (cache != null)
 					{
 						x++;
@@ -173,7 +174,8 @@ public class NetworkEventBus
 			catch (final Throwable e1)
 			{
 				AELog.error("[AppEng] Network Event caused exception:");
-				AELog.error("Offending Class: " + obj.getClass().getName());
+				AELog.error("Offending Class: " + obj	.getClass()
+														.getName());
 				AELog.error("Offending Object: " + obj.toString());
 				AELog.debug(e1);
 				throw new IllegalStateException(e1);

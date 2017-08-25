@@ -293,7 +293,8 @@ public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature,
 					{
 						final String name = memoryCard.getSettingsName(is);
 						final NBTTagCompound data = memoryCard.getData(is);
-						if (this.getUnlocalizedName().equals(name))
+						if (this.getUnlocalizedName()
+								.equals(name))
 						{
 							final AEBaseTile t = this.getTileEntity(w, x, y, z);
 							t.uploadSettings(SettingsFrom.MEMORY_CARD, data);

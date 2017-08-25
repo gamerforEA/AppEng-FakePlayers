@@ -128,7 +128,9 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			r = this.heatUp.get(new InWorldToolOperationIngredient(blockID, OreDictionary.WILDCARD_VALUE));
 
 		if (r.getBlockItem() != null)
-			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem().getItem()), r.getBlockItem().getItemDamage(), 3);
+			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem()
+														.getItem()), r	.getBlockItem()
+																		.getItemDamage(), 3);
 		else
 			w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 
@@ -154,7 +156,9 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			r = this.coolDown.get(new InWorldToolOperationIngredient(blockID, OreDictionary.WILDCARD_VALUE));
 
 		if (r.getBlockItem() != null)
-			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem().getItem()), r.getBlockItem().getItemDamage(), 3);
+			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem()
+														.getItem()), r	.getBlockItem()
+																		.getItemDamage(), 3);
 		else
 			w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 
@@ -197,7 +201,9 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			final int y = target.blockY;
 			final int z = target.blockZ;
 
-			if (w.getBlock(x, y, z).getMaterial() == Material.lava || w.getBlock(x, y, z).getMaterial() == Material.water)
+			if (w	.getBlock(x, y, z)
+					.getMaterial() == Material.lava || w.getBlock(x, y, z)
+														.getMaterial() == Material.water)
 				if (Platform.hasPermissions(new DimensionalCoord(w, x, y, z), p))
 					this.onItemUse(item, p, w, x, y, z, 0, 0.0F, 0.0F, 0.0F);
 		}
@@ -260,12 +266,14 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 
 				for (final ItemStack i : stack)
 				{
-					final ItemStack result = FurnaceRecipes.smelting().getSmeltingResult(i);
+					final ItemStack result = FurnaceRecipes	.smelting()
+															.getSmeltingResult(i);
 
 					if (result != null)
 					{
 						if (result.getItem() instanceof ItemBlock)
-							if (Block.getBlockFromItem(result.getItem()) == blockID && result.getItem().getDamage(result) == metadata)
+							if (Block.getBlockFromItem(result.getItem()) == blockID && result	.getItem()
+																								.getDamage(result) == metadata)
 								canFurnaceable = false;
 						hasFurnaceable = true;
 						out.add(result);
@@ -286,7 +294,9 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 					if (or.getBlockItem() == null)
 						w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 					else
-						w.setBlock(x, y, z, Block.getBlockFromItem(or.getBlockItem().getItem()), or.getBlockItem().getItemDamage(), 3);
+						w.setBlock(x, y, z, Block.getBlockFromItem(or	.getBlockItem()
+																		.getItem()), or	.getBlockItem()
+																						.getItemDamage(), 3);
 
 					if (or.getDrops() != null)
 						Platform.spawnDrops(w, x, y, z, or.getDrops());

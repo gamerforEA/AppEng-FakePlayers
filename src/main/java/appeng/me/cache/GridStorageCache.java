@@ -86,8 +86,10 @@ public class GridStorageCache implements IStorageGrid
 		{
 			final ICellContainer cc = (ICellContainer) machine;
 
-			this.getGrid().postEvent(new MENetworkCellArrayUpdate());
-			this.removeCellProvider(cc, new CellChangeTracker()).applyChanges();
+			this.getGrid()
+				.postEvent(new MENetworkCellArrayUpdate());
+			this.removeCellProvider(cc, new CellChangeTracker())
+				.applyChanges();
 			this.inactiveCellProviders.remove(cc);
 		}
 
@@ -110,9 +112,11 @@ public class GridStorageCache implements IStorageGrid
 			final ICellContainer cc = (ICellContainer) machine;
 			this.inactiveCellProviders.add(cc);
 
-			this.getGrid().postEvent(new MENetworkCellArrayUpdate());
+			this.getGrid()
+				.postEvent(new MENetworkCellArrayUpdate());
 			if (node.isActive())
-				this.addCellProvider(cc, new CellChangeTracker()).applyChanges();
+				this.addCellProvider(cc, new CellChangeTracker())
+					.applyChanges();
 		}
 
 		if (machine instanceof IStackWatcherHost)
@@ -258,7 +262,8 @@ public class GridStorageCache implements IStorageGrid
 
 	private void buildNetworkStorage(final StorageChannel chan)
 	{
-		final SecurityCache security = this.getGrid().getCache(ISecurityGrid.class);
+		final SecurityCache security = this	.getGrid()
+											.getCache(ISecurityGrid.class);
 
 		switch (chan)
 		{
@@ -298,13 +303,15 @@ public class GridStorageCache implements IStorageGrid
 	public void registerCellProvider(final ICellProvider provider)
 	{
 		this.inactiveCellProviders.add(provider);
-		this.addCellProvider(provider, new CellChangeTracker()).applyChanges();
+		this.addCellProvider(provider, new CellChangeTracker())
+			.applyChanges();
 	}
 
 	@Override
 	public void unregisterCellProvider(final ICellProvider provider)
 	{
-		this.removeCellProvider(provider, new CellChangeTracker()).applyChanges();
+		this.removeCellProvider(provider, new CellChangeTracker())
+			.applyChanges();
 		this.inactiveCellProviders.remove(provider);
 	}
 
@@ -345,9 +352,13 @@ public class GridStorageCache implements IStorageGrid
 			this.src = actionSrc;
 
 			if (channel == StorageChannel.ITEMS)
-				this.list = ((IMEInventoryHandler<IAEItemStack>) h).getAvailableItems(AEApi.instance().storage().createItemList());
+				this.list = ((IMEInventoryHandler<IAEItemStack>) h).getAvailableItems(AEApi	.instance()
+																							.storage()
+																							.createItemList());
 			else if (channel == StorageChannel.FLUIDS)
-				this.list = ((IMEInventoryHandler<IAEFluidStack>) h).getAvailableItems(AEApi.instance().storage().createFluidList());
+				this.list = ((IMEInventoryHandler<IAEFluidStack>) h).getAvailableItems(AEApi.instance()
+																							.storage()
+																							.createFluidList());
 			else
 				this.list = null;
 		}

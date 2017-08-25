@@ -136,7 +136,8 @@ public class AENetworkProxy implements IGridBlock
 	{
 		if (this.node == null && Platform.isServer() && this.isReady)
 		{
-			this.node = AEApi.instance().createGridNode(this);
+			this.node = AEApi	.instance()
+								.createGridNode(this);
 			this.readFromNBT(this.data);
 			this.node.updateState();
 		}
@@ -155,11 +156,14 @@ public class AENetworkProxy implements IGridBlock
 		else if (this.node != null && this.owner != null)
 		{
 			// TODO gamerforEA code start
-			if (this.owner.getGameProfile() != null && this.owner.getGameProfile().isComplete())
+			if (this.owner.getGameProfile() != null && this.owner	.getGameProfile()
+																	.isComplete())
 			{
 				// TODO gamerforEA code end
 				final GameProfile profile = this.owner.getGameProfile();
-				final int playerID = WorldData.instance().playerData().getPlayerID(profile);
+				final int playerID = WorldData	.instance()
+												.playerData()
+												.getPlayerID(profile);
 
 				this.node.setPlayerID(playerID);
 			}
@@ -184,7 +188,8 @@ public class AENetworkProxy implements IGridBlock
 	 *
 	 * @return grid of node
 	 *
-	 * @throws GridAccessException of node or grid is null
+	 * @throws GridAccessException
+	 *             of node or grid is null
 	 */
 	public IGrid getGrid() throws GridAccessException
 	{
@@ -372,7 +377,8 @@ public class AENetworkProxy implements IGridBlock
 	{
 		try
 		{
-			return this.getEnergy().isNetworkPowered();
+			return this	.getEnergy()
+						.isNetworkPowered();
 		}
 		catch (final GridAccessException e)
 		{

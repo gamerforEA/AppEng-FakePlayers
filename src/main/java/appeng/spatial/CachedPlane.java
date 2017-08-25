@@ -60,9 +60,14 @@ public class CachedPlane
 	private final LinkedList<TileEntity> tiles = new LinkedList<TileEntity>();
 	private final LinkedList<NextTickListEntry> ticks = new LinkedList<NextTickListEntry>();
 	private final World world;
-	private final IMovableRegistry reg = AEApi.instance().registries().movable();
+	private final IMovableRegistry reg = AEApi	.instance()
+												.registries()
+												.movable();
 	private final LinkedList<WorldCoord> updates = new LinkedList<WorldCoord>();
-	private final IBlockDefinition matrixFrame = AEApi.instance().definitions().blocks().matrixFrame();
+	private final IBlockDefinition matrixFrame = AEApi	.instance()
+														.definitions()
+														.blocks()
+														.matrixFrame();
 	private int verticalBits;
 
 	// TODO gamerforEA code start
@@ -106,7 +111,9 @@ public class CachedPlane
 			for (int z = 0; z < this.z_size; z++)
 				this.myColumns[x][z] = new Column(w.getChunkFromChunkCoords(minX + x >> 4, minZ + z >> 4), minX + x & 0xF, minZ + z & 0xF, minCY, cy_size);
 
-		final IMovableRegistry mr = AEApi.instance().registries().movable();
+		final IMovableRegistry mr = AEApi	.instance()
+											.registries()
+											.movable();
 
 		// TODO gamerforEA code start
 		final World playerWorld = player.worldObj;
@@ -161,8 +168,10 @@ public class CachedPlane
 				for (final ChunkPosition cp : deadTiles)
 					c.chunkTileEntityMap.remove(cp);
 
-				final long k = this.getWorld().getTotalWorldTime();
-				final List list = this.getWorld().getPendingBlockUpdates(c, false);
+				final long k = this	.getWorld()
+									.getTotalWorldTime();
+				final List list = this	.getWorld()
+										.getPendingBlockUpdates(c, false);
 				if (list != null)
 					for (final Object o : list)
 					{
@@ -193,7 +202,9 @@ public class CachedPlane
 
 	private IMovableHandler getHandler(final TileEntity te)
 	{
-		final IMovableRegistry mr = AEApi.instance().registries().movable();
+		final IMovableRegistry mr = AEApi	.instance()
+											.registries()
+											.movable();
 		return mr.getHandler(te);
 	}
 
@@ -239,7 +250,9 @@ public class CachedPlane
 	// TODO gamerforEA add EntityPlayer parameter
 	void swap(final FakePlayer player, final CachedPlane dst)
 	{
-		final IMovableRegistry mr = AEApi.instance().registries().movable();
+		final IMovableRegistry mr = AEApi	.instance()
+											.registries()
+											.movable();
 
 		if (dst.x_size == this.x_size && dst.y_size == this.y_size && dst.z_size == this.z_size)
 		{
@@ -310,14 +323,17 @@ public class CachedPlane
 
 	private void markForUpdate(final int x, final int y, final int z)
 	{
-		this.getUpdates().add(new WorldCoord(x, y, z));
+		this.getUpdates()
+			.add(new WorldCoord(x, y, z));
 		for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS)
-			this.getUpdates().add(new WorldCoord(x + d.offsetX, y + d.offsetY, z + d.offsetZ));
+			this.getUpdates()
+				.add(new WorldCoord(x + d.offsetX, y + d.offsetY, z + d.offsetZ));
 	}
 
 	private void addTick(final int x, final int y, final int z, final NextTickListEntry entry)
 	{
-		this.getWorld().scheduleBlockUpdate(x + this.x_offset, y + this.y_offset, z + this.z_offset, entry.func_151351_a(), (int) entry.scheduledTime);
+		this.getWorld()
+			.scheduleBlockUpdate(x + this.x_offset, y + this.y_offset, z + this.z_offset, entry.func_151351_a(), (int) entry.scheduledTime);
 	}
 
 	private void addTile(final int x, final int y, final int z, final TileEntity te, final CachedPlane alternateDestination, final IMovableRegistry mr)
@@ -349,8 +365,10 @@ public class CachedPlane
 
 					if (c.c.isChunkLoaded)
 					{
-						this.getWorld().addTileEntity(te);
-						this.getWorld().markBlockForUpdate(x, y, z);
+						this.getWorld()
+							.addTileEntity(te);
+						this.getWorld()
+							.markBlockForUpdate(x, y, z);
 					}
 				}
 
@@ -385,7 +403,10 @@ public class CachedPlane
 				final Chunk c = this.myChunks[x][z];
 
 				for (int y = 1; y < 255; y += 32)
-					WorldData.instance().compassData().service().updateArea(this.getWorld(), c.xPosition << 4, y, c.zPosition << 4);
+					WorldData	.instance()
+								.compassData()
+								.service()
+								.updateArea(this.getWorld(), c.xPosition << 4, y, c.zPosition << 4);
 
 				Platform.sendChunk(c, this.verticalBits);
 			}
@@ -429,7 +450,8 @@ public class CachedPlane
 
 		private void setBlockIDWithMetadata(final int y, final Object[] blk)
 		{
-			for (final Block matrixFrameBlock : CachedPlane.this.matrixFrame.maybeBlock().asSet())
+			for (final Block matrixFrameBlock : CachedPlane.this.matrixFrame.maybeBlock()
+																			.asSet())
 				if (blk[0] == matrixFrameBlock)
 					blk[0] = Platform.AIR_BLOCK;
 
