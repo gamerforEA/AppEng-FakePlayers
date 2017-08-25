@@ -18,7 +18,7 @@
 
 package appeng.parts.automation;
 
-import com.gamerforea.ae.EventConfig;
+import com.gamerforea.ae.BusUtils;
 
 import appeng.api.config.RedstoneMode;
 import appeng.api.config.Upgrades;
@@ -28,7 +28,6 @@ import appeng.me.GridAccessException;
 import appeng.tile.inventory.AppEngInternalAEInventory;
 import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
-import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -56,14 +55,16 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	public void readFromNBT(final net.minecraft.nbt.NBTTagCompound extra)
 	{
 		super.readFromNBT(extra);
-		this.getConfig().readFromNBT(extra, "config");
+		this.getConfig()
+			.readFromNBT(extra, "config");
 	}
 
 	@Override
 	public void writeToNBT(final net.minecraft.nbt.NBTTagCompound extra)
 	{
 		super.writeToNBT(extra);
-		this.getConfig().writeToNBT(extra, "config");
+		this.getConfig()
+			.writeToNBT(extra, "config");
 	}
 
 	@Override
@@ -79,7 +80,8 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	public void onNeighborChanged()
 	{
 		this.updateState();
-		if (this.lastRedstone != this.getHost().hasRedstone(this.getSide()))
+		if (this.lastRedstone != this	.getHost()
+										.hasRedstone(this.getSide()))
 		{
 			this.lastRedstone = !this.lastRedstone;
 			if (this.lastRedstone && this.getRSMode() == RedstoneMode.SIGNAL_PULSE)
@@ -89,18 +91,19 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 
 	protected InventoryAdaptor getHandler()
 	{
-		final TileEntity self = this.getHost().getTile();
+		final TileEntity self = this.getHost()
+									.getTile();
 		final TileEntity target = this.getTileEntity(self, self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
 
 		// TODO gamerforEA code start
 		if (target != null)
 		{
-			if (target.getClass().getName().equals("exnihilo.blocks.tileentities.TileEntityBarrel"))
+			if (target	.getClass()
+						.getName()
+						.equals("exnihilo.blocks.tileentities.TileEntityBarrel"))
 				return null;
 
-			Block block = target.getBlockType();
-			int meta = target.getBlockMetadata();
-			if (EventConfig.inList(EventConfig.busBlackList, block, meta))
+			if (!BusUtils.checkBusCanInteract(self, target))
 				return null;
 		}
 		// TODO gamerforEA code end
@@ -111,14 +114,16 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 			return this.adaptor;
 
 		this.adaptorHash = newAdaptorHash;
-		this.adaptor = InventoryAdaptor.getAdaptor(target, this.getSide().getOpposite());
+		this.adaptor = InventoryAdaptor.getAdaptor(target, this	.getSide()
+																.getOpposite());
 
 		return this.adaptor;
 	}
 
 	protected int availableSlots()
 	{
-		return Math.min(1 + this.getInstalledUpgrades(Upgrades.CAPACITY) * 4, this.getConfig().getSizeInventory());
+		return Math.min(1 + this.getInstalledUpgrades(Upgrades.CAPACITY) * 4, this	.getConfig()
+																					.getSizeInventory());
 	}
 
 	protected int calculateItemsToSend()
@@ -148,12 +153,14 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	 */
 	protected boolean canDoBusWork()
 	{
-		final TileEntity self = this.getHost().getTile();
+		final TileEntity self = this.getHost()
+									.getTile();
 		final World world = self.getWorldObj();
 		final int xCoordinate = self.xCoord + this.getSide().offsetX;
 		final int zCoordinate = self.zCoord + this.getSide().offsetZ;
 
-		return world != null && world.getChunkProvider().chunkExists(xCoordinate >> 4, zCoordinate >> 4);
+		return world != null && world	.getChunkProvider()
+										.chunkExists(xCoordinate >> 4, zCoordinate >> 4);
 	}
 
 	private void updateState()
@@ -161,9 +168,15 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 		try
 		{
 			if (!this.isSleeping())
-				this.getProxy().getTick().wakeDevice(this.getProxy().getNode());
+				this.getProxy()
+					.getTick()
+					.wakeDevice(this.getProxy()
+									.getNode());
 			else
-				this.getProxy().getTick().sleepDevice(this.getProxy().getNode());
+				this.getProxy()
+					.getTick()
+					.sleepDevice(this	.getProxy()
+										.getNode());
 		}
 		catch (final GridAccessException e)
 		{
@@ -175,7 +188,8 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	{
 		final World w = self.getWorldObj();
 
-		if (w.getChunkProvider().chunkExists(x >> 4, z >> 4))
+		if (w	.getChunkProvider()
+				.chunkExists(x >> 4, z >> 4))
 			return w.getTileEntity(x, y, z);
 
 		return null;

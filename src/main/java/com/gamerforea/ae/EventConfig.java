@@ -24,22 +24,33 @@ public final class EventConfig
 	public static int autoCraftFixMode = 0;
 	public static boolean clearInvOnBreak = true;
 	public static boolean annihilationPlaneNoBreakInv = true;
+	public static boolean guiOnePlayer = false;
+
+	public static boolean busSameChunk = false;
+	public static boolean busSameChunkMessage = false;
 
 	static
 	{
 		try
 		{
 			final Configuration cfg = FastUtils.getConfig("AppEng");
-			readStringSet(cfg, "pilonBlackList", "general", "Чёрный список блоков для Пилонов", pilonBlackList);
-			readStringSet(cfg, "formationPlaneBlackList", "general", "Чёрный список блоков для Плоскости формирования", formationPlaneBlackList);
-			readStringSet(cfg, "annihilationPlaneBlackList", "general", "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
-			readStringSet(cfg, "autoCraftBlackList", "general", "Чёрный список блоков для автокрафта", autoCraftBlackList);
-			readStringSet(cfg, "busBlackList", "general", "Чёрный список блоков для шин импорта/экспорта и интерфейсов", busBlackList);
-			securityBypassPermission = cfg.getString("securityBypassPermission", "general", securityBypassPermission, "Permission для игнорирования защиты AE2-сети");
-			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", "general", chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
-			autoCraftFixMode = cfg.getInt("autoCraftFixMode", "general", autoCraftFixMode, 0, 2, "Режим фикса дюпа с автокрафтом [0 - старый фикс; 1 - ненадёжный фикс; 2 - экспериментальный фикс]");
-			clearInvOnBreak = cfg.getBoolean("clearInvOnBreak", "general", clearInvOnBreak, "Очистка инвентаря блока при его разрушении (защита от дюпа)");
-			annihilationPlaneNoBreakInv = cfg.getBoolean("annihilationPlaneNoBreakInv", "general", annihilationPlaneNoBreakInv, "Плоскость истребления не может ломать блоки с инвентарями");
+			String c = Configuration.CATEGORY_GENERAL;
+
+			readStringSet(cfg, "pilonBlackList", c, "Чёрный список блоков для Пилонов", pilonBlackList);
+			readStringSet(cfg, "formationPlaneBlackList", c, "Чёрный список блоков для Плоскости формирования", formationPlaneBlackList);
+			readStringSet(cfg, "annihilationPlaneBlackList", c, "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
+			readStringSet(cfg, "autoCraftBlackList", c, "Чёрный список блоков для автокрафта", autoCraftBlackList);
+			readStringSet(cfg, "busBlackList", c, "Чёрный список блоков для шин импорта/экспорта и интерфейсов", busBlackList);
+			securityBypassPermission = cfg.getString("securityBypassPermission", c, securityBypassPermission, "Permission для игнорирования защиты AE2-сети");
+			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", c, chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
+			autoCraftFixMode = cfg.getInt("autoCraftFixMode", c, autoCraftFixMode, 0, 2, "Режим фикса дюпа с автокрафтом [0 - старый фикс; 1 - ненадёжный фикс; 2 - экспериментальный фикс]");
+			clearInvOnBreak = cfg.getBoolean("clearInvOnBreak", c, clearInvOnBreak, "Очистка инвентаря блока при его разрушении (защита от дюпа)");
+			annihilationPlaneNoBreakInv = cfg.getBoolean("annihilationPlaneNoBreakInv", c, annihilationPlaneNoBreakInv, "Плоскость истребления не может ломать блоки с инвентарями");
+			guiOnePlayer = cfg.getBoolean("guiOnePlayer", c, guiOnePlayer, "GUI может открыть только один игрок одновременно");
+
+			busSameChunk = cfg.getBoolean("busSameChunk", c, busSameChunk, "Шины работают с блоками, только если находятся в одном чанке");
+			busSameChunkMessage = cfg.getBoolean("busSameChunkMessage", c, busSameChunkMessage, "Отправка сообщений ближайшим игрокам, если шина и блок находятся в разных чанках");
+
 			cfg.save();
 		}
 		catch (final Throwable throwable)
@@ -91,11 +102,13 @@ public final class EventConfig
 
 	private static final String getId(Item item)
 	{
-		return GameData.getItemRegistry().getNameForObject(item);
+		return GameData	.getItemRegistry()
+						.getNameForObject(item);
 	}
 
 	private static final String getId(Block block)
 	{
-		return GameData.getBlockRegistry().getNameForObject(block);
+		return GameData	.getBlockRegistry()
+						.getNameForObject(block);
 	}
 }

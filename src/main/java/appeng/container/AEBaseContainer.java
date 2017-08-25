@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.gamerforea.ae.EventConfig;
+
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.config.SecurityPermissions;
@@ -63,6 +65,7 @@ import appeng.core.sync.packets.PacketPartialItem;
 import appeng.core.sync.packets.PacketValueConfig;
 import appeng.helpers.ICustomNameObject;
 import appeng.helpers.InventoryAction;
+import appeng.tile.AEBaseTile;
 import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
 import appeng.util.inv.AdaptorPlayerHand;
@@ -100,6 +103,18 @@ public abstract class AEBaseContainer extends Container
 	private int ticksSinceCheck = 900;
 	private IAEItemStack clientRequestedTargetItem = null;
 
+	// TODO gamerforEA code start
+	private final boolean needClose;
+
+	@Override
+	public void onContainerClosed(EntityPlayer player)
+	{
+		if (EventConfig.guiOnePlayer && !this.needClose && this.tileEntity instanceof AEBaseTile)
+			((AEBaseTile) this.tileEntity).isGuiOpened = false;
+		super.onContainerClosed(player);
+	}
+	// TODO gamerforEA code end
+
 	public AEBaseContainer(final InventoryPlayer ip, final TileEntity myTile, final IPart myPart)
 	{
 		this(ip, myTile, myPart, null);
@@ -111,6 +126,13 @@ public abstract class AEBaseContainer extends Container
 		this.tileEntity = myTile;
 		this.part = myPart;
 		this.obj = gio;
+
+		// TODO gamerforEA code start
+		this.needClose = myTile instanceof AEBaseTile && ((AEBaseTile) myTile).isGuiOpened;
+		if (EventConfig.guiOnePlayer && !this.needClose && myTile instanceof AEBaseTile)
+			((AEBaseTile) myTile).isGuiOpened = true;
+		// TODO gamerforEA code end
+
 		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
 		this.prepareSync();
 	}
@@ -131,7 +153,8 @@ public abstract class AEBaseContainer extends Container
 
 	private void prepareSync()
 	{
-		for (final Field f : this.getClass().getFields())
+		for (final Field f : this	.getClass()
+									.getFields())
 			if (f.isAnnotationPresent(GuiSync.class))
 			{
 				final GuiSync annotation = f.getAnnotation(GuiSync.class);
@@ -152,8 +175,13 @@ public abstract class AEBaseContainer extends Container
 		if (this.tileEntity == null && this.part == null && this.obj == null)
 			throw new IllegalArgumentException("Must have a valid anchor, instead " + anchor + " in " + ip);
 
-		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
+		// TODO gamerforEA code start
+		this.needClose = anchor instanceof AEBaseTile && ((AEBaseTile) anchor).isGuiOpened;
+		if (EventConfig.guiOnePlayer && !this.needClose && anchor instanceof AEBaseTile)
+			((AEBaseTile) anchor).isGuiOpened = true;
+		// TODO gamerforEA code end
 
+		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
 		this.prepareSync();
 	}
 
@@ -180,7 +208,9 @@ public abstract class AEBaseContainer extends Container
 		{
 			final NBTTagCompound data = CompressedStreamTools.readCompressed(new ByteArrayInputStream(buffer));
 			if (data != null)
-				this.setTargetStack(AEApi.instance().storage().createItemStack(ItemStack.loadItemStackFromNBT(data)));
+				this.setTargetStack(AEApi	.instance()
+											.storage()
+											.createItemStack(ItemStack.loadItemStackFromNBT(data)));
 		}
 		catch (final IOException e)
 		{
@@ -327,7 +357,8 @@ public abstract class AEBaseContainer extends Container
 	{
 		if (this.syncData.containsKey(idx))
 		{
-			this.syncData.get(idx).update(value);
+			this.syncData	.get(idx)
+							.update(value);
 			return;
 		}
 
@@ -337,7 +368,8 @@ public abstract class AEBaseContainer extends Container
 	public void stringSync(final int idx, final String value)
 	{
 		if (this.syncData.containsKey(idx))
-			this.syncData.get(idx).update(value);
+			this.syncData	.get(idx)
+							.update(value);
 	}
 
 	protected void bindPlayerInventory(final InventoryPlayer inventoryPlayer, final int offsetX, final int offsetY)
@@ -443,11 +475,11 @@ public abstract class AEBaseContainer extends Container
 				// target slots in the container...
 				for (final Object inventorySlot : this.inventorySlots)
 				{
-				final AppEngSlot cs = (AppEngSlot) inventorySlot;
+					final AppEngSlot cs = (AppEngSlot) inventorySlot;
 
-				if (cs.isPlayerSide() && !(cs instanceof SlotFake) && !(cs instanceof SlotCraftingMatrix))
-				if (cs.isItemValid(tis))
-				selectedSlots.add(cs);
+					if (cs.isPlayerSide() && !(cs instanceof SlotFake) && !(cs instanceof SlotCraftingMatrix))
+						if (cs.isItemValid(tis))
+							selectedSlots.add(cs);
 				}
 
 			/**
@@ -458,19 +490,19 @@ public abstract class AEBaseContainer extends Container
 					// target slots in the container...
 					for (final Object inventorySlot : this.inventorySlots)
 					{
-					final AppEngSlot cs = (AppEngSlot) inventorySlot;
-					final ItemStack destination = cs.getStack();
+						final AppEngSlot cs = (AppEngSlot) inventorySlot;
+						final ItemStack destination = cs.getStack();
 
-					if (!cs.isPlayerSide() && cs instanceof SlotFake)
-					if (Platform.isSameItemPrecise(destination, tis))
-					return null;
-					else if (destination == null)
-					{
-					cs.putStack(tis.copy());
-					cs.onSlotChanged();
-					this.updateSlot(cs);
-					return null;
-					}
+						if (!cs.isPlayerSide() && cs instanceof SlotFake)
+							if (Platform.isSameItemPrecise(destination, tis))
+								return null;
+							else if (destination == null)
+							{
+								cs.putStack(tis.copy());
+								cs.onSlotChanged();
+								this.updateSlot(cs);
+								return null;
+							}
 					}
 
 			if (tis != null)
@@ -602,12 +634,18 @@ public abstract class AEBaseContainer extends Container
 	public final void updateProgressBar(final int idx, final int value)
 	{
 		if (this.syncData.containsKey(idx))
-			this.syncData.get(idx).update((long) value);
+			this.syncData	.get(idx)
+							.update((long) value);
 	}
 
 	@Override
 	public boolean canInteractWith(final EntityPlayer entityplayer)
 	{
+		// TODO gamerforEA code start
+		if (this.needClose)
+			return false;
+		// TODO gamerforEA code end
+
 		if (this.isValidContainer())
 		{
 			if (this.tileEntity instanceof IInventory)
@@ -754,7 +792,9 @@ public abstract class AEBaseContainer extends Container
 
 				if (isg != null && releaseQty > 0)
 				{
-					IAEItemStack ais = AEApi.instance().storage().createItemStack(isg);
+					IAEItemStack ais = AEApi.instance()
+											.storage()
+											.createItemStack(isg);
 					ais.setStackSize(1);
 					final IAEItemStack extracted = ais.copy();
 
@@ -765,7 +805,8 @@ public abstract class AEBaseContainer extends Container
 
 						final ItemStack fail = ia.removeItems(1, extracted.getItemStack(), null);
 						if (fail == null)
-							this.getCellInventory().extractItems(extracted, Actionable.MODULATE, this.getActionSource());
+							this.getCellInventory()
+								.extractItems(extracted, Actionable.MODULATE, this.getActionSource());
 
 						this.updateHeld(player);
 					}
@@ -801,7 +842,8 @@ public abstract class AEBaseContainer extends Container
 
 							final ItemStack fail = ia.addItems(ais.getItemStack());
 							if (fail != null)
-								this.getCellInventory().injectItems(ais, Actionable.MODULATE, this.getActionSource());
+								this.getCellInventory()
+									.injectItems(ais, Actionable.MODULATE, this.getActionSource());
 
 							this.updateHeld(player);
 						}
@@ -817,7 +859,8 @@ public abstract class AEBaseContainer extends Container
 					if (slotItem != null)
 					{
 						IAEItemStack ais = slotItem.copy();
-						ais.setStackSize(ais.getItemStack().getMaxStackSize());
+						ais.setStackSize(ais.getItemStack()
+											.getMaxStackSize());
 						ais = Platform.poweredExtraction(this.getPowerSource(), this.getCellInventory(), ais, this.getActionSource());
 						if (ais != null)
 							player.inventory.setItemStack(ais.getItemStack());
@@ -828,7 +871,9 @@ public abstract class AEBaseContainer extends Container
 				}
 				else
 				{
-					IAEItemStack ais = AEApi.instance().storage().createItemStack(player.inventory.getItemStack());
+					IAEItemStack ais = AEApi.instance()
+											.storage()
+											.createItemStack(player.inventory.getItemStack());
 					ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), ais, this.getActionSource());
 					if (ais != null)
 						player.inventory.setItemStack(ais.getItemStack());
@@ -847,9 +892,11 @@ public abstract class AEBaseContainer extends Container
 					if (slotItem != null)
 					{
 						IAEItemStack ais = slotItem.copy();
-						final long maxSize = ais.getItemStack().getMaxStackSize();
+						final long maxSize = ais.getItemStack()
+												.getMaxStackSize();
 						ais.setStackSize(maxSize);
-						ais = this.getCellInventory().extractItems(ais, Actionable.SIMULATE, this.getActionSource());
+						ais = this	.getCellInventory()
+									.extractItems(ais, Actionable.SIMULATE, this.getActionSource());
 
 						if (ais != null)
 						{
@@ -867,7 +914,9 @@ public abstract class AEBaseContainer extends Container
 				}
 				else
 				{
-					IAEItemStack ais = AEApi.instance().storage().createItemStack(player.inventory.getItemStack());
+					IAEItemStack ais = AEApi.instance()
+											.storage()
+											.createItemStack(player.inventory.getItemStack());
 					ais.setStackSize(1);
 					ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), ais, this.getActionSource());
 					if (ais == null)
@@ -943,7 +992,9 @@ public abstract class AEBaseContainer extends Container
 	{
 		if (this.getPowerSource() == null || this.getCellInventory() == null)
 			return input;
-		final IAEItemStack ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), AEApi.instance().storage().createItemStack(input), this.getActionSource());
+		final IAEItemStack ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), AEApi	.instance()
+																												.storage()
+																												.createItemStack(input), this.getActionSource());
 		if (ais == null)
 			return null;
 		return ais.getItemStack();
