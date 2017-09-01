@@ -1,5 +1,6 @@
 package com.gamerforea.ae;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.gamerforea.eventhelper.util.FastUtils;
@@ -14,11 +15,11 @@ import net.minecraftforge.common.config.Configuration;
 
 public final class EventConfig
 {
-	public static final Set<String> pilonBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
-	public static final Set<String> formationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
-	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
-	public static final Set<String> autoCraftBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
-	public static final Set<String> busBlackList = Sets.newHashSet("minecraft:stone", "IC2:blockMachine:5");
+	public static final Set<String> pilonBlackList = new HashSet<String>();
+	public static final Set<String> formationPlaneBlackList = new HashSet<String>();
+	public static final Set<String> annihilationPlaneBlackList = new HashSet<String>();
+	public static final Set<String> autoCraftBlackList = new HashSet<String>();
+	public static final Set<String> busBlackList = new HashSet<String>();
 	public static String securityBypassPermission = "appeng.security.bypass";
 	public static float chargedStaffDamage = 6F;
 	public static int autoCraftFixMode = 0;
