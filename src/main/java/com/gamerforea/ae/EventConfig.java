@@ -1,16 +1,15 @@
 package com.gamerforea.ae;
 
-import java.util.Set;
-
 import com.gamerforea.eventhelper.util.FastUtils;
 import com.google.common.collect.Sets;
-
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.config.Configuration;
+
+import java.util.Set;
 
 public final class EventConfig
 {
@@ -31,6 +30,11 @@ public final class EventConfig
 	public static boolean busSameChunkMessage = false;
 
 	static
+	{
+		init();
+	}
+
+	public static void init()
 	{
 		try
 		{
@@ -104,13 +108,11 @@ public final class EventConfig
 
 	private static final String getId(Item item)
 	{
-		return GameData	.getItemRegistry()
-						.getNameForObject(item);
+		return GameData.getItemRegistry().getNameForObject(item);
 	}
 
 	private static final String getId(Block block)
 	{
-		return GameData	.getBlockRegistry()
-						.getNameForObject(block);
+		return GameData.getBlockRegistry().getNameForObject(block);
 	}
 }
