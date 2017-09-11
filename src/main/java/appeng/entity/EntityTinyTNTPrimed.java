@@ -18,10 +18,6 @@
 
 package appeng.entity;
 
-import com.gamerforea.ae.ModUtils;
-import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.fake.FakePlayerContainerEntity;
-
 import appeng.api.AEApi;
 import appeng.core.AEConfig;
 import appeng.core.CommonHelper;
@@ -29,6 +25,9 @@ import appeng.core.features.AEFeature;
 import appeng.core.sync.packets.PacketMockExplosion;
 import appeng.helpers.Reflected;
 import appeng.util.Platform;
+import com.gamerforea.ae.ModUtils;
+import com.gamerforea.eventhelper.fake.FakePlayerContainer;
+import com.gamerforea.eventhelper.fake.FakePlayerContainerEntity;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
@@ -109,12 +108,7 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 		}
 
 		if (this.isInWater() && Platform.isServer())
-			for (final ItemStack tntStack : AEApi	.instance()
-													.definitions()
-													.blocks()
-													.tinyTNT()
-													.maybeStack(1)
-													.asSet())
+			for (final ItemStack tntStack : AEApi.instance().definitions().blocks().tinyTNT().maybeStack(1).asSet())
 			{
 				final EntityItem item = new EntityItem(this.worldObj, this.posX, this.posY, this.posZ, tntStack);
 
@@ -150,9 +144,11 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 			return;
 
 		for (final Object e : this.worldObj.getEntitiesWithinAABBExcludingEntity(this, AxisAlignedBB.getBoundingBox(this.posX - 1.5, this.posY - 1.5f, this.posZ - 1.5, this.posX + 1.5, this.posY + 1.5, this.posZ + 1.5)))
-			// TODO gamerforEA add condition [2]
+		// TODO gamerforEA add condition [2]
+		{
 			if (e instanceof Entity && !this.fake.cantDamage((Entity) e))
 				((Entity) e).attackEntityFrom(DamageSource.setExplosionSource(null), 6);
+		}
 
 		if (AEConfig.instance.isFeatureEnabled(AEFeature.TinyTNTBlockDamage))
 		{
@@ -160,7 +156,9 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 			final Explosion ex = new Explosion(this.worldObj, this, this.posX, this.posY, this.posZ, 0.2f);
 
 			for (int x = (int) (this.posX - 2); x <= this.posX + 2; x++)
+			{
 				for (int y = (int) (this.posY - 2); y <= this.posY + 2; y++)
+				{
 					for (int z = (int) (this.posZ - 2); z <= this.posZ + 2; z++)
 					{
 						final Block block = this.worldObj.getBlock(x, y, z);
@@ -186,6 +184,8 @@ public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntit
 								}
 						}
 					}
+				}
+			}
 		}
 
 		CommonHelper.proxy.sendToAllNearExcept(null, this.posX, this.posY, this.posZ, 64, this.worldObj, new PacketMockExplosion(this.posX, this.posY, this.posZ));

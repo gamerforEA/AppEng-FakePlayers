@@ -18,15 +18,6 @@
 
 package appeng.container.implementations;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.concurrent.Future;
-
-import javax.annotation.Nonnull;
-
-import com.google.common.collect.ImmutableSet;
-
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.config.SecurityPermissions;
@@ -56,6 +47,7 @@ import appeng.parts.reporting.PartCraftingTerminal;
 import appeng.parts.reporting.PartPatternTerminal;
 import appeng.parts.reporting.PartTerminal;
 import appeng.util.Platform;
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -63,6 +55,12 @@ import net.minecraft.inventory.ICrafting;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.Future;
 
 public class ContainerCraftConfirm extends AEBaseContainer
 {
@@ -112,12 +110,9 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		}
 		else
 		{
-			this.setName(this.cpus	.get(this.getSelectedCpu())
-									.getName());
-			this.setCpuAvailableBytes(this.cpus	.get(this.getSelectedCpu())
-												.getSize());
-			this.setCpuCoProcessors(this.cpus	.get(this.getSelectedCpu())
-												.getProcessors());
+			this.setName(this.cpus.get(this.getSelectedCpu()).getName());
+			this.setCpuAvailableBytes(this.cpus.get(this.getSelectedCpu()).getSize());
+			this.setCpuCoProcessors(this.cpus.get(this.getSelectedCpu()).getProcessors());
 		}
 	}
 
@@ -143,8 +138,10 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		{
 			boolean found = false;
 			for (final CraftingCPURecord ccr : this.cpus)
+			{
 				if (ccr.getCpu() == c)
 					found = true;
+			}
 
 			final boolean matched = this.cpuMatches(c);
 
@@ -159,8 +156,10 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		{
 			this.cpus.clear();
 			for (final ICraftingCPU c : cpuSet)
+			{
 				if (this.cpuMatches(c))
 					this.cpus.add(new CraftingCPURecord(c.getAvailableStorage(), c.getCoProcessors(), c));
+			}
 
 			this.sendCPUs();
 		}
@@ -169,13 +168,11 @@ public class ContainerCraftConfirm extends AEBaseContainer
 
 		super.detectAndSendChanges();
 
-		if (this.getJob() != null && this	.getJob()
-											.isDone())
+		if (this.getJob() != null && this.getJob().isDone())
 		{
 			try
 			{
-				this.result = this	.getJob()
-									.get();
+				this.result = this.getJob().get();
 
 				if (!this.result.isSimulation())
 				{
@@ -195,9 +192,7 @@ public class ContainerCraftConfirm extends AEBaseContainer
 					final PacketMEInventoryUpdate b = new PacketMEInventoryUpdate((byte) 1);
 					final PacketMEInventoryUpdate c = this.result.isSimulation() ? new PacketMEInventoryUpdate((byte) 2) : null;
 
-					final IItemList<IAEItemStack> plan = AEApi	.instance()
-																.storage()
-																.createItemList();
+					final IItemList<IAEItemStack> plan = AEApi.instance().storage().createItemList();
 					this.result.populatePlan(plan);
 
 					this.setUsedBytes(this.result.getByteTotal());
@@ -242,6 +237,7 @@ public class ContainerCraftConfirm extends AEBaseContainer
 					}
 
 					for (final Object g : this.crafters)
+					{
 						if (g instanceof EntityPlayer)
 						{
 							NetworkHandler.instance.sendTo(a, (EntityPlayerMP) g);
@@ -249,6 +245,7 @@ public class ContainerCraftConfirm extends AEBaseContainer
 							if (c != null)
 								NetworkHandler.instance.sendTo(c, (EntityPlayerMP) g);
 						}
+					}
 				}
 				catch (final IOException e)
 				{
@@ -300,12 +297,9 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		}
 		else if (this.getSelectedCpu() != -1)
 		{
-			this.setName(this.cpus	.get(this.getSelectedCpu())
-									.getName());
-			this.setCpuAvailableBytes(this.cpus	.get(this.getSelectedCpu())
-												.getSize());
-			this.setCpuCoProcessors(this.cpus	.get(this.getSelectedCpu())
-												.getProcessors());
+			this.setName(this.cpus.get(this.getSelectedCpu()).getName());
+			this.setCpuAvailableBytes(this.cpus.get(this.getSelectedCpu()).getSize());
+			this.setCpuCoProcessors(this.cpus.get(this.getSelectedCpu()).getProcessors());
 		}
 	}
 
@@ -336,17 +330,14 @@ public class ContainerCraftConfirm extends AEBaseContainer
 			// TODO gamerforEA code end
 
 			final ICraftingGrid cc = grid.getCache(ICraftingGrid.class);
-			final ICraftingLink g = cc.submitJob(this.result, null, this.getSelectedCpu() == -1 ? null : this.cpus	.get(this.getSelectedCpu())
-																													.getCpu(), true, this.getActionSrc());
+			final ICraftingLink g = cc.submitJob(this.result, null, this.getSelectedCpu() == -1 ? null : this.cpus.get(this.getSelectedCpu()).getCpu(), true, this.getActionSrc());
 			this.setAutoStart(false);
 			if (g != null && originalGui != null && this.getOpenContext() != null)
 			{
 				NetworkHandler.instance.sendTo(new PacketSwitchGuis(originalGui), (EntityPlayerMP) this.getInventoryPlayer().player);
 
-				final TileEntity te = this	.getOpenContext()
-											.getTile();
-				Platform.openGUI(this.getInventoryPlayer().player, te, this	.getOpenContext()
-																			.getSide(), originalGui);
+				final TileEntity te = this.getOpenContext().getTile();
+				Platform.openGUI(this.getInventoryPlayer().player, te, this.getOpenContext().getSide(), originalGui);
 			}
 		}
 	}
@@ -362,8 +353,7 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		super.removeCraftingFromCrafters(c);
 		if (this.getJob() != null)
 		{
-			this.getJob()
-				.cancel(true);
+			this.getJob().cancel(true);
 			this.setJob(null);
 		}
 	}
@@ -374,8 +364,7 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		super.onContainerClosed(par1EntityPlayer);
 		if (this.getJob() != null)
 		{
-			this.getJob()
-				.cancel(true);
+			this.getJob().cancel(true);
 			this.setJob(null);
 		}
 	}

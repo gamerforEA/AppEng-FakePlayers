@@ -18,18 +18,6 @@
 
 package appeng.container;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-
-import com.gamerforea.ae.EventConfig;
-
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.config.SecurityPermissions;
@@ -50,14 +38,7 @@ import appeng.client.me.SlotME;
 import appeng.container.guisync.GuiSync;
 import appeng.container.guisync.SyncData;
 import appeng.container.implementations.ContainerCraftingTerm;
-import appeng.container.slot.AppEngSlot;
-import appeng.container.slot.SlotCraftingMatrix;
-import appeng.container.slot.SlotCraftingTerm;
-import appeng.container.slot.SlotDisabled;
-import appeng.container.slot.SlotFake;
-import appeng.container.slot.SlotInaccessible;
-import appeng.container.slot.SlotPlayerHotBar;
-import appeng.container.slot.SlotPlayerInv;
+import appeng.container.slot.*;
 import appeng.core.AELog;
 import appeng.core.sync.network.NetworkHandler;
 import appeng.core.sync.packets.PacketInventoryAction;
@@ -70,6 +51,7 @@ import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
 import appeng.util.inv.AdaptorPlayerHand;
 import appeng.util.item.AEItemStack;
+import com.gamerforea.ae.EventConfig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -82,6 +64,12 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.*;
 
 public abstract class AEBaseContainer extends Container
 {
@@ -153,8 +141,8 @@ public abstract class AEBaseContainer extends Container
 
 	private void prepareSync()
 	{
-		for (final Field f : this	.getClass()
-									.getFields())
+		for (final Field f : this.getClass().getFields())
+		{
 			if (f.isAnnotationPresent(GuiSync.class))
 			{
 				final GuiSync annotation = f.getAnnotation(GuiSync.class);
@@ -163,6 +151,7 @@ public abstract class AEBaseContainer extends Container
 				else
 					this.syncData.put(annotation.value(), new SyncData(this, f, annotation));
 			}
+		}
 	}
 
 	public AEBaseContainer(final InventoryPlayer ip, final Object anchor)
@@ -196,21 +185,23 @@ public abstract class AEBaseContainer extends Container
 	{
 		int total = 0;
 		for (final PacketPartialItem ppi : this.dataChunks)
+		{
 			total += ppi.getSize();
+		}
 
 		final byte[] buffer = new byte[total];
 		int cursor = 0;
 
 		for (final PacketPartialItem ppi : this.dataChunks)
+		{
 			cursor = ppi.write(buffer, cursor);
+		}
 
 		try
 		{
 			final NBTTagCompound data = CompressedStreamTools.readCompressed(new ByteArrayInputStream(buffer));
 			if (data != null)
-				this.setTargetStack(AEApi	.instance()
-											.storage()
-											.createItemStack(ItemStack.loadItemStackFromNBT(data)));
+				this.setTargetStack(AEApi.instance().storage().createItemStack(ItemStack.loadItemStackFromNBT(data)));
 		}
 		catch (final IOException e)
 		{
@@ -357,8 +348,7 @@ public abstract class AEBaseContainer extends Container
 	{
 		if (this.syncData.containsKey(idx))
 		{
-			this.syncData	.get(idx)
-							.update(value);
+			this.syncData.get(idx).update(value);
 			return;
 		}
 
@@ -368,26 +358,31 @@ public abstract class AEBaseContainer extends Container
 	public void stringSync(final int idx, final String value)
 	{
 		if (this.syncData.containsKey(idx))
-			this.syncData	.get(idx)
-							.update(value);
+			this.syncData.get(idx).update(value);
 	}
 
 	protected void bindPlayerInventory(final InventoryPlayer inventoryPlayer, final int offsetX, final int offsetY)
 	{
 		// bind player inventory
 		for (int i = 0; i < 3; i++)
+		{
 			for (int j = 0; j < 9; j++)
+			{
 				if (this.locked.contains(j + i * 9 + 9))
 					this.addSlotToContainer(new SlotDisabled(inventoryPlayer, j + i * 9 + 9, 8 + j * 18 + offsetX, offsetY + i * 18));
 				else
 					this.addSlotToContainer(new SlotPlayerInv(inventoryPlayer, j + i * 9 + 9, 8 + j * 18 + offsetX, offsetY + i * 18));
+			}
+		}
 
 		// bind player hotbar
 		for (int i = 0; i < 9; i++)
+		{
 			if (this.locked.contains(i))
 				this.addSlotToContainer(new SlotDisabled(inventoryPlayer, i, 8 + i * 18 + offsetX, 58 + offsetY));
 			else
 				this.addSlotToContainer(new SlotPlayerHotBar(inventoryPlayer, i, 8 + i * 18 + offsetX, 58 + offsetY));
+		}
 	}
 
 	@Override
@@ -414,7 +409,9 @@ public abstract class AEBaseContainer extends Container
 				final ICrafting icrafting = (ICrafting) crafter;
 
 				for (final SyncData sd : this.syncData.values())
+				{
 					sd.tick(icrafting);
+				}
 			}
 
 		super.detectAndSendChanges();
@@ -428,11 +425,13 @@ public abstract class AEBaseContainer extends Container
 
 		boolean hasMETiles = false;
 		for (final Object is : this.inventorySlots)
+		{
 			if (is instanceof InternalSlotME)
 			{
 				hasMETiles = true;
 				break;
 			}
+		}
 
 		if (hasMETiles && Platform.isClient())
 			return null;
@@ -634,8 +633,7 @@ public abstract class AEBaseContainer extends Container
 	public final void updateProgressBar(final int idx, final int value)
 	{
 		if (this.syncData.containsKey(idx))
-			this.syncData	.get(idx)
-							.update((long) value);
+			this.syncData.get(idx).update((long) value);
 	}
 
 	@Override
@@ -745,11 +743,15 @@ public abstract class AEBaseContainer extends Container
 				final List<Slot> from = new LinkedList<Slot>();
 
 				for (final Object j : this.inventorySlots)
+				{
 					if (j instanceof Slot && j.getClass() == s.getClass())
 						from.add((Slot) j);
+				}
 
 				for (final Slot fr : from)
+				{
 					this.transferStackInSlot(player, fr.slotNumber);
+				}
 			}
 
 			return;
@@ -792,9 +794,7 @@ public abstract class AEBaseContainer extends Container
 
 				if (isg != null && releaseQty > 0)
 				{
-					IAEItemStack ais = AEApi.instance()
-											.storage()
-											.createItemStack(isg);
+					IAEItemStack ais = AEApi.instance().storage().createItemStack(isg);
 					ais.setStackSize(1);
 					final IAEItemStack extracted = ais.copy();
 
@@ -805,8 +805,7 @@ public abstract class AEBaseContainer extends Container
 
 						final ItemStack fail = ia.removeItems(1, extracted.getItemStack(), null);
 						if (fail == null)
-							this.getCellInventory()
-								.extractItems(extracted, Actionable.MODULATE, this.getActionSource());
+							this.getCellInventory().extractItems(extracted, Actionable.MODULATE, this.getActionSource());
 
 						this.updateHeld(player);
 					}
@@ -842,8 +841,7 @@ public abstract class AEBaseContainer extends Container
 
 							final ItemStack fail = ia.addItems(ais.getItemStack());
 							if (fail != null)
-								this.getCellInventory()
-									.injectItems(ais, Actionable.MODULATE, this.getActionSource());
+								this.getCellInventory().injectItems(ais, Actionable.MODULATE, this.getActionSource());
 
 							this.updateHeld(player);
 						}
@@ -859,8 +857,7 @@ public abstract class AEBaseContainer extends Container
 					if (slotItem != null)
 					{
 						IAEItemStack ais = slotItem.copy();
-						ais.setStackSize(ais.getItemStack()
-											.getMaxStackSize());
+						ais.setStackSize(ais.getItemStack().getMaxStackSize());
 						ais = Platform.poweredExtraction(this.getPowerSource(), this.getCellInventory(), ais, this.getActionSource());
 						if (ais != null)
 							player.inventory.setItemStack(ais.getItemStack());
@@ -871,9 +868,7 @@ public abstract class AEBaseContainer extends Container
 				}
 				else
 				{
-					IAEItemStack ais = AEApi.instance()
-											.storage()
-											.createItemStack(player.inventory.getItemStack());
+					IAEItemStack ais = AEApi.instance().storage().createItemStack(player.inventory.getItemStack());
 					ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), ais, this.getActionSource());
 					if (ais != null)
 						player.inventory.setItemStack(ais.getItemStack());
@@ -892,11 +887,9 @@ public abstract class AEBaseContainer extends Container
 					if (slotItem != null)
 					{
 						IAEItemStack ais = slotItem.copy();
-						final long maxSize = ais.getItemStack()
-												.getMaxStackSize();
+						final long maxSize = ais.getItemStack().getMaxStackSize();
 						ais.setStackSize(maxSize);
-						ais = this	.getCellInventory()
-									.extractItems(ais, Actionable.SIMULATE, this.getActionSource());
+						ais = this.getCellInventory().extractItems(ais, Actionable.SIMULATE, this.getActionSource());
 
 						if (ais != null)
 						{
@@ -914,9 +907,7 @@ public abstract class AEBaseContainer extends Container
 				}
 				else
 				{
-					IAEItemStack ais = AEApi.instance()
-											.storage()
-											.createItemStack(player.inventory.getItemStack());
+					IAEItemStack ais = AEApi.instance().storage().createItemStack(player.inventory.getItemStack());
 					ais.setStackSize(1);
 					ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), ais, this.getActionSource());
 					if (ais == null)
@@ -992,9 +983,7 @@ public abstract class AEBaseContainer extends Container
 	{
 		if (this.getPowerSource() == null || this.getCellInventory() == null)
 			return input;
-		final IAEItemStack ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), AEApi	.instance()
-																												.storage()
-																												.createItemStack(input), this.getActionSource());
+		final IAEItemStack ais = Platform.poweredInsert(this.getPowerSource(), this.getCellInventory(), AEApi.instance().storage().createItemStack(input), this.getActionSource());
 		if (ais == null)
 			return null;
 		return ais.getItemStack();

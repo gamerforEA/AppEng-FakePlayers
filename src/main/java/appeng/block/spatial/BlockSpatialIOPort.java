@@ -18,8 +18,6 @@
 
 package appeng.block.spatial;
 
-import java.util.EnumSet;
-
 import appeng.block.AEBaseTileBlock;
 import appeng.core.features.AEFeature;
 import appeng.core.sync.GuiBridge;
@@ -33,6 +31,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.EnumSet;
 
 public class BlockSpatialIOPort extends AEBaseTileBlock
 {

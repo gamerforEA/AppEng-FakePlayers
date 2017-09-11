@@ -18,21 +18,6 @@
 
 package appeng.items.materials;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
-
 import appeng.api.config.Upgrades;
 import appeng.api.implementations.IUpgradeableHost;
 import appeng.api.implementations.items.IItemGroup;
@@ -50,6 +35,8 @@ import appeng.core.features.NameResolver;
 import appeng.items.AEBaseItem;
 import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -65,6 +52,11 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class ItemMultiMaterial extends AEBaseItem implements IStorageComponent, IUpgradeModule
 {
@@ -102,27 +94,22 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 		if (u != null)
 		{
 			final List<String> textList = new LinkedList<String>();
-			for (final Entry<ItemStack, Integer> j : u	.getSupported()
-														.entrySet())
+			for (final Entry<ItemStack, Integer> j : u.getSupported().entrySet())
 			{
 				String name = null;
 
 				final int limit = j.getValue();
 
-				if (j	.getKey()
-						.getItem() instanceof IItemGroup)
+				if (j.getKey().getItem() instanceof IItemGroup)
 				{
-					final IItemGroup ig = (IItemGroup) j.getKey()
-														.getItem();
-					final String str = ig.getUnlocalizedGroupName(u	.getSupported()
-																	.keySet(), j.getKey());
+					final IItemGroup ig = (IItemGroup) j.getKey().getItem();
+					final String str = ig.getUnlocalizedGroupName(u.getSupported().keySet(), j.getKey());
 					if (str != null)
 						name = Platform.gui_localize(str) + (limit > 1 ? " (" + limit + ')' : "");
 				}
 
 				if (name == null)
-					name = j.getKey()
-							.getDisplayName() + (limit > 1 ? " (" + limit + ')' : "");
+					name = j.getKey().getDisplayName() + (limit > 1 ? " (" + limit + ')' : "");
 
 				if (!textList.contains(name))
 					textList.add(name);
@@ -201,12 +188,12 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 	public void makeUnique()
 	{
 		for (final MaterialType mt : ImmutableSet.copyOf(this.dmgToMaterial.values()))
+		{
 			if (mt.getOreName() != null)
 			{
 				ItemStack replacement = null;
 
-				final String[] names = mt	.getOreName()
-											.split(",");
+				final String[] names = mt.getOreName().split(",");
 
 				for (final String name : names)
 				{
@@ -216,17 +203,21 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 					final List<ItemStack> options = OreDictionary.getOres(name);
 					if (options != null && options.size() > 0)
 						for (final ItemStack is : options)
+						{
 							if (is != null && is.getItem() != null)
 							{
 								replacement = is.copy();
 								break;
 							}
+						}
 				}
 
 				if (replacement == null || AEConfig.instance.useAEVersion(mt))
 					// continue using the AE2 item.
 					for (final String name : names)
+					{
 						OreDictionary.registerOre(name, mt.stack(1));
+					}
 				else
 				{
 					if (mt.getItemInstance() == this)
@@ -236,14 +227,14 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 					mt.setDamageValue(replacement.getItemDamage());
 				}
 			}
+		}
 	}
 
 	@Override
 	public IIcon getIconFromDamage(final int dmg)
 	{
 		if (this.dmgToMaterial.containsKey(dmg))
-			return this.dmgToMaterial	.get(dmg)
-										.getIIcon();
+			return this.dmgToMaterial.get(dmg).getIIcon();
 		return new MissingIcon(this);
 	}
 
@@ -275,20 +266,22 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 			@Override
 			public int compare(final MaterialType o1, final MaterialType o2)
 			{
-				return o1	.name()
-							.compareTo(o2.name());
+				return o1.name().compareTo(o2.name());
 			}
 		});
 
 		for (final MaterialType mat : types)
+		{
 			if (mat.getDamageValue() >= 0 && mat.isRegistered() && mat.getItemInstance() == this)
 				itemStacks.add(new ItemStack(this, 1, mat.getDamageValue()));
+		}
 	}
 
 	@Override
 	public void registerIcons(final IIconRegister icoRegister)
 	{
 		for (final MaterialType mat : MaterialType.values())
+		{
 			if (mat.getDamageValue() != -1)
 			{
 				final ItemStack what = new ItemStack(this, 1, mat.getDamageValue());
@@ -298,6 +291,7 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 					mat.setIIcon(icoRegister.registerIcon(tex));
 				}
 			}
+		}
 	}
 
 	@Override
@@ -343,21 +337,18 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 	@Override
 	public boolean hasCustomEntity(final ItemStack is)
 	{
-		return this	.getTypeByStack(is)
-					.hasCustomEntity();
+		return this.getTypeByStack(is).hasCustomEntity();
 	}
 
 	@Override
 	public Entity createEntity(final World w, final Entity location, final ItemStack itemstack)
 	{
-		final Class<? extends Entity> droppedEntity = this	.getTypeByStack(itemstack)
-															.getCustomEntityClass();
+		final Class<? extends Entity> droppedEntity = this.getTypeByStack(itemstack).getCustomEntityClass();
 		final Entity eqi;
 
 		try
 		{
-			eqi = droppedEntity	.getConstructor(World.class, double.class, double.class, double.class, ItemStack.class)
-								.newInstance(w, location.posX, location.posY, location.posZ, itemstack);
+			eqi = droppedEntity.getConstructor(World.class, double.class, double.class, double.class, ItemStack.class).newInstance(w, location.posX, location.posY, location.posZ, itemstack);
 		}
 		catch (final Throwable t)
 		{

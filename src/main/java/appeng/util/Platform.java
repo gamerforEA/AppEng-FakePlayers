@@ -18,34 +18,8 @@
 
 package appeng.util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.security.InvalidParameterException;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.WeakHashMap;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.gamerforea.eventhelper.util.EventUtils;
-
 import appeng.api.AEApi;
-import appeng.api.config.AccessRestriction;
-import appeng.api.config.Actionable;
-import appeng.api.config.FuzzyMode;
-import appeng.api.config.PowerMultiplier;
-import appeng.api.config.PowerUnits;
-import appeng.api.config.SearchBoxMode;
-import appeng.api.config.SecurityPermissions;
-import appeng.api.config.SortOrder;
+import appeng.api.config.*;
 import appeng.api.definitions.IItemDefinition;
 import appeng.api.definitions.IMaterials;
 import appeng.api.definitions.IParts;
@@ -56,21 +30,13 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.energy.IEnergyGrid;
 import appeng.api.networking.energy.IEnergySource;
-import appeng.api.networking.security.BaseActionSource;
-import appeng.api.networking.security.IActionHost;
-import appeng.api.networking.security.ISecurityGrid;
-import appeng.api.networking.security.MachineSource;
-import appeng.api.networking.security.PlayerSource;
+import appeng.api.networking.security.*;
 import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.storage.IMEInventory;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.IMEMonitorHandlerReceiver;
 import appeng.api.storage.StorageChannel;
-import appeng.api.storage.data.IAEFluidStack;
-import appeng.api.storage.data.IAEItemStack;
-import appeng.api.storage.data.IAEStack;
-import appeng.api.storage.data.IAETagCompound;
-import appeng.api.storage.data.IItemList;
+import appeng.api.storage.data.*;
 import appeng.api.util.AEColor;
 import appeng.api.util.DimensionalCoord;
 import appeng.core.AEConfig;
@@ -92,6 +58,7 @@ import appeng.util.item.OreHelper;
 import appeng.util.item.OreReference;
 import appeng.util.prioitylist.IPartitionList;
 import buildcraft.api.tools.IToolWrench;
+import com.gamerforea.eventhelper.util.EventUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
@@ -124,17 +91,21 @@ import net.minecraft.server.management.PlayerManager;
 import net.minecraft.stats.Achievement;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.StatCollector;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.security.InvalidParameterException;
+import java.text.DecimalFormat;
+import java.util.*;
 
 /**
  * @author AlgorithmX2
@@ -171,11 +142,8 @@ public class Platform
 	/**
 	 * This displays the value for encoded longs ( double *100 )
 	 *
-	 * @param n
-	 *            to be formatted long value
-	 * @param isRate
-	 *            if true it adds a /t to the formatted string
-	 *
+	 * @param n      to be formatted long value
+	 * @param isRate if true it adds a /t to the formatted string
 	 * @return formatted long value
 	 */
 	public static String formatPowerLong(final long n, final boolean isRate)
@@ -237,10 +205,12 @@ public class Platform
 	public static <T extends Enum> T rotateEnum(T ce, final boolean backwards, final EnumSet validOptions)
 	{
 		do
+		{
 			if (backwards)
 				ce = prevEnum(ce);
 			else
 				ce = nextEnum(ce);
+		}
 		while (!validOptions.contains(ce) || isNotValidSetting(ce));
 
 		return ce;
@@ -310,7 +280,9 @@ public class Platform
 		return false;
 	}
 
-	public static void openGUI(@Nonnull final EntityPlayer p, @Nullable final TileEntity tile, @Nullable final ForgeDirection side, @Nonnull final GuiBridge type)
+	public static void openGUI(
+			@Nonnull final EntityPlayer p,
+			@Nullable final TileEntity tile, @Nullable final ForgeDirection side, @Nonnull final GuiBridge type)
 	{
 		if (isClient())
 			return;
@@ -325,8 +297,7 @@ public class Platform
 			z = tile.zCoord;
 		}
 
-		if (type.getType()
-				.isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
+		if (type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
 			if (tile == null && type.getType() == GuiHostType.ITEM)
 				p.openGui(AppEng.instance(), type.ordinal() << 4, p.getEntityWorld(), p.inventory.currentItem, 0, 0);
 			else if (tile == null || type.getType() == GuiHostType.ITEM)
@@ -340,9 +311,7 @@ public class Platform
 	 */
 	public static boolean isClient()
 	{
-		return FMLCommonHandler	.instance()
-								.getEffectiveSide()
-								.isClient();
+		return FMLCommonHandler.instance().getEffectiveSide().isClient();
 	}
 
 	public static boolean hasPermissions(final DimensionalCoord dc, final EntityPlayer player)
@@ -352,8 +321,7 @@ public class Platform
 			return false;
 		// TODO gamerforEA code end
 
-		return dc	.getWorld()
-					.canMineBlock(player, dc.x, dc.y, dc.z);
+		return dc.getWorld().canMineBlock(player, dc.x, dc.y, dc.z);
 	}
 
 	/*
@@ -363,8 +331,7 @@ public class Platform
 	{
 		try
 		{
-			return w.getBlock(x, y, z)
-					.isAir(w, x, y, z);
+			return w.getBlock(x, y, z).isAir(w, x, y, z);
 		}
 		catch (final Throwable e)
 		{
@@ -471,9 +438,7 @@ public class Platform
 					return ((NBTBase.NBTPrimitive) left).func_150291_c() == ((NBTBase.NBTPrimitive) right).func_150291_c();
 
 				case 8: // else if ( A instanceof NBTTagString )
-					return ((NBTTagString) left).func_150285_a_()
-												.equals(((NBTTagString) right).func_150285_a_()) || ((NBTTagString) left)	.func_150285_a_()
-																															.equals(((NBTTagString) right).func_150285_a_());
+					return ((NBTTagString) left).func_150285_a_().equals(((NBTTagString) right).func_150285_a_()) || ((NBTTagString) left).func_150285_a_().equals(((NBTTagString) right).func_150285_a_());
 
 				case 6: // else if ( A instanceof NBTTagDouble )
 					return ((NBTBase.NBTPrimitive) left).func_150286_g() == ((NBTBase.NBTPrimitive) right).func_150286_g();
@@ -496,15 +461,13 @@ public class Platform
 		if (tagList == null)
 			try
 			{
-				tagList = lB.getClass()
-							.getDeclaredField("tagList");
+				tagList = lB.getClass().getDeclaredField("tagList");
 			}
 			catch (final Throwable t)
 			{
 				try
 				{
-					tagList = lB.getClass()
-								.getDeclaredField("field_74747_a");
+					tagList = lB.getClass().getDeclaredField("field_74747_a");
 				}
 				catch (final Throwable z)
 				{
@@ -545,7 +508,9 @@ public class Platform
 				final Set<String> cA = ctA.func_150296_c();
 
 				for (final String name : cA)
+				{
 					hash += name.hashCode() ^ NBTOrderlessHash(ctA.getTag(name));
+				}
 
 				return hash;
 			}
@@ -557,7 +522,9 @@ public class Platform
 
 				final List<NBTBase> l = tagList(lA);
 				for (int x = 0; x < l.size(); x++)
+				{
 					hash += ((Integer) x).hashCode() ^ NBTOrderlessHash(l.get(x));
+				}
 
 				return hash;
 			}
@@ -569,8 +536,7 @@ public class Platform
 				return hash + (int) ((NBTBase.NBTPrimitive) nbt).func_150291_c();
 
 			case 8: // else if ( A instanceof NBTTagString )
-				return hash + ((NBTTagString) nbt)	.func_150285_a_()
-													.hashCode();
+				return hash + ((NBTTagString) nbt).func_150285_a_().hashCode();
 
 			case 6: // else if ( A instanceof NBTTagDouble )
 				return hash + (int) ((NBTBase.NBTPrimitive) nbt).func_150286_g();
@@ -595,8 +561,10 @@ public class Platform
 		final List<IRecipe> rl = cm.getRecipeList();
 
 		for (final IRecipe r : rl)
+		{
 			if (r.matches(inventoryCrafting, par2World))
 				return r;
+		}
 
 		return null;
 	}
@@ -676,6 +644,7 @@ public class Platform
 	{
 		if (isServer())
 			for (final ItemStack i : drops)
+			{
 				if (i != null)
 					if (i.stackSize > 0)
 					{
@@ -685,6 +654,7 @@ public class Platform
 						final EntityItem ei = new EntityItem(w, 0.5 + offset_x + x, 0.5 + offset_y + y, 0.2 + offset_z + z, i.copy());
 						w.spawnEntityInWorld(ei);
 					}
+			}
 	}
 
 	/*
@@ -692,9 +662,7 @@ public class Platform
 	 */
 	public static boolean isServer()
 	{
-		return FMLCommonHandler	.instance()
-								.getEffectiveSide()
-								.isServer();
+		return FMLCommonHandler.instance().getEffectiveSide().isServer();
 	}
 
 	public static int getRandomInt()
@@ -709,24 +677,19 @@ public class Platform
 	{
 		TileEntityChest teA = (TileEntityChest) te;
 		TileEntity teB = null;
-		final Block myBlockID = teA	.getWorldObj()
-									.getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
+		final Block myBlockID = teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
 
-		if (teA	.getWorldObj()
-				.getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
+		if (teA.getWorldObj().getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
 		{
-			teB = teA	.getWorldObj()
-						.getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
+			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
 			if (!(teB instanceof TileEntityChest))
 				teB = null;
 		}
 
 		if (teB == null)
-			if (teA	.getWorldObj()
-					.getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
+			if (teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
 			{
-				teB = teA	.getWorldObj()
-							.getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
+				teB = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
 				if (!(teB instanceof TileEntityChest))
 					teB = null;
 				else
@@ -738,21 +701,17 @@ public class Platform
 			}
 
 		if (teB == null)
-			if (teA	.getWorldObj()
-					.getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
+			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
 			{
-				teB = teA	.getWorldObj()
-							.getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
+				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
 				if (!(teB instanceof TileEntityChest))
 					teB = null;
 			}
 
 		if (teB == null)
-			if (teA	.getWorldObj()
-					.getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
+			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
 			{
-				teB = teA	.getWorldObj()
-							.getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
+				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
 				if (!(teB instanceof TileEntityChest))
 					teB = null;
 				else
@@ -780,18 +739,17 @@ public class Platform
 		{
 		}
 
-		for (final ModContainer f : Loader	.instance()
-											.getActiveModList())
-			if (f	.getModId()
-					.equals(modid))
+		for (final ModContainer f : Loader.instance().getActiveModList())
+		{
+			if (f.getModId().equals(modid))
 				return true;
+		}
 		return false;
 	}
 
 	public static ItemStack findMatchingRecipeOutput(final InventoryCrafting ic, final World worldObj)
 	{
-		return CraftingManager	.getInstance()
-								.findMatchingRecipe(ic, worldObj);
+		return CraftingManager.getInstance().findMatchingRecipe(ic, worldObj);
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -850,8 +808,7 @@ public class Platform
 		{
 			String name = itemStack.getDisplayName();
 			if (name == null || name.isEmpty())
-				name = itemStack.getItem()
-								.getUnlocalizedName(itemStack);
+				name = itemStack.getItem().getUnlocalizedName(itemStack);
 			return name == null ? "** Null" : name;
 		}
 		catch (final Exception errA)
@@ -976,8 +933,10 @@ public class Platform
 	public static int findEmpty(final Object[] l)
 	{
 		for (int x = 0; x < l.length; x++)
+		{
 			if (l[x] == null)
 				return x;
+		}
 		return -1;
 	}
 
@@ -1129,8 +1088,7 @@ public class Platform
 		 */
 
 		// test damageable items..
-		if (a.getItem() != null && b.getItem() != null && a	.getItem()
-															.isDamageable() && a.getItem() == b.getItem())
+		if (a.getItem() != null && b.getItem() != null && a.getItem().isDamageable() && a.getItem() == b.getItem())
 			try
 			{
 				if (mode == FuzzyMode.IGNORE_ALL)
@@ -1225,8 +1183,7 @@ public class Platform
 
 		final Vec3 vec31 = vec3.addVector(f7 * d3, f6 * d3, f8 * d3);
 
-		final AxisAlignedBB bb = AxisAlignedBB	.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord))
-												.expand(16, 16, 16);
+		final AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(Math.min(vec3.xCoord, vec31.xCoord), Math.min(vec3.yCoord, vec31.yCoord), Math.min(vec3.zCoord, vec31.zCoord), Math.max(vec3.xCoord, vec31.xCoord), Math.max(vec3.yCoord, vec31.yCoord), Math.max(vec3.zCoord, vec31.zCoord)).expand(16, 16, 16);
 
 		Entity entity = null;
 		double closest = 9999999.0D;
@@ -1364,48 +1321,36 @@ public class Platform
 
 	public static void postChanges(final IStorageGrid gs, final ItemStack removed, final ItemStack added, final BaseActionSource src)
 	{
-		final IItemList<IAEItemStack> itemChanges = AEApi	.instance()
-															.storage()
-															.createItemList();
-		final IItemList<IAEFluidStack> fluidChanges = AEApi	.instance()
-															.storage()
-															.createFluidList();
+		final IItemList<IAEItemStack> itemChanges = AEApi.instance().storage().createItemList();
+		final IItemList<IAEFluidStack> fluidChanges = AEApi.instance().storage().createFluidList();
 
 		if (removed != null)
 		{
-			final IMEInventory<IAEItemStack> myItems = AEApi.instance()
-															.registries()
-															.cell()
-															.getCellInventory(removed, null, StorageChannel.ITEMS);
+			final IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.ITEMS);
 
 			if (myItems != null)
 				for (final IAEItemStack is : myItems.getAvailableItems(itemChanges))
+				{
 					is.setStackSize(-is.getStackSize());
+				}
 
-			final IMEInventory<IAEFluidStack> myFluids = AEApi	.instance()
-																.registries()
-																.cell()
-																.getCellInventory(removed, null, StorageChannel.FLUIDS);
+			final IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(removed, null, StorageChannel.FLUIDS);
 
 			if (myFluids != null)
 				for (final IAEFluidStack is : myFluids.getAvailableItems(fluidChanges))
+				{
 					is.setStackSize(-is.getStackSize());
+				}
 		}
 
 		if (added != null)
 		{
-			final IMEInventory<IAEItemStack> myItems = AEApi.instance()
-															.registries()
-															.cell()
-															.getCellInventory(added, null, StorageChannel.ITEMS);
+			final IMEInventory<IAEItemStack> myItems = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.ITEMS);
 
 			if (myItems != null)
 				myItems.getAvailableItems(itemChanges);
 
-			final IMEInventory<IAEFluidStack> myFluids = AEApi	.instance()
-																.registries()
-																.cell()
-																.getCellInventory(added, null, StorageChannel.FLUIDS);
+			final IMEInventory<IAEFluidStack> myFluids = AEApi.instance().registries().cell().getCellInventory(added, null, StorageChannel.FLUIDS);
 
 			if (myFluids != null)
 				myFluids.getAvailableItems(fluidChanges);
@@ -1419,14 +1364,20 @@ public class Platform
 		final LinkedList<T> changes = new LinkedList<T>();
 
 		for (final T is : before)
+		{
 			is.setStackSize(-is.getStackSize());
+		}
 
 		for (final T is : after)
+		{
 			before.add(is);
+		}
 
 		for (final T is : before)
+		{
 			if (is.getStackSize() != 0)
 				changes.add(is);
+		}
 
 		if (!changes.isEmpty())
 			meMonitorPassthrough.postChange(null, changes, source);
@@ -1574,8 +1525,7 @@ public class Platform
 		try
 		{
 			if (src.isPlayer())
-				return gridProxy.getSecurity()
-								.hasPermission(((PlayerSource) src).player, SecurityPermissions.BUILD);
+				return gridProxy.getSecurity().hasPermission(((PlayerSource) src).player, SecurityPermissions.BUILD);
 			else if (src.isMachine())
 			{
 				final IActionHost te = ((MachineSource) src).via;
@@ -1584,8 +1534,7 @@ public class Platform
 					return false;
 
 				final int playerID = n.getPlayerID();
-				return gridProxy.getSecurity()
-								.hasPermission(playerID, SecurityPermissions.BUILD);
+				return gridProxy.getSecurity().hasPermission(playerID, SecurityPermissions.BUILD);
 			}
 			else
 				return false;
@@ -1709,10 +1658,7 @@ public class Platform
 
 		if (type == AEFeature.CertusQuartzTools)
 		{
-			final IItemDefinition certusQuartzCrystal = AEApi	.instance()
-																.definitions()
-																.materials()
-																.certusQuartzCrystal();
+			final IItemDefinition certusQuartzCrystal = AEApi.instance().definitions().materials().certusQuartzCrystal();
 
 			return certusQuartzCrystal.isSameAs(b);
 		}
@@ -1725,26 +1671,20 @@ public class Platform
 
 	public static Object findPreferred(final ItemStack[] is)
 	{
-		final IParts parts = AEApi	.instance()
-									.definitions()
-									.parts();
+		final IParts parts = AEApi.instance().definitions().parts();
 
 		for (final ItemStack stack : is)
 		{
-			if (parts	.cableGlass()
-						.sameAs(AEColor.Transparent, stack))
+			if (parts.cableGlass().sameAs(AEColor.Transparent, stack))
 				return stack;
 
-			if (parts	.cableCovered()
-						.sameAs(AEColor.Transparent, stack))
+			if (parts.cableCovered().sameAs(AEColor.Transparent, stack))
 				return stack;
 
-			if (parts	.cableSmart()
-						.sameAs(AEColor.Transparent, stack))
+			if (parts.cableSmart().sameAs(AEColor.Transparent, stack))
 				return stack;
 
-			if (parts	.cableDense()
-						.sameAs(AEColor.Transparent, stack))
+			if (parts.cableDense().sameAs(AEColor.Transparent, stack))
 				return stack;
 		}
 
@@ -1812,26 +1752,18 @@ public class Platform
 
 	public static void addStat(final int playerID, final Achievement achievement)
 	{
-		final EntityPlayer p = AEApi.instance()
-									.registries()
-									.players()
-									.findPlayer(playerID);
+		final EntityPlayer p = AEApi.instance().registries().players().findPlayer(playerID);
 		if (p != null)
 			p.addStat(achievement, 1);
 	}
 
 	public static boolean isRecipePrioritized(final ItemStack what)
 	{
-		final IMaterials materials = AEApi	.instance()
-											.definitions()
-											.materials();
+		final IMaterials materials = AEApi.instance().definitions().materials();
 
-		boolean isPurified = materials	.purifiedCertusQuartzCrystal()
-										.isSameAs(what);
-		isPurified |= materials	.purifiedFluixCrystal()
-								.isSameAs(what);
-		isPurified |= materials	.purifiedNetherQuartzCrystal()
-								.isSameAs(what);
+		boolean isPurified = materials.purifiedCertusQuartzCrystal().isSameAs(what);
+		isPurified |= materials.purifiedFluixCrystal().isSameAs(what);
+		isPurified |= materials.purifiedNetherQuartzCrystal().isSameAs(what);
 
 		return isPurified;
 	}

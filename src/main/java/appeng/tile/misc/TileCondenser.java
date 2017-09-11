@@ -92,6 +92,7 @@ public class TileCondenser extends AEBaseInvTile implements IFluidHandler, IConf
 		final double requiredPower = this.getRequiredPower();
 		final ItemStack output = this.getOutput();
 		while (requiredPower <= this.getStoredPower() && output != null && requiredPower > 0)
+		{
 			if (this.canAddOutput(output))
 			{
 				this.setStoredPower(this.getStoredPower() - requiredPower);
@@ -99,6 +100,7 @@ public class TileCondenser extends AEBaseInvTile implements IFluidHandler, IConf
 			}
 			else
 				break;
+		}
 	}
 
 	private boolean canAddOutput(final ItemStack output)
@@ -119,8 +121,7 @@ public class TileCondenser extends AEBaseInvTile implements IFluidHandler, IConf
 	/**
 	 * make sure you validate with canAddOutput prior to this.
 	 *
-	 * @param output
-	 *            to be added output
+	 * @param output to be added output
 	 */
 	private void addOutput(final ItemStack output)
 	{
@@ -136,23 +137,21 @@ public class TileCondenser extends AEBaseInvTile implements IFluidHandler, IConf
 
 	private ItemStack getOutput()
 	{
-		final IMaterials materials = AEApi	.instance()
-											.definitions()
-											.materials();
+		final IMaterials materials = AEApi.instance().definitions().materials();
 
 		switch ((CondenserOutput) this.cm.getSetting(Settings.CONDENSER_OUTPUT))
 		{
 			case MATTER_BALLS:
-				for (final ItemStack matterBallStack : materials.matterBall()
-																.maybeStack(1)
-																.asSet())
+				for (final ItemStack matterBallStack : materials.matterBall().maybeStack(1).asSet())
+				{
 					return matterBallStack;
+				}
 
 			case SINGULARITY:
-				for (final ItemStack singularityStack : materials	.singularity()
-																	.maybeStack(1)
-																	.asSet())
+				for (final ItemStack singularityStack : materials.singularity().maybeStack(1).asSet())
+				{
 					return singularityStack;
+				}
 
 			case TRASH:
 			default:

@@ -18,21 +18,15 @@
 
 package appeng.me;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.google.common.collect.Lists;
-
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.events.MENetworkEvent;
 import appeng.api.networking.events.MENetworkEventSubscribe;
 import appeng.core.AELog;
+import com.google.common.collect.Lists;
+
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class NetworkEventBus
 {
@@ -95,8 +89,7 @@ public class NetworkEventBus
 				for (final Entry<Class, MENetworkEventInfo> subscriber : subscribers.entrySet())
 				{
 					final MENetworkEventInfo target = subscriber.getValue();
-					final GridCacheWrapper cache = g.getCaches()
-													.get(subscriber.getKey());
+					final GridCacheWrapper cache = g.getCaches().get(subscriber.getKey());
 					if (cache != null)
 					{
 						x++;
@@ -174,8 +167,7 @@ public class NetworkEventBus
 			catch (final Throwable e1)
 			{
 				AELog.error("[AppEng] Network Event caused exception:");
-				AELog.error("Offending Class: " + obj	.getClass()
-														.getName());
+				AELog.error("Offending Class: " + obj.getClass().getName());
 				AELog.error("Offending Object: " + obj.toString());
 				AELog.debug(e1);
 				throw new IllegalStateException(e1);
@@ -198,7 +190,9 @@ public class NetworkEventBus
 		private void invoke(final Object obj, final MENetworkEvent e) throws NetworkEventDone
 		{
 			for (final EventMethod em : this.methods)
+			{
 				em.invoke(obj, e);
+			}
 		}
 	}
 }

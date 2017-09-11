@@ -1,9 +1,8 @@
 package com.gamerforea.ae;
 
+import appeng.api.implementations.IUpgradeableHost;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
 import com.mojang.authlib.GameProfile;
-
-import appeng.api.implementations.IUpgradeableHost;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 
@@ -26,7 +25,6 @@ public final class FakePlayerContainerUpgradeableHost extends FakePlayerContaine
 	@Override
 	public World getWorld()
 	{
-		return this.host.getTile()
-						.getWorldObj();
+		return this.host.getTile().getWorldObj();
 	}
 }

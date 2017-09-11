@@ -18,16 +18,6 @@
 
 package appeng.helpers;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import com.gamerforea.ae.BusUtils;
-import com.google.common.collect.ImmutableSet;
-
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.config.Settings;
@@ -81,6 +71,8 @@ import appeng.util.inv.AdaptorIInventory;
 import appeng.util.inv.IInventoryDestination;
 import appeng.util.inv.WrapperInvSlot;
 import appeng.util.item.AEItemStack;
+import com.gamerforea.ae.BusUtils;
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
@@ -95,7 +87,11 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class DualityInterface implements IGridTickable, IStorageMonitorable, IInventoryDestination, IAEAppEngInventory, IConfigManagerHost, ICraftingProvider, IUpgradeableHost, IPriorityHost
+import java.util.*;
+
+public class DualityInterface
+		implements IGridTickable, IStorageMonitorable, IInventoryDestination, IAEAppEngInventory, IConfigManagerHost,
+		ICraftingProvider, IUpgradeableHost, IPriorityHost
 {
 
 	public static final int NUMBER_OF_STORAGE_SLOTS = 9;
@@ -173,11 +169,9 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 				try
 				{
 					if (now)
-						this.gridProxy	.getTick()
-										.alertDevice(this.gridProxy.getNode());
+						this.gridProxy.getTick().alertDevice(this.gridProxy.getNode());
 					else
-						this.gridProxy	.getTick()
-										.sleepDevice(this.gridProxy.getNode());
+						this.gridProxy.getTick().sleepDevice(this.gridProxy.getNode());
 				}
 				catch (final GridAccessException e)
 				{
@@ -245,8 +239,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
 		try
 		{
-			this.gridProxy	.getTick()
-							.wakeDevice(this.gridProxy.getNode());
+			this.gridProxy.getTick().wakeDevice(this.gridProxy.getNode());
 		}
 		catch (final GridAccessException e)
 		{
@@ -259,16 +252,20 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		this.hasConfig = false;
 
 		for (final ItemStack p : this.config)
+		{
 			if (p != null)
 			{
 				this.hasConfig = true;
 				break;
 			}
+		}
 
 		final boolean had = this.hasWorkToDo();
 
 		for (int x = 0; x < NUMBER_OF_CONFIG_SLOTS; x++)
+		{
 			this.updatePlan(x);
+		}
 
 		final boolean has = this.hasWorkToDo();
 
@@ -276,11 +273,9 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			try
 			{
 				if (has)
-					this.gridProxy	.getTick()
-									.alertDevice(this.gridProxy.getNode());
+					this.gridProxy.getTick().alertDevice(this.gridProxy.getNode());
 				else
-					this.gridProxy	.getTick()
-									.sleepDevice(this.gridProxy.getNode());
+					this.gridProxy.getTick().sleepDevice(this.gridProxy.getNode());
 			}
 			catch (final GridAccessException e)
 			{
@@ -320,13 +315,14 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		}
 
 		for (int x = 0; x < accountedFor.length; x++)
+		{
 			if (!accountedFor[x])
 				this.addToCraftingList(this.patterns.getStackInSlot(x));
+		}
 
 		try
 		{
-			this.gridProxy	.getGrid()
-							.postEvent(new MENetworkCraftingPatternChange(this, this.gridProxy.getNode()));
+			this.gridProxy.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.gridProxy.getNode()));
 		}
 		catch (final GridAccessException e)
 		{
@@ -341,8 +337,10 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		else
 		{
 			for (final IAEItemStack requiredWork : this.requireWork)
+			{
 				if (requiredWork != null)
 					return true;
+			}
 
 			return false;
 		}
@@ -361,9 +359,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
 		if (req == null && Stored != null)
 		{
-			final IAEItemStack work = AEApi	.instance()
-											.storage()
-											.createItemStack(Stored);
+			final IAEItemStack work = AEApi.instance().storage().createItemStack(Stored);
 			this.requireWork[slot] = work.setStackSize(-work.getStackSize());
 			return;
 		}
@@ -385,9 +381,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			else
 			// Stored != null; dispose!
 			{
-				final IAEItemStack work = AEApi	.instance()
-												.storage()
-												.createItemStack(Stored);
+				final IAEItemStack work = AEApi.instance().storage().createItemStack(Stored);
 				this.requireWork[slot] = work.setStackSize(-work.getStackSize());
 				return;
 			}
@@ -402,10 +396,8 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		if (this.gridProxy.isActive())
 			try
 			{
-				this.gridProxy	.getGrid()
-								.postEvent(new MENetworkCraftingPatternChange(this, this.gridProxy.getNode()));
-				this.gridProxy	.getTick()
-								.wakeDevice(this.gridProxy.getNode());
+				this.gridProxy.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.gridProxy.getNode()));
+				this.gridProxy.getTick().wakeDevice(this.gridProxy.getNode());
 			}
 			catch (final GridAccessException e)
 			{
@@ -425,8 +417,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		if (is.getItem() instanceof ICraftingPatternItem)
 		{
 			final ICraftingPatternItem cpi = (ICraftingPatternItem) is.getItem();
-			final ICraftingPatternDetails details = cpi.getPatternForItem(is, this.iHost.getTileEntity()
-																						.getWorldObj());
+			final ICraftingPatternDetails details = cpi.getPatternForItem(is, this.iHost.getTileEntity().getWorldObj());
 
 			if (details != null)
 			{
@@ -446,9 +437,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	@Override
 	public boolean canInsert(final ItemStack stack)
 	{
-		final IAEItemStack out = this.destination.injectItems(AEApi	.instance()
-																	.storage()
-																	.createItemStack(stack), Actionable.SIMULATE, null);
+		final IAEItemStack out = this.destination.injectItems(AEApi.instance().storage().createItemStack(stack), Actionable.SIMULATE, null);
 		if (out == null)
 			return true;
 		return out.getStackSize() != stack.stackSize;
@@ -472,10 +461,8 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	{
 		try
 		{
-			this.items.setInternal(this.gridProxy	.getStorage()
-													.getItemInventory());
-			this.fluids.setInternal(this.gridProxy	.getStorage()
-													.getFluidInventory());
+			this.items.setInternal(this.gridProxy.getStorage().getItemInventory());
+			this.fluids.setInternal(this.gridProxy.getStorage().getFluidInventory());
 		}
 		catch (final GridAccessException gae)
 		{
@@ -504,7 +491,9 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	public void markDirty()
 	{
 		for (int slot = 0; slot < this.storage.getSizeInventory(); slot++)
+		{
 			this.onChangeInventory(this.storage, slot, InvOperation.markDirty, null, null);
+		}
 	}
 
 	public int[] getAccessibleSlotsFromSide(final int side)
@@ -583,8 +572,10 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		boolean didSomething = false;
 
 		for (int x = 0; x < NUMBER_OF_STORAGE_SLOTS; x++)
+		{
 			if (this.requireWork[x] != null)
 				didSomething = this.usePlan(x, this.requireWork[x]) || didSomething;
+		}
 
 		return didSomething;
 	}
@@ -597,8 +588,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		boolean changed = false;
 		try
 		{
-			this.destination = this.gridProxy	.getStorage()
-												.getItemInventory();
+			this.destination = this.gridProxy.getStorage().getItemInventory();
 			final IEnergySource src = this.gridProxy.getEnergy();
 
 			if (this.craftingTracker.isBusy(x))
@@ -678,8 +668,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		try
 		{
 			if (this.getInstalledUpgrades(Upgrades.CRAFTING) > 0 && itemStack != null)
-				return this.craftingTracker.handleCrafting(x, itemStack.getStackSize(), itemStack, d, this.iHost.getTileEntity()
-																												.getWorldObj(), this.gridProxy.getGrid(), this.gridProxy.getCrafting(), this.mySource);
+				return this.craftingTracker.handleCrafting(x, itemStack.getStackSize(), itemStack, d, this.iHost.getTileEntity().getWorldObj(), this.gridProxy.getGrid(), this.gridProxy.getCrafting(), this.mySource);
 		}
 		catch (final GridAccessException e)
 		{
@@ -815,8 +804,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			if (te instanceof IInterfaceHost)
 				try
 				{
-					if (((IInterfaceHost) te)	.getInterfaceDuality()
-												.sameGrid(this.gridProxy.getGrid()))
+					if (((IInterfaceHost) te).getInterfaceDuality().sameGrid(this.gridProxy.getGrid()))
 						continue;
 				}
 				catch (final GridAccessException e)
@@ -942,20 +930,28 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	{
 		if (this.waitingToSend != null)
 			for (final ItemStack is : this.waitingToSend)
+			{
 				if (is != null)
 					drops.add(is);
+			}
 
 		for (final ItemStack is : this.upgrades)
+		{
 			if (is != null)
 				drops.add(is);
+		}
 
 		for (final ItemStack is : this.storage)
+		{
 			if (is != null)
 				drops.add(is);
+		}
 
 		for (final ItemStack is : this.patterns)
+		{
 			if (is != null)
 				drops.add(is);
+		}
 	}
 
 	public IUpgradeableHost getHost()
@@ -1030,8 +1026,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			if (directedTile instanceof IInterfaceHost)
 				try
 				{
-					if (((IInterfaceHost) directedTile)	.getInterfaceDuality()
-														.sameGrid(this.gridProxy.getGrid()))
+					if (((IInterfaceHost) directedTile).getInterfaceDuality().sameGrid(this.gridProxy.getGrid()))
 						continue;
 				}
 				catch (final GridAccessException e)
@@ -1047,8 +1042,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
 				if (directedTile instanceof ISidedInventory)
 				{
-					final int[] sides = ((ISidedInventory) directedTile).getAccessibleSlotsFromSide(direction	.getOpposite()
-																												.ordinal());
+					final int[] sides = ((ISidedInventory) directedTile).getAccessibleSlotsFromSide(direction.getOpposite().ordinal());
 
 					if (sides == null || sides.length == 0)
 						continue;
@@ -1112,8 +1106,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
 		try
 		{
-			this.gridProxy	.getGrid()
-							.postEvent(new MENetworkCraftingPatternChange(this, this.gridProxy.getNode()));
+			this.gridProxy.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.gridProxy.getNode()));
 		}
 		catch (final GridAccessException e)
 		{

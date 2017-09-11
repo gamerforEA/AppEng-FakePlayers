@@ -18,18 +18,6 @@
 
 package appeng.tile;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import appeng.api.implementations.tiles.ISegmentedInventory;
 import appeng.api.util.ICommonTile;
 import appeng.api.util.IConfigManager;
@@ -56,6 +44,12 @@ import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, ICustomNameObject
 {
@@ -137,7 +131,9 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 		}
 
 		for (final AETileEventHandler h : this.getHandlerListFor(TileEventType.WORLD_NBT_READ))
+		{
 			h.readFromNBT(this, data);
+		}
 	}
 
 	@Override
@@ -156,14 +152,18 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 			data.setString("customName", this.customName);
 
 		for (final AETileEventHandler h : this.getHandlerListFor(TileEventType.WORLD_NBT_WRITE))
+		{
 			h.writeToNBT(this, data);
+		}
 	}
 
 	@Override
 	public final void updateEntity()
 	{
 		for (final AETileEventHandler h : this.getHandlerListFor(TileEventType.TICK))
+		{
 			h.tick(this);
+		}
 	}
 
 	@Override
@@ -208,8 +208,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 		// / pkt.actionType
 		if (pkt.func_148853_f() == 64)
 		{
-			final ByteBuf stream = Unpooled.copiedBuffer(pkt.func_148857_g()
-															.getByteArray("X"));
+			final ByteBuf stream = Unpooled.copiedBuffer(pkt.func_148857_g().getByteArray("X"));
 			if (this.readFromStream(stream))
 				this.markForUpdate();
 		}
@@ -243,8 +242,10 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 
 			this.renderFragment = 100;
 			for (final AETileEventHandler h : this.getHandlerListFor(TileEventType.NETWORK_READ))
+			{
 				if (h.readFromStream(this, data))
 					output = true;
+			}
 
 			if ((this.renderFragment & 1) == 1)
 				output = true;
@@ -263,11 +264,11 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 		if (this.renderFragment > 0)
 			this.renderFragment |= 1;
 		else // TODO: Optimize Network Load
-		if (this.worldObj != null)
-		{
-			AELog.blockUpdate(this.xCoord, this.yCoord, this.zCoord, this);
-			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
-		}
+			if (this.worldObj != null)
+			{
+				AELog.blockUpdate(this.xCoord, this.yCoord, this.zCoord, this);
+				this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+			}
 	}
 
 	private final void writeToStream(final ByteBuf data)
@@ -281,7 +282,9 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 			}
 
 			for (final AETileEventHandler h : this.getHandlerListFor(TileEventType.NETWORK_WRITE))
+			{
 				h.writeToStream(this, data);
+			}
 		}
 		catch (final Throwable t)
 		{
@@ -395,10 +398,8 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 	 * depending on the from, different settings will be accepted, don't call
 	 * this with null
 	 *
-	 * @param from
-	 *            source of settings
-	 * @param compound
-	 *            compound of source
+	 * @param from     source of settings
+	 * @param compound compound of source
 	 */
 	public void uploadSettings(final SettingsFrom from, final NBTTagCompound compound)
 	{
@@ -424,7 +425,9 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 				final AppEngInternalAEInventory tmp = new AppEngInternalAEInventory(null, target.getSizeInventory());
 				tmp.readFromNBT(compound, "config");
 				for (int x = 0; x < tmp.getSizeInventory(); x++)
+				{
 					target.setInventorySlotContents(x, tmp.getStackInSlot(x));
+				}
 			}
 		}
 	}
@@ -433,16 +436,11 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 	 * returns the contents of the tile entity, into the world, defaults to
 	 * dropping everything in the inventory.
 	 *
-	 * @param w
-	 *            world
-	 * @param x
-	 *            x pos of tile entity
-	 * @param y
-	 *            y pos of tile entity
-	 * @param z
-	 *            z pos of tile entity
-	 * @param drops
-	 *            drops of tile entity
+	 * @param w     world
+	 * @param x     x pos of tile entity
+	 * @param y     y pos of tile entity
+	 * @param z     z pos of tile entity
+	 * @param drops drops of tile entity
 	 */
 	@Override
 	public void getDrops(final World w, final int x, final int y, final int z, final List<ItemStack> drops)
@@ -473,9 +471,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 	/**
 	 * null means nothing to store...
 	 *
-	 * @param from
-	 *            source of settings
-	 *
+	 * @param from source of settings
 	 * @return compound of source
 	 */
 	public NBTTagCompound downloadSettings(final SettingsFrom from)
@@ -515,8 +511,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 	@Override
 	public String getCustomName()
 	{
-		return this.hasCustomName() ? this.customName : this.getClass()
-															.getSimpleName();
+		return this.hasCustomName() ? this.customName : this.getClass().getSimpleName();
 	}
 
 	@Override

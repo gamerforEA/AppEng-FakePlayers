@@ -18,16 +18,6 @@
 
 package appeng.me.cache;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-
-import com.gamerforea.ae.EventConfig;
-import com.gamerforea.ae.ModUtils;
-import com.google.common.base.Preconditions;
-import com.mojang.authlib.GameProfile;
-
 import appeng.api.config.SecurityPermissions;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
@@ -39,7 +29,16 @@ import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.ISecurityProvider;
 import appeng.core.worlddata.WorldData;
 import appeng.me.GridNode;
+import com.gamerforea.ae.EventConfig;
+import com.gamerforea.ae.ModUtils;
+import com.google.common.base.Preconditions;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.EntityPlayer;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
 
 public class SecurityCache implements ISecurityGrid
 {
@@ -60,8 +59,7 @@ public class SecurityCache implements ISecurityGrid
 		if (this.securityProvider.isEmpty())
 			return;
 
-		this.securityProvider	.get(0)
-								.readPermissions(this.playerPerms);
+		this.securityProvider.get(0).readPermissions(this.playerPerms);
 	}
 
 	public long getSecurityKey()
@@ -89,18 +87,17 @@ public class SecurityCache implements ISecurityGrid
 		final long lastCode = this.securityKey;
 
 		if (this.securityProvider.size() == 1)
-			this.securityKey = this.securityProvider.get(0)
-													.getSecurityKey();
+			this.securityKey = this.securityProvider.get(0).getSecurityKey();
 		else
 			this.securityKey = -1;
 
 		if (lastCode != this.securityKey)
 		{
-			this.getGrid()
-				.postEvent(new MENetworkSecurityChange());
-			for (final IGridNode n : this	.getGrid()
-											.getNodes())
+			this.getGrid().postEvent(new MENetworkSecurityChange());
+			for (final IGridNode n : this.getGrid().getNodes())
+			{
 				((GridNode) n).setLastSecurityKey(this.securityKey);
+			}
 		}
 	}
 
@@ -134,8 +131,7 @@ public class SecurityCache implements ISecurityGrid
 	@Override
 	public boolean isAvailable()
 	{
-		return this.securityProvider.size() == 1 && this.securityProvider	.get(0)
-																			.isSecurityEnabled();
+		return this.securityProvider.size() == 1 && this.securityProvider.get(0).isSecurityEnabled();
 	}
 
 	@Override
@@ -151,9 +147,7 @@ public class SecurityCache implements ISecurityGrid
 			return true;
 		// TODO gamerforEA code end
 
-		final int playerID = WorldData	.instance()
-										.playerData()
-										.getPlayerID(profile);
+		final int playerID = WorldData.instance().playerData().getPlayerID(profile);
 
 		return this.hasPermission(playerID, perm);
 	}
@@ -180,8 +174,7 @@ public class SecurityCache implements ISecurityGrid
 	public int getOwner()
 	{
 		if (this.isAvailable())
-			return this.securityProvider.get(0)
-										.getOwner();
+			return this.securityProvider.get(0).getOwner();
 		return -1;
 	}
 

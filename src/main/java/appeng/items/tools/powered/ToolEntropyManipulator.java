@@ -18,15 +18,6 @@
 
 package appeng.items.tools.powered;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.gamerforea.eventhelper.util.EventUtils;
-import com.google.common.base.Optional;
-
 import appeng.api.util.DimensionalCoord;
 import appeng.block.misc.BlockTinyTNT;
 import appeng.core.AEConfig;
@@ -36,6 +27,8 @@ import appeng.hooks.IBlockTool;
 import appeng.items.tools.powered.powersink.AEBasePoweredItem;
 import appeng.util.InWorldToolOperationResult;
 import appeng.util.Platform;
+import com.gamerforea.eventhelper.util.EventUtils;
+import com.google.common.base.Optional;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.block.BlockTNT;
@@ -52,6 +45,8 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
+
+import java.util.*;
 
 public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockTool
 {
@@ -128,9 +123,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			r = this.heatUp.get(new InWorldToolOperationIngredient(blockID, OreDictionary.WILDCARD_VALUE));
 
 		if (r.getBlockItem() != null)
-			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem()
-														.getItem()), r	.getBlockItem()
-																		.getItemDamage(), 3);
+			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem().getItem()), r.getBlockItem().getItemDamage(), 3);
 		else
 			w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 
@@ -156,9 +149,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			r = this.coolDown.get(new InWorldToolOperationIngredient(blockID, OreDictionary.WILDCARD_VALUE));
 
 		if (r.getBlockItem() != null)
-			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem()
-														.getItem()), r	.getBlockItem()
-																		.getItemDamage(), 3);
+			w.setBlock(x, y, z, Block.getBlockFromItem(r.getBlockItem().getItem()), r.getBlockItem().getItemDamage(), 3);
 		else
 			w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 
@@ -201,9 +192,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 			final int y = target.blockY;
 			final int z = target.blockZ;
 
-			if (w	.getBlock(x, y, z)
-					.getMaterial() == Material.lava || w.getBlock(x, y, z)
-														.getMaterial() == Material.water)
+			if (w.getBlock(x, y, z).getMaterial() == Material.lava || w.getBlock(x, y, z).getMaterial() == Material.water)
 				if (Platform.hasPermissions(new DimensionalCoord(w, x, y, z), p))
 					this.onItemUse(item, p, w, x, y, z, 0, 0.0F, 0.0F, 0.0F);
 		}
@@ -266,14 +255,12 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 
 				for (final ItemStack i : stack)
 				{
-					final ItemStack result = FurnaceRecipes	.smelting()
-															.getSmeltingResult(i);
+					final ItemStack result = FurnaceRecipes.smelting().getSmeltingResult(i);
 
 					if (result != null)
 					{
 						if (result.getItem() instanceof ItemBlock)
-							if (Block.getBlockFromItem(result.getItem()) == blockID && result	.getItem()
-																								.getDamage(result) == metadata)
+							if (Block.getBlockFromItem(result.getItem()) == blockID && result.getItem().getDamage(result) == metadata)
 								canFurnaceable = false;
 						hasFurnaceable = true;
 						out.add(result);
@@ -294,9 +281,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 					if (or.getBlockItem() == null)
 						w.setBlock(x, y, z, Platform.AIR_BLOCK, 0, 3);
 					else
-						w.setBlock(x, y, z, Block.getBlockFromItem(or	.getBlockItem()
-																		.getItem()), or	.getBlockItem()
-																						.getItemDamage(), 3);
+						w.setBlock(x, y, z, Block.getBlockFromItem(or.getBlockItem().getItem()), or.getBlockItem().getItemDamage(), 3);
 
 					if (or.getDrops() != null)
 						Platform.spawnDrops(w, x, y, z, or.getDrops());

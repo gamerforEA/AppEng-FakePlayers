@@ -18,17 +18,6 @@
 
 package appeng.block;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.gamerforea.ae.EventConfig;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
 import appeng.api.implementations.items.IMemoryCard;
 import appeng.api.implementations.items.MemoryCardMessages;
 import appeng.api.implementations.tiles.IColorableTile;
@@ -44,6 +33,9 @@ import appeng.tile.networking.TileCableBus;
 import appeng.tile.storage.TileSkyChest;
 import appeng.util.Platform;
 import appeng.util.SettingsFrom;
+import com.gamerforea.ae.EventConfig;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
@@ -58,6 +50,12 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 
 public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature, ITileEntityProvider
 {
@@ -155,7 +153,9 @@ public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature,
 				{
 					final IInventory inv = (IInventory) te;
 					for (int i = 0; i < inv.getSizeInventory(); i++)
+					{
 						inv.setInventorySlotContents(i, null);
+					}
 				}
 				// TODO gamerforEA code end
 			}
@@ -254,12 +254,14 @@ public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature,
 
 						final ItemStack op = new ItemStack(this);
 						for (final ItemStack ol : drops)
+						{
 							if (Platform.isSameItemType(ol, op))
 							{
 								final NBTTagCompound tag = tile.downloadSettings(SettingsFrom.DISMANTLE_ITEM);
 								if (tag != null)
 									ol.setTagCompound(tag);
 							}
+						}
 
 						if (id.removedByPlayer(w, player, x, y, z, false))
 						{
@@ -293,8 +295,7 @@ public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature,
 					{
 						final String name = memoryCard.getSettingsName(is);
 						final NBTTagCompound data = memoryCard.getData(is);
-						if (this.getUnlocalizedName()
-								.equals(name))
+						if (this.getUnlocalizedName().equals(name))
 						{
 							final AEBaseTile t = this.getTileEntity(w, x, y, z);
 							t.uploadSettings(SettingsFrom.MEMORY_CARD, data);

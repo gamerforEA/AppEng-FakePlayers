@@ -18,15 +18,12 @@
 
 package appeng.spatial;
 
-import java.util.List;
-
-import com.gamerforea.ae.ModUtils;
-import com.gamerforea.eventhelper.util.EventUtils;
-
 import appeng.api.AEApi;
 import appeng.api.util.WorldCoord;
 import appeng.core.stats.Achievements;
 import appeng.util.Platform;
+import com.gamerforea.ae.ModUtils;
+import com.gamerforea.eventhelper.util.EventUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
@@ -38,6 +35,8 @@ import net.minecraft.world.Teleporter;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
+
+import java.util.List;
 
 public class StorageHelper
 {
@@ -53,11 +52,8 @@ public class StorageHelper
 	/**
 	 * Mostly from dimensional doors.. which mostly got it form X-Comp.
 	 *
-	 * @param entity
-	 *            to be teleported entity
-	 * @param link
-	 *            destination
-	 *
+	 * @param entity to be teleported entity
+	 * @param link   destination
 	 * @return teleported entity
 	 */
 	private Entity teleportEntity(Entity entity, final TelDestination link)
@@ -95,9 +91,7 @@ public class StorageHelper
 		}
 
 		// load the chunk!
-		WorldServer.class	.cast(newWorld)
-							.getChunkProvider()
-							.loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
+		WorldServer.class.cast(newWorld).getChunkProvider().loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
 
 		final boolean diffDestination = newWorld != oldWorld;
 		if (diffDestination)
@@ -106,19 +100,16 @@ public class StorageHelper
 				if (link.dim.provider instanceof StorageWorldProvider)
 					Achievements.SpatialIOExplorer.addToPlayer(player);
 
-				player.mcServer	.getConfigurationManager()
-								.transferPlayerToDimension(player, link.dim.provider.dimensionId, new METeleporter(newWorld, link));
+				player.mcServer.getConfigurationManager().transferPlayerToDimension(player, link.dim.provider.dimensionId, new METeleporter(newWorld, link));
 			}
 			else
 			{
 				final int entX = entity.chunkCoordX;
 				final int entZ = entity.chunkCoordZ;
 
-				if (entity.addedToChunk && oldWorld	.getChunkProvider()
-													.chunkExists(entX, entZ))
+				if (entity.addedToChunk && oldWorld.getChunkProvider().chunkExists(entX, entZ))
 				{
-					oldWorld.getChunkFromChunkCoords(entX, entZ)
-							.removeEntity(entity);
+					oldWorld.getChunkFromChunkCoords(entX, entZ).removeEntity(entity);
 					oldWorld.getChunkFromChunkCoords(entX, entZ).isModified = true;
 				}
 
@@ -169,25 +160,31 @@ public class StorageHelper
 	private void transverseEdges(final int minX, final int minY, final int minZ, final int maxX, final int maxY, final int maxZ, final ISpatialVisitor visitor)
 	{
 		for (int y = minY; y < maxY; y++)
+		{
 			for (int z = minZ; z < maxZ; z++)
 			{
 				visitor.visit(minX, y, z);
 				visitor.visit(maxX, y, z);
 			}
+		}
 
 		for (int x = minX; x < maxX; x++)
+		{
 			for (int z = minZ; z < maxZ; z++)
 			{
 				visitor.visit(x, minY, z);
 				visitor.visit(x, maxY, z);
 			}
+		}
 
 		for (int x = minX; x < maxX; x++)
+		{
 			for (int y = minY; y < maxY; y++)
 			{
 				visitor.visit(x, y, minZ);
 				visitor.visit(x, y, maxZ);
 			}
+		}
 	}
 
 	// TODO gamerforEA code start
@@ -199,23 +196,18 @@ public class StorageHelper
 
 	// TODO gamerforEA add EntityPlayer parameter
 	public void swapRegions(final FakePlayer player, final World src /**
-																		 * over
-																		 * world
-																		 **/
-			, final World dst/** storage cell **/
-			,final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
+	 * over
+	 * world
+	 **/, final World dst/** storage cell **/, final int x, final int y, final int z, final int i, final int j, final int k, final int scaleX, final int scaleY, final int scaleZ)
 	{
 		// TODO gamerforEA code start
 		final World playerWorld = player.worldObj;
 		// TODO gamerforEA code end
 
-		for (final Block matrixFrameBlock : AEApi	.instance()
-													.definitions()
-													.blocks()
-													.matrixFrame()
-													.maybeBlock()
-													.asSet())
+		for (final Block matrixFrameBlock : AEApi.instance().definitions().blocks().matrixFrame().maybeBlock().asSet())
+		{
 			this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new WrapInMatrixFrame(matrixFrameBlock, 0, dst));
+		}
 
 		final AxisAlignedBB srcBox = AxisAlignedBB.getBoundingBox(x, y, z, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1);
 		final AxisAlignedBB dstBox = AxisAlignedBB.getBoundingBox(i, j, k, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1);
@@ -263,12 +255,14 @@ public class StorageHelper
 		// TODO gamerforEA code end
 
 		for (final WorldCoord wc : cDst.getUpdates())
-			cDst.getWorld()
-				.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
+		{
+			cDst.getWorld().notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
+		}
 
 		for (final WorldCoord wc : cSrc.getUpdates())
-			cSrc.getWorld()
-				.notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
+		{
+			cSrc.getWorld().notifyBlockOfNeighborChange(wc.x, wc.y, wc.z, Platform.AIR_BLOCK);
+		}
 
 		this.transverseEdges(x - 1, y - 1, z - 1, x + scaleX + 1, y + scaleY + 1, z + scaleZ + 1, new TriggerUpdates(src));
 		this.transverseEdges(i - 1, j - 1, k - 1, i + scaleX + 1, j + scaleY + 1, k + scaleZ + 1, new TriggerUpdates(dst));

@@ -18,21 +18,20 @@
 
 package appeng.items.tools.powered;
 
-import java.util.EnumSet;
-
-import com.gamerforea.ae.EventConfig;
-import com.gamerforea.eventhelper.util.EventUtils;
-import com.google.common.base.Optional;
-
 import appeng.core.AEConfig;
 import appeng.core.CommonHelper;
 import appeng.core.features.AEFeature;
 import appeng.core.sync.packets.PacketLightning;
 import appeng.items.tools.powered.powersink.AEBasePoweredItem;
 import appeng.util.Platform;
+import com.gamerforea.ae.EventConfig;
+import com.gamerforea.eventhelper.util.EventUtils;
+import com.google.common.base.Optional;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+
+import java.util.EnumSet;
 
 public class ToolChargedStaff extends AEBasePoweredItem
 {

@@ -18,13 +18,6 @@
 
 package appeng.tile.crafting;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-
-import com.gamerforea.ae.EventConfig;
-
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
 import appeng.api.implementations.IPowerChannelState;
@@ -47,10 +40,16 @@ import appeng.tile.TileEvent;
 import appeng.tile.events.TileEventType;
 import appeng.tile.grid.AENetworkTile;
 import appeng.util.Platform;
+import com.gamerforea.ae.EventConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IPowerChannelState
 {
@@ -64,10 +63,8 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 
 	public TileCraftingTile()
 	{
-		this.getProxy()
-			.setFlags(GridFlags.MULTIBLOCK, GridFlags.REQUIRE_CHANNEL);
-		this.getProxy()
-			.setValidSides(EnumSet.noneOf(ForgeDirection.class));
+		this.getProxy().setFlags(GridFlags.MULTIBLOCK, GridFlags.REQUIRE_CHANNEL);
+		this.getProxy().setValidSides(EnumSet.noneOf(ForgeDirection.class));
 	}
 
 	@Override
@@ -80,13 +77,10 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 	protected ItemStack getItemFromTile(final Object obj)
 	{
 		if (((TileCraftingTile) obj).isAccelerator())
-			for (final ItemStack accelerator : AEApi.instance()
-													.definitions()
-													.blocks()
-													.craftingAccelerator()
-													.maybeStack(1)
-													.asSet())
+			for (final ItemStack accelerator : AEApi.instance().definitions().blocks().craftingAccelerator().maybeStack(1).asSet())
+			{
 				return accelerator;
+			}
 
 		return super.getItemFromTile(obj);
 	}
@@ -117,8 +111,7 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 	public void onReady()
 	{
 		super.onReady();
-		this.getProxy()
-			.setVisualRepresentation(this.getItemFromTile(this));
+		this.getProxy().setVisualRepresentation(this.getItemFromTile(this));
 		this.updateMultiBlock();
 	}
 
@@ -144,10 +137,8 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 		final boolean formed = this.isFormed();
 		boolean power = false;
 
-		if (this.getProxy()
-				.isReady())
-			power = this.getProxy()
-						.isActive();
+		if (this.getProxy().isReady())
+			power = this.getProxy().isActive();
 
 		final int current = this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord);
 		final int newMeta = current & 3 | (formed ? 8 : 0) | (power ? 4 : 0);
@@ -157,11 +148,9 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 
 		if (updateFormed)
 			if (formed)
-				this.getProxy()
-					.setValidSides(EnumSet.allOf(ForgeDirection.class));
+				this.getProxy().setValidSides(EnumSet.allOf(ForgeDirection.class));
 			else
-				this.getProxy()
-					.setValidSides(EnumSet.noneOf(ForgeDirection.class));
+				this.getProxy().setValidSides(EnumSet.noneOf(ForgeDirection.class));
 	}
 
 	public boolean isFormed()
@@ -301,13 +290,10 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 				}
 			} */
 			if (EventConfig.autoCraftFixMode != 0)
-				for (IAEItemStack ais : inv.getAvailableItems(AEApi	.instance()
-																	.storage()
-																	.createItemList()))
+				for (IAEItemStack ais : inv.getAvailableItems(AEApi.instance().storage().createItemList()))
 				{
 					ais = ais.copy();
-					ais.setStackSize(ais.getItemStack()
-										.getMaxStackSize());
+					ais.setStackSize(ais.getItemStack().getMaxStackSize());
 					while (true)
 					{
 						final IAEItemStack g = inv.extractItems(ais.copy(), Actionable.MODULATE, this.cluster.getActionSource());
@@ -335,16 +321,14 @@ public class TileCraftingTile extends AENetworkTile implements IAEMultiBlock, IP
 	{
 		if (Platform.isClient())
 			return (this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord) & 4) == 4;
-		return this	.getProxy()
-					.isActive();
+		return this.getProxy().isActive();
 	}
 
 	@Override
 	public boolean isActive()
 	{
 		if (Platform.isServer())
-			return this	.getProxy()
-						.isActive();
+			return this.getProxy().isActive();
 		return this.isPowered() && this.isFormed();
 	}
 

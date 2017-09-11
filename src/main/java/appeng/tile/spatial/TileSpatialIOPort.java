@@ -18,10 +18,6 @@
 
 package appeng.tile.spatial;
 
-import com.gamerforea.ae.ModUtils;
-import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.fake.FakePlayerContainerTileEntity;
-
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.config.YesNo;
@@ -45,6 +41,9 @@ import appeng.tile.inventory.AppEngInternalInventory;
 import appeng.tile.inventory.InvOperation;
 import appeng.util.IWorldCallable;
 import appeng.util.Platform;
+import com.gamerforea.ae.ModUtils;
+import com.gamerforea.eventhelper.fake.FakePlayerContainer;
+import com.gamerforea.eventhelper.fake.FakePlayerContainerTileEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -63,8 +62,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements IWorldCallabl
 
 	public TileSpatialIOPort()
 	{
-		this.getProxy()
-			.setFlags(GridFlags.REQUIRE_CHANNEL);
+		this.getProxy().setFlags(GridFlags.REQUIRE_CHANNEL);
 	}
 
 	@TileEvent(TileEventType.WORLD_NBT_WRITE)
@@ -133,10 +131,8 @@ public class TileSpatialIOPort extends AENetworkInvTile implements IWorldCallabl
 		final ItemStack cell = this.getStackInSlot(0);
 		if (this.isSpatialCell(cell) && this.getStackInSlot(1) == null)
 		{
-			final IGrid gi = this	.getProxy()
-									.getGrid();
-			final IEnergyGrid energy = this	.getProxy()
-											.getEnergy();
+			final IGrid gi = this.getProxy().getGrid();
+			final IEnergyGrid energy = this.getProxy().getEnergy();
 
 			final ISpatialStorageCell sc = (ISpatialStorageCell) cell.getItem();
 

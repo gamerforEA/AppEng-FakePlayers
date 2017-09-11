@@ -18,18 +18,8 @@
 
 package appeng.me.helpers;
 
-import java.util.Collections;
-import java.util.EnumSet;
-
-import com.mojang.authlib.GameProfile;
-
 import appeng.api.AEApi;
-import appeng.api.networking.GridFlags;
-import appeng.api.networking.GridNotification;
-import appeng.api.networking.IGrid;
-import appeng.api.networking.IGridBlock;
-import appeng.api.networking.IGridHost;
-import appeng.api.networking.IGridNode;
+import appeng.api.networking.*;
 import appeng.api.networking.crafting.ICraftingGrid;
 import appeng.api.networking.energy.IEnergyGrid;
 import appeng.api.networking.events.MENetworkPowerIdleChange;
@@ -47,10 +37,14 @@ import appeng.me.cache.P2PCache;
 import appeng.parts.networking.PartCable;
 import appeng.tile.AEBaseTile;
 import appeng.util.Platform;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import java.util.Collections;
+import java.util.EnumSet;
 
 public class AENetworkProxy implements IGridBlock
 {
@@ -136,8 +130,7 @@ public class AENetworkProxy implements IGridBlock
 	{
 		if (this.node == null && Platform.isServer() && this.isReady)
 		{
-			this.node = AEApi	.instance()
-								.createGridNode(this);
+			this.node = AEApi.instance().createGridNode(this);
 			this.readFromNBT(this.data);
 			this.node.updateState();
 		}
@@ -156,14 +149,11 @@ public class AENetworkProxy implements IGridBlock
 		else if (this.node != null && this.owner != null)
 		{
 			// TODO gamerforEA code start
-			if (this.owner.getGameProfile() != null && this.owner	.getGameProfile()
-																	.isComplete())
+			if (this.owner.getGameProfile() != null && this.owner.getGameProfile().isComplete())
 			{
 				// TODO gamerforEA code end
 				final GameProfile profile = this.owner.getGameProfile();
-				final int playerID = WorldData	.instance()
-												.playerData()
-												.getPlayerID(profile);
+				final int playerID = WorldData.instance().playerData().getPlayerID(profile);
 
 				this.node.setPlayerID(playerID);
 			}
@@ -187,9 +177,7 @@ public class AENetworkProxy implements IGridBlock
 	 * short cut!
 	 *
 	 * @return grid of node
-	 *
-	 * @throws GridAccessException
-	 *             of node or grid is null
+	 * @throws GridAccessException of node or grid is null
 	 */
 	public IGrid getGrid() throws GridAccessException
 	{
@@ -377,8 +365,7 @@ public class AENetworkProxy implements IGridBlock
 	{
 		try
 		{
-			return this	.getEnergy()
-						.isNetworkPowered();
+			return this.getEnergy().isNetworkPowered();
 		}
 		catch (final GridAccessException e)
 		{

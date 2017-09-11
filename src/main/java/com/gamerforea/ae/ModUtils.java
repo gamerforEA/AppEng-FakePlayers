@@ -1,15 +1,14 @@
 package com.gamerforea.ae;
 
-import java.util.UUID;
-
 import com.gamerforea.eventhelper.EventHelper;
 import com.gamerforea.eventhelper.util.ConvertUtils;
 import com.gamerforea.eventhelper.util.FastUtils;
 import com.mojang.authlib.GameProfile;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
+
+import java.util.UUID;
 
 public final class ModUtils
 {
@@ -30,8 +29,7 @@ public final class ModUtils
 	{
 		try
 		{
-			return ConvertUtils	.toBukkitEntity(player)
-								.hasPermission(permisssion);
+			return ConvertUtils.toBukkitEntity(player).hasPermission(permisssion);
 		}
 		catch (Exception e)
 		{

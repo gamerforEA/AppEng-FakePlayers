@@ -18,14 +18,6 @@
 
 package appeng.me.cache;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
-
 import appeng.api.AEApi;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
@@ -40,11 +32,7 @@ import appeng.api.networking.security.MachineSource;
 import appeng.api.networking.storage.IStackWatcher;
 import appeng.api.networking.storage.IStackWatcherHost;
 import appeng.api.networking.storage.IStorageGrid;
-import appeng.api.storage.ICellContainer;
-import appeng.api.storage.ICellProvider;
-import appeng.api.storage.IMEInventoryHandler;
-import appeng.api.storage.IMEMonitor;
-import appeng.api.storage.StorageChannel;
+import appeng.api.storage.*;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
@@ -52,6 +40,13 @@ import appeng.api.storage.data.IItemList;
 import appeng.me.helpers.GenericInterestManager;
 import appeng.me.storage.ItemWatcher;
 import appeng.me.storage.NetworkInventoryHandler;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public class GridStorageCache implements IStorageGrid
 {
@@ -86,10 +81,8 @@ public class GridStorageCache implements IStorageGrid
 		{
 			final ICellContainer cc = (ICellContainer) machine;
 
-			this.getGrid()
-				.postEvent(new MENetworkCellArrayUpdate());
-			this.removeCellProvider(cc, new CellChangeTracker())
-				.applyChanges();
+			this.getGrid().postEvent(new MENetworkCellArrayUpdate());
+			this.removeCellProvider(cc, new CellChangeTracker()).applyChanges();
 			this.inactiveCellProviders.remove(cc);
 		}
 
@@ -112,11 +105,9 @@ public class GridStorageCache implements IStorageGrid
 			final ICellContainer cc = (ICellContainer) machine;
 			this.inactiveCellProviders.add(cc);
 
-			this.getGrid()
-				.postEvent(new MENetworkCellArrayUpdate());
+			this.getGrid().postEvent(new MENetworkCellArrayUpdate());
 			if (node.isActive())
-				this.addCellProvider(cc, new CellChangeTracker())
-					.applyChanges();
+				this.addCellProvider(cc, new CellChangeTracker()).applyChanges();
 		}
 
 		if (machine instanceof IStackWatcherHost)
@@ -158,10 +149,14 @@ public class GridStorageCache implements IStorageGrid
 				actionSrc = new MachineSource((IActionHost) cc);
 
 			for (final IMEInventoryHandler<IAEItemStack> h : cc.getCellArray(StorageChannel.ITEMS))
+			{
 				tracker.postChanges(StorageChannel.ITEMS, 1, h, actionSrc);
+			}
 
 			for (final IMEInventoryHandler<IAEFluidStack> h : cc.getCellArray(StorageChannel.FLUIDS))
+			{
 				tracker.postChanges(StorageChannel.FLUIDS, 1, h, actionSrc);
+			}
 		}
 
 		return tracker;
@@ -262,22 +257,29 @@ public class GridStorageCache implements IStorageGrid
 
 	private void buildNetworkStorage(final StorageChannel chan)
 	{
-		final SecurityCache security = this	.getGrid()
-											.getCache(ISecurityGrid.class);
+		final SecurityCache security = this.getGrid().getCache(ISecurityGrid.class);
 
 		switch (chan)
 		{
 			case FLUIDS:
 				this.myFluidNetwork = new NetworkInventoryHandler<IAEFluidStack>(StorageChannel.FLUIDS, security);
 				for (final ICellProvider cc : this.activeCellProviders)
+				{
 					for (final IMEInventoryHandler<IAEFluidStack> h : cc.getCellArray(chan))
+					{
 						this.myFluidNetwork.addNewStorage(h);
+					}
+				}
 				break;
 			case ITEMS:
 				this.myItemNetwork = new NetworkInventoryHandler<IAEItemStack>(StorageChannel.ITEMS, security);
 				for (final ICellProvider cc : this.activeCellProviders)
+				{
 					for (final IMEInventoryHandler<IAEItemStack> h : cc.getCellArray(chan))
+					{
 						this.myItemNetwork.addNewStorage(h);
+					}
+				}
 				break;
 			default:
 		}
@@ -303,15 +305,13 @@ public class GridStorageCache implements IStorageGrid
 	public void registerCellProvider(final ICellProvider provider)
 	{
 		this.inactiveCellProviders.add(provider);
-		this.addCellProvider(provider, new CellChangeTracker())
-			.applyChanges();
+		this.addCellProvider(provider, new CellChangeTracker()).applyChanges();
 	}
 
 	@Override
 	public void unregisterCellProvider(final ICellProvider provider)
 	{
-		this.removeCellProvider(provider, new CellChangeTracker())
-			.applyChanges();
+		this.removeCellProvider(provider, new CellChangeTracker()).applyChanges();
 		this.inactiveCellProviders.remove(provider);
 	}
 
@@ -352,13 +352,9 @@ public class GridStorageCache implements IStorageGrid
 			this.src = actionSrc;
 
 			if (channel == StorageChannel.ITEMS)
-				this.list = ((IMEInventoryHandler<IAEItemStack>) h).getAvailableItems(AEApi	.instance()
-																							.storage()
-																							.createItemList());
+				this.list = ((IMEInventoryHandler<IAEItemStack>) h).getAvailableItems(AEApi.instance().storage().createItemList());
 			else if (channel == StorageChannel.FLUIDS)
-				this.list = ((IMEInventoryHandler<IAEFluidStack>) h).getAvailableItems(AEApi.instance()
-																							.storage()
-																							.createFluidList());
+				this.list = ((IMEInventoryHandler<IAEFluidStack>) h).getAvailableItems(AEApi.instance().storage().createFluidList());
 			else
 				this.list = null;
 		}
@@ -382,7 +378,9 @@ public class GridStorageCache implements IStorageGrid
 		public void applyChanges()
 		{
 			for (final CellChangeTrackerRecord rec : this.data)
+			{
 				rec.applyChanges();
+			}
 		}
 	}
 }

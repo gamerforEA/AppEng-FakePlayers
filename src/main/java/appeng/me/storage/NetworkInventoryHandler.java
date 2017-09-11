@@ -18,14 +18,6 @@
 
 package appeng.me.storage;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-
 import appeng.api.config.AccessRestriction;
 import appeng.api.config.Actionable;
 import appeng.api.config.SecurityPermissions;
@@ -41,6 +33,8 @@ import appeng.api.storage.data.IAEStack;
 import appeng.api.storage.data.IItemList;
 import appeng.me.cache.SecurityCache;
 import appeng.util.ItemSorters;
+
+import java.util.*;
 
 public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInventoryHandler<T>
 {
@@ -68,8 +62,8 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 		this.myChannel = chan;
 		this.security = security;
 		this.priorityInventory = new TreeMap<Integer, List<IMEInventoryHandler<T>>>(PRIORITY_SORTER); // TreeMultimap.create(
-																										// prioritySorter,
-																										// hashSorter );
+		// prioritySorter,
+		// hashSorter );
 	}
 
 	public void addNewStorage(final IMEInventoryHandler<T> h)
@@ -179,8 +173,7 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 
 	private void surface(final NetworkInventoryHandler<T> networkInventoryHandler, final Actionable type)
 	{
-		if (this.getDepth(type)
-				.pop() != this)
+		if (this.getDepth(type).pop() != this)
 			throw new IllegalStateException("Invalid Access to Networked Storage API detected.");
 	}
 
@@ -208,9 +201,7 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 			return null;
 		}
 
-		final Iterator<List<IMEInventoryHandler<T>>> i = this.priorityInventory	.descendingMap()
-																				.values()
-																				.iterator();// priorityInventory.asMap().descendingMap().entrySet().iterator();
+		final Iterator<List<IMEInventoryHandler<T>>> i = this.priorityInventory.descendingMap().values().iterator();// priorityInventory.asMap().descendingMap().entrySet().iterator();
 
 		final T output = request.copy();
 		request = request.copy();
@@ -247,8 +238,12 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 
 		// for (Entry<Integer, IMEInventoryHandler<T>> h : priorityInventory.entries())
 		for (final List<IMEInventoryHandler<T>> i : this.priorityInventory.values())
+		{
 			for (final IMEInventoryHandler<T> j : i)
+			{
 				out = j.getAvailableItems(out);
+			}
+		}
 
 		this.surface(this, Actionable.SIMULATE);
 
