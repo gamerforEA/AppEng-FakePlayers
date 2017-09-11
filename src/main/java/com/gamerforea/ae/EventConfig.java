@@ -1,11 +1,7 @@
 package com.gamerforea.ae;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.gamerforea.eventhelper.util.FastUtils;
 import com.google.common.collect.Sets;
-
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -13,13 +9,16 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.config.Configuration;
 
+import java.util.Set;
+
 public final class EventConfig
 {
-	public static final Set<String> pilonBlackList = new HashSet<String>();
-	public static final Set<String> formationPlaneBlackList = new HashSet<String>();
-	public static final Set<String> annihilationPlaneBlackList = new HashSet<String>();
-	public static final Set<String> autoCraftBlackList = new HashSet<String>();
-	public static final Set<String> busBlackList = new HashSet<String>();
+	private static final String[] DEFAULT_BLOCKS = new String[] { "minecraft:bedrock", "modid:blockname:meta" };
+	public static final Set<String> pilonBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
+	public static final Set<String> formationPlaneBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
+	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
+	public static final Set<String> autoCraftBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
+	public static final Set<String> busBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static String securityBypassPermission = "appeng.security.bypass";
 	public static float chargedStaffDamage = 6F;
 	public static int autoCraftFixMode = 0;
@@ -32,6 +31,11 @@ public final class EventConfig
 	public static boolean busSameChunkMessage = false;
 
 	static
+	{
+		init();
+	}
+
+	public static void init()
 	{
 		try
 		{
@@ -105,13 +109,11 @@ public final class EventConfig
 
 	private static final String getId(Item item)
 	{
-		return GameData	.getItemRegistry()
-						.getNameForObject(item);
+		return GameData.getItemRegistry().getNameForObject(item);
 	}
 
 	private static final String getId(Block block)
 	{
-		return GameData	.getBlockRegistry()
-						.getNameForObject(block);
+		return GameData.getBlockRegistry().getNameForObject(block);
 	}
 }
