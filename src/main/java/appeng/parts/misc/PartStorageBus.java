@@ -18,19 +18,8 @@
 
 package appeng.parts.misc;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import com.gamerforea.ae.BusUtils;
-
 import appeng.api.AEApi;
-import appeng.api.config.AccessRestriction;
-import appeng.api.config.FuzzyMode;
-import appeng.api.config.IncludeExclude;
-import appeng.api.config.Settings;
-import appeng.api.config.StorageFilter;
-import appeng.api.config.Upgrades;
+import appeng.api.config.*;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.events.MENetworkCellArrayUpdate;
 import appeng.api.networking.events.MENetworkChannelsChanged;
@@ -46,13 +35,7 @@ import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.parts.IPartCollisionHelper;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.IPartRenderHelper;
-import appeng.api.storage.ICellContainer;
-import appeng.api.storage.IExternalStorageHandler;
-import appeng.api.storage.IMEInventory;
-import appeng.api.storage.IMEInventoryHandler;
-import appeng.api.storage.IMEMonitor;
-import appeng.api.storage.IMEMonitorHandlerReceiver;
-import appeng.api.storage.StorageChannel;
+import appeng.api.storage.*;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IItemList;
 import appeng.api.util.IConfigManager;
@@ -77,6 +60,7 @@ import appeng.util.prioitylist.FuzzyPriorityList;
 import appeng.util.prioitylist.PrecisePriorityList;
 import buildcraft.api.transport.IPipeConnection;
 import buildcraft.api.transport.IPipeTile.PipeType;
+import com.gamerforea.ae.BusUtils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -88,8 +72,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 @Interface(iname = IntegrationType.BuildCraftTransport, iface = "buildcraft.api.transport.IPipeConnection")
-public class PartStorageBus extends PartUpgradeable implements IGridTickable, ICellContainer, IMEMonitorHandlerReceiver<IAEItemStack>, IPipeConnection, IPriorityHost
+public class PartStorageBus extends PartUpgradeable
+		implements IGridTickable, ICellContainer, IMEMonitorHandlerReceiver<IAEItemStack>, IPipeConnection,
+		IPriorityHost
 {
 	private final BaseActionSource mySrc;
 	private final AppEngInternalAEInventory Config = new AppEngInternalAEInventory(this, 63);
@@ -105,12 +95,9 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	public PartStorageBus(final ItemStack is)
 	{
 		super(is);
-		this.getConfigManager()
-			.registerSetting(Settings.ACCESS, AccessRestriction.READ_WRITE);
-		this.getConfigManager()
-			.registerSetting(Settings.FUZZY_MODE, FuzzyMode.IGNORE_ALL);
-		this.getConfigManager()
-			.registerSetting(Settings.STORAGE_FILTER, StorageFilter.EXTRACTABLE_ONLY);
+		this.getConfigManager().registerSetting(Settings.ACCESS, AccessRestriction.READ_WRITE);
+		this.getConfigManager().registerSetting(Settings.FUZZY_MODE, FuzzyMode.IGNORE_ALL);
+		this.getConfigManager().registerSetting(Settings.STORAGE_FILTER, StorageFilter.EXTRACTABLE_ONLY);
 		this.mySrc = new MachineSource(this);
 	}
 
@@ -123,18 +110,14 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 
 	private void updateStatus()
 	{
-		final boolean currentActive = this	.getProxy()
-											.isActive();
+		final boolean currentActive = this.getProxy().isActive();
 		if (this.wasActive != currentActive)
 		{
 			this.wasActive = currentActive;
 			try
 			{
-				this.getProxy()
-					.getGrid()
-					.postEvent(new MENetworkCellArrayUpdate());
-				this.getHost()
-					.markForUpdate();
+				this.getProxy().getGrid().postEvent(new MENetworkCellArrayUpdate());
+				this.getHost().markForUpdate();
 			}
 			catch (final GridAccessException e)
 			{
@@ -159,8 +142,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	public void updateSetting(final IConfigManager manager, final Enum settingName, final Enum newValue)
 	{
 		this.resetCache(true);
-		this.getHost()
-			.markForSave();
+		this.getHost().markForSave();
 	}
 
 	@Override
@@ -206,12 +188,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 
 	private void resetCache(final boolean fullReset)
 	{
-		if (this.getHost() == null || this	.getHost()
-											.getTile() == null || this	.getHost()
-																		.getTile()
-																		.getWorldObj() == null || this	.getHost()
-																										.getTile()
-																										.getWorldObj().isRemote)
+		if (this.getHost() == null || this.getHost().getTile() == null || this.getHost().getTile().getWorldObj() == null || this.getHost().getTile().getWorldObj().isRemote)
 			return;
 
 		if (fullReset)
@@ -221,10 +198,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 
 		try
 		{
-			this.getProxy()
-				.getTick()
-				.alertDevice(this	.getProxy()
-									.getNode());
+			this.getProxy().getTick().alertDevice(this.getProxy().getNode());
 		}
 		catch (final GridAccessException e)
 		{
@@ -243,11 +217,8 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	{
 		try
 		{
-			if (this.getProxy()
-					.isActive())
-				this.getProxy()
-					.getStorage()
-					.postAlterationOfStoredItems(StorageChannel.ITEMS, change, this.mySrc);
+			if (this.getProxy().isActive())
+				this.getProxy().getStorage().postAlterationOfStoredItems(StorageChannel.ITEMS, change, this.mySrc);
 		}
 		catch (final GridAccessException e)
 		{
@@ -273,8 +244,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	@SideOnly(Side.CLIENT)
 	public void renderInventory(final IPartRenderHelper rh, final RenderBlocks renderer)
 	{
-		rh.setTexture(CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageBack.getIcon(), this.getItemStack()
-																																								.getIconIndex(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon());
+		rh.setTexture(CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageBack.getIcon(), this.getItemStack().getIconIndex(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon());
 
 		rh.setBounds(3, 3, 15, 13, 13, 16);
 		rh.renderInventoryBox(renderer);
@@ -291,8 +261,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	public void renderStatic(final int x, final int y, final int z, final IPartRenderHelper rh, final RenderBlocks renderer)
 	{
 		this.setRenderCache(rh.useSimplifiedRendering(x, y, z, this, this.getRenderCache()));
-		rh.setTexture(CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageBack.getIcon(), this.getItemStack()
-																																								.getIconIndex(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon());
+		rh.setTexture(CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageBack.getIcon(), this.getItemStack().getIconIndex(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon());
 
 		rh.setBounds(3, 3, 15, 13, 13, 16);
 		rh.renderBlock(x, y, z, renderer);
@@ -300,14 +269,12 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		rh.setBounds(2, 2, 14, 14, 14, 15);
 		rh.renderBlock(x, y, z, renderer);
 
-		rh.setTexture(CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageBack.getIcon(), this.getItemStack()
-																																								.getIconIndex(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon());
+		rh.setTexture(CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageBack.getIcon(), this.getItemStack().getIconIndex(), CableBusTextures.PartStorageSides.getIcon(), CableBusTextures.PartStorageSides.getIcon());
 
 		rh.setBounds(5, 5, 12, 11, 11, 13);
 		rh.renderBlock(x, y, z, renderer);
 
-		rh.setTexture(CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorBack.getIcon(), this.getItemStack()
-																																											.getIconIndex(), CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorSidesStatus.getIcon());
+		rh.setTexture(CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorBack.getIcon(), this.getItemStack().getIconIndex(), CableBusTextures.PartMonitorSidesStatus.getIcon(), CableBusTextures.PartMonitorSidesStatus.getIcon());
 
 		rh.setBounds(5, 5, 13, 11, 11, 14);
 		rh.renderBlock(x, y, z, renderer);
@@ -335,8 +302,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 			if (Platform.isClient())
 				return true;
 
-			Platform.openGUI(player, this	.getHost()
-											.getTile(), this.getSide(), GuiBridge.GUI_STORAGEBUS);
+			Platform.openGUI(player, this.getHost().getTile(), this.getSide(), GuiBridge.GUI_STORAGEBUS);
 			return true;
 		}
 
@@ -367,9 +333,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		this.resetCacheLogic = 0;
 
 		final IMEInventory<IAEItemStack> in = this.getInternalHandler();
-		IItemList<IAEItemStack> before = AEApi	.instance()
-												.storage()
-												.createItemList();
+		IItemList<IAEItemStack> before = AEApi.instance().storage().createItemList();
 		if (in != null)
 			before = in.getAvailableItems(before);
 
@@ -382,9 +346,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		if (this.monitor != null)
 			this.monitor.onTick();
 
-		IItemList<IAEItemStack> after = AEApi	.instance()
-												.storage()
-												.createItemList();
+		IItemList<IAEItemStack> after = AEApi.instance().storage().createItemList();
 		if (out != null)
 			after = out.getAvailableItems(after);
 
@@ -399,41 +361,33 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		final boolean wasSleeping = this.monitor == null;
 
 		this.cached = true;
-		final TileEntity self = this.getHost()
-									.getTile();
-		final TileEntity target = self	.getWorldObj()
-										.getTileEntity(self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
+		final TileEntity self = this.getHost().getTile();
+		TileEntity target = self.getWorldObj().getTileEntity(self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
+
+		// TODO gamerforEA code start
+		if (target != null && !BusUtils.checkBusCanInteract(self, target, true))
+			target = null;
+		// TODO gamerforEA code end
 
 		final int newHandlerHash = Platform.generateTileHash(target);
 
 		if (this.handlerHash == newHandlerHash && this.handlerHash != 0)
 			return this.handler;
 
-		// TODO gamerforEA code start
-		if (!BusUtils.checkBusCanInteract(self, target, true))
-			return null;
-		// TODO gamerforEA code end
-
 		this.handlerHash = newHandlerHash;
 		this.handler = null;
 		this.monitor = null;
 		if (target != null)
 		{
-			final IExternalStorageHandler esh = AEApi	.instance()
-														.registries()
-														.externalStorage()
-														.getHandler(target, this.getSide()
-																				.getOpposite(), StorageChannel.ITEMS, this.mySrc);
+			final IExternalStorageHandler esh = AEApi.instance().registries().externalStorage().getHandler(target, this.getSide().getOpposite(), StorageChannel.ITEMS, this.mySrc);
 			if (esh != null)
 			{
-				final IMEInventory inv = esh.getInventory(target, this	.getSide()
-																		.getOpposite(), StorageChannel.ITEMS, this.mySrc);
+				final IMEInventory inv = esh.getInventory(target, this.getSide().getOpposite(), StorageChannel.ITEMS, this.mySrc);
 
 				if (inv instanceof MEMonitorIInventory)
 				{
 					final MEMonitorIInventory h = (MEMonitorIInventory) inv;
-					h.setMode((StorageFilter) this	.getConfigManager()
-													.getSetting(Settings.STORAGE_FILTER));
+					h.setMode((StorageFilter) this.getConfigManager().getSetting(Settings.STORAGE_FILTER));
 					h.setActionSource(new MachineSource(this));
 				}
 
@@ -442,19 +396,15 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 
 				if (inv != null)
 				{
-					this.checkInterfaceVsStorageBus(target, this.getSide()
-																.getOpposite());
+					this.checkInterfaceVsStorageBus(target, this.getSide().getOpposite());
 
 					this.handler = new MEInventoryHandler(inv, StorageChannel.ITEMS);
 
-					this.handler.setBaseAccess((AccessRestriction) this	.getConfigManager()
-																		.getSetting(Settings.ACCESS));
+					this.handler.setBaseAccess((AccessRestriction) this.getConfigManager().getSetting(Settings.ACCESS));
 					this.handler.setWhitelist(this.getInstalledUpgrades(Upgrades.INVERTER) > 0 ? IncludeExclude.BLACKLIST : IncludeExclude.WHITELIST);
 					this.handler.setPriority(this.priority);
 
-					final IItemList<IAEItemStack> priorityList = AEApi	.instance()
-																		.storage()
-																		.createItemList();
+					final IItemList<IAEItemStack> priorityList = AEApi.instance().storage().createItemList();
 
 					final int slotsToUse = 18 + this.getInstalledUpgrades(Upgrades.CAPACITY) * 9;
 					for (int x = 0; x < this.Config.getSizeInventory() && x < slotsToUse; x++)
@@ -465,8 +415,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 					}
 
 					if (this.getInstalledUpgrades(Upgrades.FUZZY) > 0)
-						this.handler.setPartitionList(new FuzzyPriorityList(priorityList, (FuzzyMode) this	.getConfigManager()
-																											.getSetting(Settings.FUZZY_MODE)));
+						this.handler.setPartitionList(new FuzzyPriorityList(priorityList, (FuzzyMode) this.getConfigManager().getSetting(Settings.FUZZY_MODE)));
 					else
 						this.handler.setPartitionList(new PrecisePriorityList(priorityList));
 
@@ -480,14 +429,11 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		if (wasSleeping != (this.monitor == null))
 			try
 			{
-				final ITickManager tm = this.getProxy()
-											.getTick();
+				final ITickManager tm = this.getProxy().getTick();
 				if (this.monitor == null)
-					tm.sleepDevice(this	.getProxy()
-										.getNode());
+					tm.sleepDevice(this.getProxy().getNode());
 				else
-					tm.wakeDevice(this	.getProxy()
-										.getNode());
+					tm.wakeDevice(this.getProxy().getNode());
 			}
 			catch (final GridAccessException e)
 			{
@@ -497,9 +443,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		try
 		{
 			// force grid to update handlers...
-			this.getProxy()
-				.getGrid()
-				.postEvent(new MENetworkCellArrayUpdate());
+			this.getProxy().getGrid().postEvent(new MENetworkCellArrayUpdate());
 		}
 		catch (final GridAccessException e)
 		{
@@ -524,8 +468,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 		}
 
 		if (achievement != null && achievement.getActionableNode() != null)
-			Platform.addStat(achievement.getActionableNode()
-										.getPlayerID(), Achievements.Recursive.getAchievement());
+			Platform.addStat(achievement.getActionableNode().getPlayerID(), Achievements.Recursive.getAchievement());
 		// Platform.addStat( getActionableNode().getPlayerID(), Achievements.Recursive.getAchievement() );
 	}
 
@@ -534,8 +477,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	{
 		if (channel == StorageChannel.ITEMS)
 		{
-			final IMEInventoryHandler out = this.getProxy()
-												.isActive() ? this.getInternalHandler() : null;
+			final IMEInventoryHandler out = this.getProxy().isActive() ? this.getInternalHandler() : null;
 			if (out != null)
 				return Collections.singletonList(out);
 		}
@@ -552,8 +494,7 @@ public class PartStorageBus extends PartUpgradeable implements IGridTickable, IC
 	public void setPriority(final int newValue)
 	{
 		this.priority = newValue;
-		this.getHost()
-			.markForSave();
+		this.getHost().markForSave();
 		this.resetCache(true);
 	}
 
