@@ -70,9 +70,12 @@ public final class AppEng
 					+ net.minecraftforge.common.ForgeVersion.majorVersion + '.' // majorVersion
 					+ net.minecraftforge.common.ForgeVersion.minorVersion + '.' // minorVersion
 					+ net.minecraftforge.common.ForgeVersion.revisionVersion + '.' // revisionVersion
-					+ net.minecraftforge.common.ForgeVersion.buildVersion + ",)"; // buildVersion
+					// TODO gamerforEA code replace, old code: + net.minecraftforge.common.ForgeVersion.buildVersion + ",)";
+					+ "1448,)"; // buildVersion
+	// TODO gamerforEA code end
 
-	@Nonnull private static final AppEng INSTANCE = new AppEng();
+	@Nonnull
+	private static final AppEng INSTANCE = new AppEng();
 
 	private final Registration registration;
 
