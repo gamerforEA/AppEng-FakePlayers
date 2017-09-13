@@ -19,6 +19,7 @@
 package appeng.hooks;
 
 import appeng.api.AEApi;
+import appeng.api.networking.IGridHost;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.storage.IStorageGrid;
 import appeng.api.parts.CableRenderMode;
@@ -46,6 +47,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.WorldTickEvent;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -179,22 +181,35 @@ public class TickHandler
 	public void onChunkUnload(ChunkEvent.Unload event)
 	{
 		Chunk chunk = event.getChunk();
+		int chunkX = chunk.xPosition;
+		int chunkZ = chunk.zPosition;
 		for (final Grid grid : this.getRepo().networks)
 		{
 			IStorageGrid storageGrid = grid.getCache(IStorageGrid.class);
 			if (storageGrid != null)
 				for (IGridNode node : grid.getMachines(PartStorageBus.class))
 				{
-					if (node instanceof PartStorageBus)
+					IGridHost host = node.getMachine();
+					if (host instanceof PartStorageBus)
 					{
-						PartStorageBus bus = (PartStorageBus) node;
+						PartStorageBus bus = (PartStorageBus) host;
 						TileEntity tile = bus.getTile();
 						if (tile != null)
 						{
-							int chunkX = tile.xCoord >> 4;
-							int chunkZ = tile.zCoord >> 4;
-							if (chunkX == chunk.xPosition && chunkZ == chunk.zPosition)
+							int busChunkX = tile.xCoord >> 4;
+							int busChunkZ = tile.zCoord >> 4;
+							if (busChunkX == chunkX && busChunkZ == chunkZ)
 								storageGrid.unregisterCellProvider(bus);
+							else if (busChunkX - chunkX + busChunkZ - chunkZ == 1)
+							{
+								ForgeDirection side = bus.getSide();
+								int targetX = tile.xCoord + side.offsetX;
+								int targetZ = tile.zCoord + side.offsetZ;
+								int targetChunkX = targetX >> 4;
+								int targetChunkZ = targetZ >> 4;
+								if (targetChunkX == chunkX && targetChunkZ == chunkZ)
+									storageGrid.unregisterCellProvider(bus);
+							}
 						}
 					}
 				}
