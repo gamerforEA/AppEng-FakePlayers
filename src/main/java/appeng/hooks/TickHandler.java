@@ -39,6 +39,7 @@ import appeng.util.Platform;
 import com.gamerforea.ae.BusUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -188,7 +189,7 @@ public class TickHandler
 		{
 			IStorageGrid storageGrid = grid.getCache(IStorageGrid.class);
 			if (storageGrid != null)
-				for (IGridNode node : grid.getMachines(PartStorageBus.class))
+				for (IGridNode node : Lists.newArrayList(grid.getMachines(PartStorageBus.class)))
 				{
 					IGridHost host = node.getMachine();
 					if (host instanceof PartStorageBus)
