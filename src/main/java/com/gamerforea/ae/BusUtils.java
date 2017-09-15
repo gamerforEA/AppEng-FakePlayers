@@ -69,8 +69,11 @@ public final class BusUtils
 	}
 
 	// Copy from Platform.GetChestInv(TileEntity):IInventory
-	private static TileEntity getSecondChest(final TileEntityChest te)
+	public static final TileEntity getSecondChest(final TileEntity te)
 	{
+		if (!(te instanceof TileEntityChest))
+			return null;
+
 		TileEntityChest teA = (TileEntityChest) te;
 		TileEntity teB = null;
 		final Block myBlockID = teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord);

@@ -36,6 +36,7 @@ import appeng.parts.misc.PartStorageBus;
 import appeng.tile.AEBaseTile;
 import appeng.util.IWorldCallable;
 import appeng.util.Platform;
+import com.gamerforea.ae.BusUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -209,6 +210,21 @@ public class TickHandler
 								int targetChunkZ = targetZ >> 4;
 								if (targetChunkX == chunkX && targetChunkZ == chunkZ)
 									storageGrid.unregisterCellProvider(bus);
+								else
+								{
+									TileEntity target = tile.getWorldObj().getTileEntity(targetX, tile.yCoord + side.offsetY, targetZ);
+									if (target != null)
+									{
+										TileEntity secondTarget = BusUtils.getSecondChest(target);
+										if (secondTarget != null)
+										{
+											int secondTargetChunkX = secondTarget.xCoord >> 4;
+											int secondTargetChunkZ = secondTarget.zCoord >> 4;
+											if (secondTargetChunkX == chunkX && secondTargetChunkZ == chunkZ)
+												storageGrid.unregisterCellProvider(bus);
+										}
+									}
+								}
 							}
 						}
 					}
