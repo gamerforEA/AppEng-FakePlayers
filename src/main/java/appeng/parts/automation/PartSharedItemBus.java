@@ -29,6 +29,7 @@ import appeng.util.Platform;
 import com.gamerforea.ae.BusUtils;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
@@ -51,14 +52,14 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	}
 
 	@Override
-	public void readFromNBT(final net.minecraft.nbt.NBTTagCompound extra)
+	public void readFromNBT(final NBTTagCompound extra)
 	{
 		super.readFromNBT(extra);
 		this.getConfig().readFromNBT(extra, "config");
 	}
 
 	@Override
-	public void writeToNBT(final net.minecraft.nbt.NBTTagCompound extra)
+	public void writeToNBT(final NBTTagCompound extra)
 	{
 		super.writeToNBT(extra);
 		this.getConfig().writeToNBT(extra, "config");
@@ -84,6 +85,14 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 				this.doBusWork();
 		}
 	}
+
+	// TODO gamerforEA code start
+	public void resetCache()
+	{
+		this.adaptorHash = 0;
+		this.adaptor = null;
+	}
+	// TODO gamerforEA code end
 
 	protected InventoryAdaptor getHandler()
 	{

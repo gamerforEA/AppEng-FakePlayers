@@ -19,6 +19,7 @@
 package appeng.hooks;
 
 import appeng.api.AEApi;
+import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.storage.IStorageGrid;
@@ -32,6 +33,10 @@ import appeng.crafting.CraftingJob;
 import appeng.entity.EntityFloatingItem;
 import appeng.me.Grid;
 import appeng.me.NetworkList;
+import appeng.parts.AEBasePart;
+import appeng.parts.automation.PartExportBus;
+import appeng.parts.automation.PartImportBus;
+import appeng.parts.automation.PartSharedItemBus;
 import appeng.parts.misc.PartStorageBus;
 import appeng.tile.AEBaseTile;
 import appeng.util.IWorldCallable;
@@ -39,7 +44,6 @@ import appeng.util.Platform;
 import com.gamerforea.ae.BusUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -189,55 +193,87 @@ public class TickHandler
 		{
 			IStorageGrid storageGrid = grid.getCache(IStorageGrid.class);
 			if (storageGrid != null)
-				for (IGridNode node : Lists.newArrayList(grid.getMachines(PartStorageBus.class)))
+				for (IGridNode node : getMachines(grid, PartStorageBus.class))
 				{
 					IGridHost host = node.getMachine();
 					if (host instanceof PartStorageBus)
 					{
 						PartStorageBus bus = (PartStorageBus) host;
-						TileEntity tile = bus.getTile();
-						if (tile != null)
+						if (neenUnregister(bus, chunkX, chunkZ))
+							storageGrid.unregisterCellProvider(bus);
+					}
+				}
+
+			for (IGridNode node : getMachines(grid, PartImportBus.class, PartExportBus.class))
+			{
+				IGridHost host = node.getMachine();
+				if (host instanceof PartSharedItemBus)
+				{
+					PartSharedItemBus bus = (PartSharedItemBus) host;
+					if (neenUnregister(bus, chunkX, chunkZ))
+						bus.resetCache();
+				}
+			}
+		}
+	}
+
+	private static List<IGridNode> getMachines(IGrid grid, Class<? extends IGridHost>... classes)
+	{
+		List<IGridNode> list = new ArrayList<IGridNode>();
+		for (Class<? extends IGridHost> clazz : classes)
+		{
+			for (IGridNode node : grid.getMachines(clazz))
+			{
+				list.add(node);
+			}
+		}
+		return list;
+	}
+
+	private static boolean neenUnregister(AEBasePart part, int chunkX, int chunkZ)
+	{
+		TileEntity tile = part.getTile();
+		if (tile != null)
+		{
+			int busChunkX = tile.xCoord >> 4;
+			int busChunkZ = tile.zCoord >> 4;
+
+			if (busChunkX == chunkX && busChunkZ == chunkZ)
+				return true;
+			else if (busChunkX - chunkX + busChunkZ - chunkZ == 1)
+			{
+				ForgeDirection side = part.getSide();
+				int targetX = tile.xCoord + side.offsetX;
+				int targetZ = tile.zCoord + side.offsetZ;
+				int targetChunkX = targetX >> 4;
+				int targetChunkZ = targetZ >> 4;
+				if (targetChunkX == chunkX && targetChunkZ == chunkZ)
+					return true;
+				else
+				{
+					TileEntity target = tile.getWorldObj().getTileEntity(targetX, tile.yCoord + side.offsetY, targetZ);
+					if (target != null)
+					{
+						TileEntity secondTarget = BusUtils.getSecondChest(target);
+						if (secondTarget != null)
 						{
-							int busChunkX = tile.xCoord >> 4;
-							int busChunkZ = tile.zCoord >> 4;
-							if (busChunkX == chunkX && busChunkZ == chunkZ)
-								storageGrid.unregisterCellProvider(bus);
-							else if (busChunkX - chunkX + busChunkZ - chunkZ == 1)
-							{
-								ForgeDirection side = bus.getSide();
-								int targetX = tile.xCoord + side.offsetX;
-								int targetZ = tile.zCoord + side.offsetZ;
-								int targetChunkX = targetX >> 4;
-								int targetChunkZ = targetZ >> 4;
-								if (targetChunkX == chunkX && targetChunkZ == chunkZ)
-									storageGrid.unregisterCellProvider(bus);
-								else
-								{
-									TileEntity target = tile.getWorldObj().getTileEntity(targetX, tile.yCoord + side.offsetY, targetZ);
-									if (target != null)
-									{
-										TileEntity secondTarget = BusUtils.getSecondChest(target);
-										if (secondTarget != null)
-										{
-											int secondTargetChunkX = secondTarget.xCoord >> 4;
-											int secondTargetChunkZ = secondTarget.zCoord >> 4;
-											if (secondTargetChunkX == chunkX && secondTargetChunkZ == chunkZ)
-												storageGrid.unregisterCellProvider(bus);
-										}
-									}
-								}
-							}
+							int secondTargetChunkX = secondTarget.xCoord >> 4;
+							int secondTargetChunkZ = secondTarget.zCoord >> 4;
+							if (secondTargetChunkX == chunkX && secondTargetChunkZ == chunkZ)
+								return true;
 						}
 					}
 				}
+			}
 		}
+
+		return false;
 	}
 	// TODO gamerforEA code end
 
 	@SubscribeEvent
 	public void onTick(final TickEvent ev)
 	{
-
 		if (ev.type == Type.CLIENT && ev.phase == Phase.START)
 		{
 			this.tickColors(this.cliPlayerColors);
