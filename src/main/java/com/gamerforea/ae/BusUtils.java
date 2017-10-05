@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class BusUtils
 {
+	private static final TileEntity[] EMPTY_ARRAY = new TileEntity[0];
 	private static final Cache<TileEntity, Boolean> notifyCache = CacheBuilder.newBuilder().weakKeys().expireAfterWrite(5, TimeUnit.SECONDS).build();
 
 	public static final boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile)
@@ -56,11 +57,10 @@ public final class BusUtils
 			World world = t1.getWorldObj();
 			if (world != null && world.blockExists(t1.xCoord, t1.yCoord, t1.zCoord) && world.getTileEntity(t1.xCoord, t1.yCoord, t1.zCoord) == t1)
 			{
-				if (t1 instanceof TileEntityChest)
+				for (TileEntity t2 : getSecondTiles(t1))
 				{
-					TileEntity t2 = getSecondChest((TileEntityChest) t1);
-					if (t2 != null)
-						return world.blockExists(t2.xCoord, t2.yCoord, t2.zCoord) && world.getTileEntity(t2.xCoord, t2.yCoord, t2.zCoord) == t2;
+					if (t2 != null && (!world.blockExists(t2.xCoord, t2.yCoord, t2.zCoord) || world.getTileEntity(t2.xCoord, t2.yCoord, t2.zCoord) != t2))
+						return false;
 				}
 				return true;
 			}
@@ -68,74 +68,13 @@ public final class BusUtils
 		return false;
 	}
 
-	// Copy from Platform.GetChestInv(TileEntity):IInventory
-	public static final TileEntity getSecondChest(final TileEntity te)
+	public static final TileEntity[] getSecondTiles(final TileEntity te)
 	{
 		if (!(te instanceof TileEntityChest))
-			return null;
+			return EMPTY_ARRAY;
 
-		TileEntityChest teA = (TileEntityChest) te;
-		TileEntity teB = null;
-		final Block myBlockID = teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord);
-
-		if (teA.getWorldObj().getBlock(teA.xCoord + 1, teA.yCoord, teA.zCoord) == myBlockID)
-		{
-			teB = teA.getWorldObj().getTileEntity(teA.xCoord + 1, teA.yCoord, teA.zCoord);
-			if (!(teB instanceof TileEntityChest))
-			{
-				teB = null;
-			}
-		}
-
-		if (teB == null)
-		{
-			if (teA.getWorldObj().getBlock(teA.xCoord - 1, teA.yCoord, teA.zCoord) == myBlockID)
-			{
-				teB = teA.getWorldObj().getTileEntity(teA.xCoord - 1, teA.yCoord, teA.zCoord);
-				if (!(teB instanceof TileEntityChest))
-				{
-					teB = null;
-				}
-				else
-				{
-					final TileEntityChest x = teA;
-					teA = (TileEntityChest) teB;
-					teB = x;
-				}
-			}
-		}
-
-		if (teB == null)
-		{
-			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord + 1) == myBlockID)
-			{
-				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord + 1);
-				if (!(teB instanceof TileEntityChest))
-				{
-					teB = null;
-				}
-			}
-		}
-
-		if (teB == null)
-		{
-			if (teA.getWorldObj().getBlock(teA.xCoord, teA.yCoord, teA.zCoord - 1) == myBlockID)
-			{
-				teB = teA.getWorldObj().getTileEntity(teA.xCoord, teA.yCoord, teA.zCoord - 1);
-				if (!(teB instanceof TileEntityChest))
-				{
-					teB = null;
-				}
-				else
-				{
-					final TileEntityChest x = teA;
-					teA = (TileEntityChest) teB;
-					teB = x;
-				}
-			}
-		}
-
-		return teB == te ? teA : teB;
+		TileEntityChest chest = (TileEntityChest) te;
+		return new TileEntity[] { chest.adjacentChestXNeg, chest.adjacentChestXPos, chest.adjacentChestZNeg, chest.adjacentChestZPos };
 	}
 
 	private static final boolean isSameChunk(TileEntity t1, TileEntity t2)

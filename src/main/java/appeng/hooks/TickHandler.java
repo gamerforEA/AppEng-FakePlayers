@@ -199,7 +199,7 @@ public class TickHandler
 					if (host instanceof PartStorageBus)
 					{
 						PartStorageBus bus = (PartStorageBus) host;
-						if (neenUnregister(bus, chunkX, chunkZ))
+						if (needUnregister(bus, chunkX, chunkZ))
 							storageGrid.unregisterCellProvider(bus);
 					}
 				}
@@ -210,7 +210,7 @@ public class TickHandler
 				if (host instanceof PartSharedItemBus)
 				{
 					PartSharedItemBus bus = (PartSharedItemBus) host;
-					if (neenUnregister(bus, chunkX, chunkZ))
+					if (needUnregister(bus, chunkX, chunkZ))
 						bus.resetCache();
 				}
 			}
@@ -230,7 +230,7 @@ public class TickHandler
 		return list;
 	}
 
-	private static boolean neenUnregister(AEBasePart part, int chunkX, int chunkZ)
+	private static boolean needUnregister(AEBasePart part, int chunkX, int chunkZ)
 	{
 		TileEntity tile = part.getTile();
 		if (tile != null)
@@ -254,13 +254,15 @@ public class TickHandler
 					TileEntity target = tile.getWorldObj().getTileEntity(targetX, tile.yCoord + side.offsetY, targetZ);
 					if (target != null)
 					{
-						TileEntity secondTarget = BusUtils.getSecondChest(target);
-						if (secondTarget != null)
+						for (TileEntity secondTarget : BusUtils.getSecondTiles(target))
 						{
-							int secondTargetChunkX = secondTarget.xCoord >> 4;
-							int secondTargetChunkZ = secondTarget.zCoord >> 4;
-							if (secondTargetChunkX == chunkX && secondTargetChunkZ == chunkZ)
-								return true;
+							if (secondTarget != null)
+							{
+								int secondTargetChunkX = secondTarget.xCoord >> 4;
+								int secondTargetChunkZ = secondTarget.zCoord >> 4;
+								if (secondTargetChunkX == chunkX && secondTargetChunkZ == chunkZ)
+									return true;
+							}
 						}
 					}
 				}
