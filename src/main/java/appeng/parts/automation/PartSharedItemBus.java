@@ -26,7 +26,6 @@ import appeng.me.GridAccessException;
 import appeng.tile.inventory.AppEngInternalAEInventory;
 import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
-import appeng.util.inv.AdaptorIInventory;
 import com.gamerforea.ae.BusUtils;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;

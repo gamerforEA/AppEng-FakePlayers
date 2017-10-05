@@ -225,10 +225,8 @@ public class CachedPlane
 		final Block dstBlock = dst.world.getBlock(x + dst.x_offset, dst_y, z + dst.z_offset);
 		final int dstMeta = dst.world.getBlockMetadata(x + dst.x_offset, dst_y, z + dst.z_offset);
 
-		if (EventConfig.inList(EventConfig.pilonBlackList, dstBlock, dstMeta))
-			return true;
+		return EventConfig.inList(EventConfig.pilonBlackList, dstBlock, dstMeta);
 
-		return false;
 	}
 
 	public boolean access(final FakePlayer player, final CachedPlane dst, final int x, final int z, final int src_y, final int dst_y)

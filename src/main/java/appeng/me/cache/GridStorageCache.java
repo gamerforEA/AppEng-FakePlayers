@@ -216,10 +216,7 @@ public class GridStorageCache implements IStorageGrid
 			if (cc instanceof IActionHost)
 			{
 				final IGridNode node = ((IActionHost) cc).getActionableNode();
-				if (node != null && node.isActive())
-					Active = true;
-				else
-					Active = false;
+				Active = node != null && node.isActive();
 			}
 
 			if (Active)

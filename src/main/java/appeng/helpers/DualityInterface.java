@@ -730,7 +730,7 @@ public class DualityInterface
 	}
 
 	@Override
-	public appeng.api.util.IConfigManager getConfigManager()
+	public IConfigManager getConfigManager()
 	{
 		return this.cm;
 	}

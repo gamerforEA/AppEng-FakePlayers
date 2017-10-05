@@ -48,7 +48,7 @@ public final class DispenserBlockTool extends BehaviorDefaultDispenseItem
 
 				// TODO gamerforEA code start
 				if (tm instanceof Item)
-					((Item) tm).onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);
+					tm.onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);
 				else
 					// TODO gamerforEA code end
 					tm.onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);

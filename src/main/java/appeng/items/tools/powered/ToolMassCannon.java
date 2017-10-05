@@ -481,10 +481,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 		if (pen > 0)
 			return false;
 
-		if (requestedAddition.getItem() instanceof ItemPaintBall)
-			return false;
-
-		return true;
+		return !(requestedAddition.getItem() instanceof ItemPaintBall);
 	}
 
 	@Override

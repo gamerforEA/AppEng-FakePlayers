@@ -13,7 +13,7 @@ import java.util.Set;
 
 public final class EventConfig
 {
-	private static final String[] DEFAULT_BLOCKS = new String[] { "minecraft:bedrock", "modid:blockname:meta" };
+	private static final String[] DEFAULT_BLOCKS = { "minecraft:bedrock", "modid:blockname:meta" };
 	public static final Set<String> pilonBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static final Set<String> formationPlaneBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet(DEFAULT_BLOCKS);

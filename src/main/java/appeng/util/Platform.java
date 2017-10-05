@@ -274,10 +274,8 @@ public class Platform
 		if (e == SearchBoxMode.NEI_AUTOSEARCH && !IntegrationRegistry.INSTANCE.isEnabled(IntegrationType.NEI))
 			return true;
 
-		if (e == SearchBoxMode.NEI_MANUAL_SEARCH && !IntegrationRegistry.INSTANCE.isEnabled(IntegrationType.NEI))
-			return true;
+		return e == SearchBoxMode.NEI_MANUAL_SEARCH && !IntegrationRegistry.INSTANCE.isEnabled(IntegrationType.NEI);
 
-		return false;
 	}
 
 	public static void openGUI(
@@ -383,7 +381,6 @@ public class Platform
 			switch (id)
 			{
 				case 10:
-				{
 					final NBTTagCompound ctA = (NBTTagCompound) left;
 					final NBTTagCompound ctB = (NBTTagCompound) right;
 
@@ -405,10 +402,8 @@ public class Platform
 					}
 
 					return true;
-				}
 
 				case 9: // ) // A instanceof NBTTagList )
-				{
 					final NBTTagList lA = (NBTTagList) left;
 					final NBTTagList lB = (NBTTagList) right;
 					if (lA.tagCount() != lB.tagCount())
@@ -429,7 +424,6 @@ public class Platform
 					}
 
 					return true;
-				}
 
 				case 1: // ( A instanceof NBTTagByte )
 					return ((NBTBase.NBTPrimitive) left).func_150287_d() == ((NBTBase.NBTPrimitive) right).func_150287_d();
@@ -502,7 +496,6 @@ public class Platform
 		switch (id)
 		{
 			case 10:
-			{
 				final NBTTagCompound ctA = (NBTTagCompound) nbt;
 
 				final Set<String> cA = ctA.func_150296_c();
@@ -513,10 +506,8 @@ public class Platform
 				}
 
 				return hash;
-			}
 
 			case 9: // ) // A instanceof NBTTagList )
-			{
 				final NBTTagList lA = (NBTTagList) nbt;
 				hash += 9 * lA.tagCount();
 
@@ -527,7 +518,6 @@ public class Platform
 				}
 
 				return hash;
-			}
 
 			case 1: // ( A instanceof NBTTagByte )
 				return hash + ((NBTBase.NBTPrimitive) nbt).func_150290_f();
@@ -830,9 +820,7 @@ public class Platform
 		if (willAdd == null)
 			return false;
 		final IAETagCompound tag = willAdd.getTagCompound();
-		if (tag != null && tag.getSpecialComparison() != null)
-			return true;
-		return false;
+		return tag != null && tag.getSpecialComparison() != null;
 	}
 
 	public static boolean hasSpecialComparison(final ItemStack willAdd)

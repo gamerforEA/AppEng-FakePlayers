@@ -501,7 +501,6 @@ public class PartFormationPlane extends PartUpgradeable
 						{
 							result.setDead();
 							// TODO gamerforEA code clear (dupe fix): worked = false;
-							;
 						}
 					}
 				}

@@ -44,6 +44,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.NetworkRegistry;
+import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.common.config.Configuration;
 
 import javax.annotation.Nonnull;
@@ -67,9 +68,9 @@ public final class AppEng
 
 			// depend on version of forge used for build.
 			"after:appliedenergistics2-core;" + "required-after:Forge@[" // require forge.
-					+ net.minecraftforge.common.ForgeVersion.majorVersion + '.' // majorVersion
-					+ net.minecraftforge.common.ForgeVersion.minorVersion + '.' // minorVersion
-					+ net.minecraftforge.common.ForgeVersion.revisionVersion + '.' // revisionVersion
+					+ ForgeVersion.majorVersion + '.' // majorVersion
+					+ ForgeVersion.minorVersion + '.' // minorVersion
+					+ ForgeVersion.revisionVersion + '.' // revisionVersion
 					// TODO gamerforEA code replace, old code: + net.minecraftforge.common.ForgeVersion.buildVersion + ",)";
 					+ "1448,)"; // buildVersion
 	// TODO gamerforEA code end
