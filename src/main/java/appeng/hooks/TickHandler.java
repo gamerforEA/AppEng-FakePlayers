@@ -42,6 +42,7 @@ import appeng.tile.AEBaseTile;
 import appeng.util.IWorldCallable;
 import appeng.util.Platform;
 import com.gamerforea.ae.BusUtils;
+import com.gamerforea.ae.EventConfig;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -186,6 +187,11 @@ public class TickHandler
 	@SubscribeEvent
 	public void onChunkUnload(ChunkEvent.Unload event)
 	{
+		// TODO gamerforEA code start
+		if (!EventConfig.experimentalChunkDupeFix)
+			return;
+		// TODO gamerforEA code end
+
 		Chunk chunk = event.getChunk();
 		int chunkX = chunk.xPosition;
 		int chunkZ = chunk.zPosition;

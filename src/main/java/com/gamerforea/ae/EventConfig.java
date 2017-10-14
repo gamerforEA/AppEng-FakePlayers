@@ -29,6 +29,7 @@ public final class EventConfig
 	public static boolean busSameChunk = false;
 	public static boolean busSameChunkStorageOnly = false;
 	public static boolean busSameChunkMessage = false;
+	public static boolean experimentalChunkDupeFix = true;
 
 	static
 	{
@@ -57,6 +58,7 @@ public final class EventConfig
 			busSameChunk = cfg.getBoolean("busSameChunk", c, busSameChunk, "Шины работают с блоками, только если находятся в одном чанке");
 			busSameChunkStorageOnly = cfg.getBoolean("busSameChunkStorageOnly", c, busSameChunkStorageOnly, "Проверять чанки только для Шины хранения");
 			busSameChunkMessage = cfg.getBoolean("busSameChunkMessage", c, busSameChunkMessage, "Отправка сообщений ближайшим игрокам, если шина и блок находятся в разных чанках");
+			experimentalChunkDupeFix = cfg.getBoolean("experimentalChunkDupeFix", c, experimentalChunkDupeFix, "Экспериментальный фикс дюпа с чанками и шинами");
 
 			cfg.save();
 		}
