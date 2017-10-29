@@ -28,6 +28,7 @@ import com.gamerforea.ae.EventConfig;
 import com.gamerforea.eventhelper.util.EventUtils;
 import com.google.common.base.Optional;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 
@@ -62,8 +63,10 @@ public class ToolChargedStaff extends AEBasePoweredItem
 					CommonHelper.proxy.sendToAllNearExcept(null, dx, dy, dz, 32D, target.worldObj, new PacketLightning(dx, dy, dz));
 				}
 
-			// TODO gamerforEA argument replace, old argument: 6F
-			target.attackEntityFrom(DamageSource.magic, EventConfig.chargedStaffDamage);
+			// TODO gamerforEA code replace, old code: target.attackEntityFrom(DamageSource.magic, 6F);
+			target.attackEntityFrom(EventConfig.chargedStaffFix ? DamageSource.causePlayerDamage((EntityPlayer) hitter) : DamageSource.magic, EventConfig.chargedStaffDamage);
+			// TODO gamerforEA code end
+
 			return true;
 		}
 

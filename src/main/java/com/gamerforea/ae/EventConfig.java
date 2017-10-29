@@ -21,6 +21,7 @@ public final class EventConfig
 	public static final Set<String> busBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static String securityBypassPermission = "appeng.security.bypass";
 	public static float chargedStaffDamage = 6F;
+	public static boolean chargedStaffFix = true;
 	public static int autoCraftFixMode = 0;
 	public static boolean clearInvOnBreak = true;
 	public static boolean annihilationPlaneNoBreakInv = true;
@@ -50,6 +51,7 @@ public final class EventConfig
 			readStringSet(cfg, "busBlackList", c, "Чёрный список блоков для шин импорта/экспорта и интерфейсов", busBlackList);
 			securityBypassPermission = cfg.getString("securityBypassPermission", c, securityBypassPermission, "Permission для игнорирования защиты AE2-сети");
 			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", c, chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
+			chargedStaffFix = cfg.getBoolean("chargedStaffFix", c, chargedStaffFix, "Исправление Зарженного посоха");
 			autoCraftFixMode = cfg.getInt("autoCraftFixMode", c, autoCraftFixMode, 0, 2, "Режим фикса дюпа с автокрафтом [0 - старый фикс; 1 - ненадёжный фикс; 2 - экспериментальный фикс]");
 			clearInvOnBreak = cfg.getBoolean("clearInvOnBreak", c, clearInvOnBreak, "Очистка инвентаря блока при его разрушении (защита от дюпа)");
 			annihilationPlaneNoBreakInv = cfg.getBoolean("annihilationPlaneNoBreakInv", c, annihilationPlaneNoBreakInv, "Плоскость истребления не может ломать блоки с инвентарями");
