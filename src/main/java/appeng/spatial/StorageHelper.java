@@ -227,8 +227,6 @@ public class StorageHelper
 		for (final Entity e : dstE)
 		{
 			// TODO gamerforEA code start
-			if (e instanceof Entity)
-				continue;
 			player.worldObj = dst;
 			if (EventUtils.cantDamage(player, e))
 				continue;
@@ -240,8 +238,6 @@ public class StorageHelper
 		for (final Entity e : srcE)
 		{
 			// TODO gamerforEA code start
-			if (e instanceof Entity)
-				continue;
 			player.worldObj = src;
 			if (EventUtils.cantDamage(player, e))
 				continue;
