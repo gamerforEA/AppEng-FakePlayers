@@ -115,7 +115,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	}
 
 	@Override
-	public TickRateModulation call(final World world) throws Exception
+	public TickRateModulation call(final World world)
 	{
 		this.breaking = false;
 		return this.breakBlock(true);

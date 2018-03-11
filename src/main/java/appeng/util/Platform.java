@@ -296,12 +296,19 @@ public class Platform
 		}
 
 		if (type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
+		{
+			// TODO gamerforEA code start
+			if (p.openContainer != null)
+				p.closeScreen();
+			// TODO gamerforEA code end
+
 			if (tile == null && type.getType() == GuiHostType.ITEM)
 				p.openGui(AppEng.instance(), type.ordinal() << 4, p.getEntityWorld(), p.inventory.currentItem, 0, 0);
 			else if (tile == null || type.getType() == GuiHostType.ITEM)
 				p.openGui(AppEng.instance(), type.ordinal() << 4 | 1 << 3, p.getEntityWorld(), x, y, z);
 			else
 				p.openGui(AppEng.instance(), type.ordinal() << 4 | side.ordinal(), tile.getWorldObj(), x, y, z);
+		}
 	}
 
 	/*
@@ -826,8 +833,7 @@ public class Platform
 	public static boolean hasSpecialComparison(final ItemStack willAdd)
 	{
 		if (AESharedNBT.isShared(willAdd.getTagCompound()))
-			if (((IAETagCompound) willAdd.getTagCompound()).getSpecialComparison() != null)
-				return true;
+			return ((IAETagCompound) willAdd.getTagCompound()).getSpecialComparison() != null;
 		return false;
 	}
 

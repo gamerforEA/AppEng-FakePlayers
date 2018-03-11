@@ -71,12 +71,12 @@ public final class EventConfig
 		}
 	}
 
-	public static final boolean inList(Set<String> list, ItemStack stack)
+	public static boolean inList(Set<String> list, ItemStack stack)
 	{
 		return inList(list, stack.getItem(), stack.getItemDamage());
 	}
 
-	public static final boolean inList(Set<String> list, Item item, int meta)
+	public static boolean inList(Set<String> list, Item item, int meta)
 	{
 		if (item instanceof ItemBlock)
 			return inList(list, ((ItemBlock) item).field_150939_a, meta);
@@ -84,39 +84,39 @@ public final class EventConfig
 		return inList(list, getId(item), meta);
 	}
 
-	public static final boolean inList(Set<String> list, Block block, int meta)
+	public static boolean inList(Set<String> list, Block block, int meta)
 	{
 		return inList(list, getId(block), meta);
 	}
 
-	private static final boolean inList(Set<String> list, String id, int meta)
+	private static boolean inList(Set<String> list, String id, int meta)
 	{
 		return id != null && (list.contains(id) || list.contains(id + ':' + meta));
 	}
 
-	private static final void readStringSet(final Configuration cfg, final String name, final String category, final String comment, final Set<String> def)
+	private static void readStringSet(final Configuration cfg, final String name, final String category, final String comment, final Set<String> def)
 	{
 		final Set<String> temp = getStringSet(cfg, name, category, comment, def);
 		def.clear();
 		def.addAll(temp);
 	}
 
-	private static final Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final Set<String> def)
+	private static Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final Set<String> def)
 	{
 		return getStringSet(cfg, name, category, comment, def.toArray(new String[def.size()]));
 	}
 
-	private static final Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final String... def)
+	private static Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final String... def)
 	{
 		return Sets.newHashSet(cfg.getStringList(name, category, def, comment));
 	}
 
-	private static final String getId(Item item)
+	private static String getId(Item item)
 	{
 		return GameData.getItemRegistry().getNameForObject(item);
 	}
 
-	private static final String getId(Block block)
+	private static String getId(Block block)
 	{
 		return GameData.getBlockRegistry().getNameForObject(block);
 	}

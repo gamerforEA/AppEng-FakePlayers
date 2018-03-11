@@ -533,7 +533,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 
 	public void saveChanges()
 	{
-		super.markDirty();
+		this.markDirty();
 	}
 
 	public boolean requiresTESR()

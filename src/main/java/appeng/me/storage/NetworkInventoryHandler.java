@@ -146,8 +146,7 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 	{
 		if (src.isPlayer())
 		{
-			if (!this.security.hasPermission(((PlayerSource) src).player, permission))
-				return true;
+			return !this.security.hasPermission(((PlayerSource) src).player, permission);
 		}
 		else if (src.isMachine())
 			if (this.security.isAvailable())
@@ -163,8 +162,7 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
 					final ISecurityGrid sg = gn.getCache(ISecurityGrid.class);
 					final int playerID = sg.getOwner();
 
-					if (!this.security.hasPermission(playerID, permission))
-						return true;
+					return !this.security.hasPermission(playerID, permission);
 				}
 			}
 
