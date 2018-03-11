@@ -46,6 +46,7 @@ import appeng.core.sync.packets.PacketPartialItem;
 import appeng.core.sync.packets.PacketValueConfig;
 import appeng.helpers.ICustomNameObject;
 import appeng.helpers.InventoryAction;
+import appeng.parts.AEBasePart;
 import appeng.tile.AEBaseTile;
 import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
@@ -93,6 +94,22 @@ public abstract class AEBaseContainer extends Container
 
 	// TODO gamerforEA code start
 	private final boolean needClose;
+	private TileEntity partTile;
+
+	private TileEntity getCurrentPartTile()
+	{
+		return this.part instanceof AEBasePart ? ((AEBasePart) this.part).getTile() : null;
+	}
+
+	private void updatePartTile()
+	{
+		this.partTile = this.getCurrentPartTile();
+	}
+
+	private boolean isValidPartTile()
+	{
+		return this.partTile == null || this.partTile == this.getCurrentPartTile();
+	}
 
 	@Override
 	public void onContainerClosed(EntityPlayer player)
@@ -119,6 +136,8 @@ public abstract class AEBaseContainer extends Container
 		this.needClose = myTile instanceof AEBaseTile && ((AEBaseTile) myTile).isGuiOpened;
 		if (EventConfig.guiOnePlayer && !this.needClose && myTile instanceof AEBaseTile)
 			((AEBaseTile) myTile).isGuiOpened = true;
+
+		this.updatePartTile();
 		// TODO gamerforEA code end
 
 		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
@@ -168,6 +187,8 @@ public abstract class AEBaseContainer extends Container
 		this.needClose = anchor instanceof AEBaseTile && ((AEBaseTile) anchor).isGuiOpened;
 		if (EventConfig.guiOnePlayer && !this.needClose && anchor instanceof AEBaseTile)
 			((AEBaseTile) anchor).isGuiOpened = true;
+
+		this.updatePartTile();
 		// TODO gamerforEA code end
 
 		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
@@ -309,8 +330,7 @@ public abstract class AEBaseContainer extends Container
 					}
 
 					final ISecurityGrid sg = g.getCache(ISecurityGrid.class);
-					if (sg.hasPermission(this.getInventoryPlayer().player, perm))
-						return true;
+					return sg.hasPermission(this.getInventoryPlayer().player, perm);
 				}
 			}
 		}
@@ -648,7 +668,9 @@ public abstract class AEBaseContainer extends Container
 		{
 			if (this.tileEntity instanceof IInventory)
 				return ((IInventory) this.tileEntity).isUseableByPlayer(entityplayer);
-			return true;
+
+			// TODO gamerforEA code start
+			return this.isValidPartTile();
 		}
 		return false;
 	}
