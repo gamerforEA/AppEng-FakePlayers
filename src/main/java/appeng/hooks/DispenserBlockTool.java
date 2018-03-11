@@ -46,12 +46,10 @@ public final class DispenserBlockTool extends BehaviorDefaultDispenseItem
 				final int y = dispenser.getYInt() + enumfacing.getFrontOffsetY();
 				final int z = dispenser.getZInt() + enumfacing.getFrontOffsetZ();
 
-				// TODO gamerforEA code start
-				if (tm instanceof Item)
-					tm.onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);
-				else
-					// TODO gamerforEA code end
-					tm.onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);
+				// TODO gamerforEA code replace, old code:
+				// tm.onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);
+				i.onItemUse(dispensedItem, Platform.getPlayer((WorldServer) w), w, x, y, z, enumfacing.ordinal(), 0.5f, 0.5f, 0.5f);
+				// TODO gamerforEA code end
 			}
 		}
 		return dispensedItem;
