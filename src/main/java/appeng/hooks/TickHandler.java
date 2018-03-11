@@ -195,7 +195,7 @@ public class TickHandler
 		Chunk chunk = event.getChunk();
 		int chunkX = chunk.xPosition;
 		int chunkZ = chunk.zPosition;
-		for (final Grid grid : this.getRepo().networks)
+		for (Grid grid : this.getRepo().networks)
 		{
 			IStorageGrid storageGrid = grid.getCache(IStorageGrid.class);
 			if (storageGrid != null)
@@ -255,7 +255,7 @@ public class TickHandler
 				int targetChunkZ = targetZ >> 4;
 				if (targetChunkX == chunkX && targetChunkZ == chunkZ)
 					return true;
-				else
+				else if (tile.getWorldObj().blockExists(targetX, tile.yCoord + side.offsetY, targetZ))
 				{
 					TileEntity target = tile.getWorldObj().getTileEntity(targetX, tile.yCoord + side.offsetY, targetZ);
 					if (target != null)
