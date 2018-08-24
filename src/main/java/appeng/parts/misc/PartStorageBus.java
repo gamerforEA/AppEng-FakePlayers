@@ -70,6 +70,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.Arrays;
@@ -353,6 +354,16 @@ public class PartStorageBus extends PartUpgradeable
 		Platform.postListChanges(before, after, this, this.mySrc);
 	}
 
+	// TODO gamerforEA code start
+	private TileEntity prevTargetTileEntity;
+
+	private TileEntity getTileEntity(TileEntity self, int x, int y, int z)
+	{
+		World world = self.getWorldObj();
+		return world.blockExists(x, y, z) ? world.getTileEntity(x, y, z) : null;
+	}
+	// TODO gamerforEA code end
+
 	public MEInventoryHandler getInternalHandler()
 	{
 		if (this.cached)
@@ -362,17 +373,23 @@ public class PartStorageBus extends PartUpgradeable
 
 		this.cached = true;
 		final TileEntity self = this.getHost().getTile();
-		TileEntity target = self.getWorldObj().getTileEntity(self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
 
-		// TODO gamerforEA code start
+		// TODO gamerforEA code replace, old code:
+		// TileEntity target = self.getWorldObj().getTileEntity(self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
+		TileEntity target = this.getTileEntity(self, self.xCoord + this.getSide().offsetX, self.yCoord + this.getSide().offsetY, self.zCoord + this.getSide().offsetZ);
 		if (target != null && !BusUtils.checkBusCanInteract(self, target, true))
 			target = null;
 		// TODO gamerforEA code end
 
 		final int newHandlerHash = Platform.generateTileHash(target);
 
-		if (this.handlerHash == newHandlerHash && this.handlerHash != 0)
+		// TODO gamerforEA add condition [1]
+		if (this.prevTargetTileEntity == target && this.handlerHash == newHandlerHash && this.handlerHash != 0)
 			return this.handler;
+
+		// TODO gamerforEA code start
+		this.prevTargetTileEntity = target;
+		// TODO gamerforEA code end
 
 		this.handlerHash = newHandlerHash;
 		this.handler = null;

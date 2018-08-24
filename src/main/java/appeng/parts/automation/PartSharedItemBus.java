@@ -87,10 +87,13 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 	}
 
 	// TODO gamerforEA code start
+	private TileEntity prevTargetTileEntity;
+
 	public void resetCache()
 	{
 		this.adaptorHash = 0;
 		this.adaptor = null;
+		this.prevTargetTileEntity = null;
 	}
 	// TODO gamerforEA code end
 
@@ -105,6 +108,8 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 			if (target.getClass().getName().equals("exnihilo.blocks.tileentities.TileEntityBarrel") || !BusUtils.checkBusCanInteract(self, target))
 				target = null;
 		}
+		if (this.prevTargetTileEntity != target)
+			this.resetCache();
 		// TODO gamerforEA code end
 
 		final int newAdaptorHash = Platform.generateTileHash(target);
@@ -114,6 +119,10 @@ public abstract class PartSharedItemBus extends PartUpgradeable implements IGrid
 
 		this.adaptorHash = newAdaptorHash;
 		this.adaptor = InventoryAdaptor.getAdaptor(target, this.getSide().getOpposite());
+
+		// TODO gamerforEA code start
+		this.prevTargetTileEntity = target;
+		// TODO gamerforEA code end
 
 		return this.adaptor;
 	}
