@@ -55,7 +55,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 
 	public ToolEntropyManipulator()
 	{
-		super(AEConfig.instance.entropyManipulatorBattery, Optional.<String>absent());
+		super(AEConfig.instance.entropyManipulatorBattery, Optional.absent());
 
 		this.setFeature(EnumSet.of(AEFeature.EntropyManipulator, AEFeature.PoweredTools));
 

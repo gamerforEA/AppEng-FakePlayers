@@ -76,7 +76,7 @@ public class ToolMassCannon extends AEBasePoweredItem implements IStorageCell
 {
 	public ToolMassCannon()
 	{
-		super(AEConfig.instance.matterCannonBattery, Optional.<String>absent());
+		super(AEConfig.instance.matterCannonBattery, Optional.absent());
 		this.setFeature(EnumSet.of(AEFeature.MatterCannon, AEFeature.PoweredTools));
 	}
 

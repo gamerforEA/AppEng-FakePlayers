@@ -19,12 +19,12 @@ public final class BusUtils
 	private static final TileEntity[] EMPTY_ARRAY = new TileEntity[0];
 	private static final Cache<TileEntity, Boolean> notifyCache = CacheBuilder.newBuilder().weakKeys().expireAfterWrite(5, TimeUnit.SECONDS).build();
 
-	public static final boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile)
+	public static boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile)
 	{
 		return checkBusCanInteract(busTile, targetTile, false);
 	}
 
-	public static final boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile, boolean isStorage)
+	public static boolean checkBusCanInteract(TileEntity busTile, TileEntity targetTile, boolean isStorage)
 	{
 		if (busTile != null && targetTile != null)
 		{
@@ -50,7 +50,7 @@ public final class BusUtils
 		return true;
 	}
 
-	public static final boolean isValidTile(TileEntity t1)
+	public static boolean isValidTile(TileEntity t1)
 	{
 		if (t1 != null)
 		{
@@ -68,7 +68,7 @@ public final class BusUtils
 		return false;
 	}
 
-	public static final TileEntity[] getSecondTiles(final TileEntity te)
+	public static TileEntity[] getSecondTiles(final TileEntity te)
 	{
 		if (!(te instanceof TileEntityChest))
 			return EMPTY_ARRAY;
@@ -77,7 +77,7 @@ public final class BusUtils
 		return new TileEntity[] { chest.adjacentChestXNeg, chest.adjacentChestXPos, chest.adjacentChestZNeg, chest.adjacentChestZPos };
 	}
 
-	private static final boolean isSameChunk(TileEntity t1, TileEntity t2)
+	private static boolean isSameChunk(TileEntity t1, TileEntity t2)
 	{
 		if (t1 != null && t2 != null)
 		{
@@ -91,7 +91,7 @@ public final class BusUtils
 		return false;
 	}
 
-	private static final void sendMessage(TileEntity tile)
+	private static void sendMessage(TileEntity tile)
 	{
 		if (tile != null)
 		{

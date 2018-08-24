@@ -91,7 +91,7 @@ public class StorageHelper
 		}
 
 		// load the chunk!
-		WorldServer.class.cast(newWorld).getChunkProvider().loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
+		newWorld.getChunkProvider().loadChunk(MathHelper.floor_double(link.x) >> 4, MathHelper.floor_double(link.z) >> 4);
 
 		final boolean diffDestination = newWorld != oldWorld;
 		if (diffDestination)

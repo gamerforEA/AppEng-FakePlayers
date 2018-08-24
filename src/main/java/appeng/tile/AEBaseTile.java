@@ -448,7 +448,6 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 		if (this instanceof IInventory)
 		{
 			final IInventory inv = (IInventory) this;
-
 			for (int l = 0; l < inv.getSizeInventory(); l++)
 			{
 				final ItemStack is = inv.getStackInSlot(l);
