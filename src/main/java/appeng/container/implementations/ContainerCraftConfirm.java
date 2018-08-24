@@ -90,6 +90,14 @@ public class ContainerCraftConfirm extends AEBaseContainer
 		super(ip, te);
 	}
 
+	// TODO gamerforEA code start
+	@Override
+	protected boolean useGuiOnePlayer()
+	{
+		return false;
+	}
+	// TODO gamerforEA code end
+
 	public void cycleCpu(final boolean next)
 	{
 		if (next)

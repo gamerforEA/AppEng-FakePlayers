@@ -37,7 +37,6 @@ import appeng.client.me.InternalSlotME;
 import appeng.client.me.SlotME;
 import appeng.container.guisync.GuiSync;
 import appeng.container.guisync.SyncData;
-import appeng.container.implementations.ContainerCraftingTerm;
 import appeng.container.slot.*;
 import appeng.core.AELog;
 import appeng.core.sync.network.NetworkHandler;
@@ -108,13 +107,18 @@ public abstract class AEBaseContainer extends Container
 
 	private boolean isValidPartTile()
 	{
-		return this.partTile == null || this.partTile == this.getCurrentPartTile();
+		return !this.useGuiOnePlayer() || this.partTile == null || this.partTile == this.getCurrentPartTile();
+	}
+
+	protected boolean useGuiOnePlayer()
+	{
+		return EventConfig.guiOnePlayer;
 	}
 
 	@Override
 	public void onContainerClosed(EntityPlayer player)
 	{
-		if (EventConfig.guiOnePlayer && !this.needClose && this.tileEntity instanceof AEBaseTile)
+		if (this.useGuiOnePlayer() && !this.needClose && this.tileEntity instanceof AEBaseTile)
 			((AEBaseTile) this.tileEntity).isGuiOpened = false;
 		super.onContainerClosed(player);
 	}
@@ -133,11 +137,15 @@ public abstract class AEBaseContainer extends Container
 		this.obj = gio;
 
 		// TODO gamerforEA code start
-		this.needClose = myTile instanceof AEBaseTile && ((AEBaseTile) myTile).isGuiOpened;
-		if (EventConfig.guiOnePlayer && !this.needClose && myTile instanceof AEBaseTile)
-			((AEBaseTile) myTile).isGuiOpened = true;
-
-		this.updatePartTile();
+		if (this.useGuiOnePlayer())
+		{
+			this.needClose = myTile instanceof AEBaseTile && ((AEBaseTile) myTile).isGuiOpened;
+			if (!this.needClose && myTile instanceof AEBaseTile)
+				((AEBaseTile) myTile).isGuiOpened = true;
+			this.updatePartTile();
+		}
+		else
+			this.needClose = false;
 		// TODO gamerforEA code end
 
 		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
@@ -184,11 +192,15 @@ public abstract class AEBaseContainer extends Container
 			throw new IllegalArgumentException("Must have a valid anchor, instead " + anchor + " in " + ip);
 
 		// TODO gamerforEA code start
-		this.needClose = anchor instanceof AEBaseTile && ((AEBaseTile) anchor).isGuiOpened;
-		if (EventConfig.guiOnePlayer && !this.needClose && anchor instanceof AEBaseTile)
-			((AEBaseTile) anchor).isGuiOpened = true;
-
-		this.updatePartTile();
+		if (this.useGuiOnePlayer())
+		{
+			this.needClose = anchor instanceof AEBaseTile && ((AEBaseTile) anchor).isGuiOpened;
+			if (!this.needClose && anchor instanceof AEBaseTile)
+				((AEBaseTile) anchor).isGuiOpened = true;
+			this.updatePartTile();
+		}
+		else
+			this.needClose = false;
 		// TODO gamerforEA code end
 
 		this.mySrc = new PlayerSource(ip.player, this.getActionHost());
@@ -669,8 +681,10 @@ public abstract class AEBaseContainer extends Container
 			if (this.tileEntity instanceof IInventory)
 				return ((IInventory) this.tileEntity).isUseableByPlayer(entityplayer);
 
-			// TODO gamerforEA code start
+			// TODO gamerforEA code replace, old code:
+			// return true;
 			return this.isValidPartTile();
+			// TODO gamerforEA code end
 		}
 		return false;
 	}
@@ -683,12 +697,14 @@ public abstract class AEBaseContainer extends Container
 
 	public void doAction(final EntityPlayerMP player, final InventoryAction action, final int slot, final long id)
 	{
+		boolean isSlotValid = slot >= 0 && slot < this.inventorySlots.size();
+
 		// TODO gamerforEA code start
-		if (action == InventoryAction.MOVE_REGION && !(this instanceof ContainerCraftingTerm))
+		if (action == InventoryAction.MOVE_REGION && !(id == 0 && this.getSlot(slot) instanceof SlotCraftingMatrix))
 			return;
 		// TODO gamerforEA code end
 
-		if (slot >= 0 && slot < this.inventorySlots.size())
+		if (isSlotValid)
 		{
 			final Slot s = this.getSlot(slot);
 

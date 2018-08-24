@@ -58,6 +58,7 @@ import appeng.util.item.OreHelper;
 import appeng.util.item.OreReference;
 import appeng.util.prioitylist.IPartitionList;
 import buildcraft.api.tools.IToolWrench;
+import com.gamerforea.eventhelper.EventHelper;
 import com.gamerforea.eventhelper.util.EventUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -295,13 +296,36 @@ public class Platform
 			z = tile.zCoord;
 		}
 
-		if (type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p))
+		// TODO gamerforEA code start
+		boolean disableEvents = false;
+		if (p.openContainer != null && p.openContainer != p.inventoryContainer)
+		{
+			if (type != GuiBridge.GUI_PRIORITY && type != GuiBridge.GUI_CRAFTING_CONFIRM)
+				p.closeScreen();
+			else
+				disableEvents = true;
+		}
+
+		boolean prevHasPermissionsBypass = hasPermissionsBypass;
+		if (disableEvents)
+			hasPermissionsBypass = true;
+		// TODO gamerforEA code end
+
+		boolean canOpenGui;
+		try
+		{
+			canOpenGui = type.getType().isItem() && tile == null || type.hasPermissions(tile, x, y, z, side, p);
+		}
+		finally
 		{
 			// TODO gamerforEA code start
-			if (p.openContainer != null)
-				p.closeScreen();
+			if (disableEvents)
+				hasPermissionsBypass = prevHasPermissionsBypass;
 			// TODO gamerforEA code end
+		}
 
+		if (canOpenGui)
+		{
 			if (tile == null && type.getType() == GuiHostType.ITEM)
 				p.openGui(AppEng.instance(), type.ordinal() << 4, p.getEntityWorld(), p.inventory.currentItem, 0, 0);
 			else if (tile == null || type.getType() == GuiHostType.ITEM)
@@ -319,10 +343,14 @@ public class Platform
 		return FMLCommonHandler.instance().getEffectiveSide().isClient();
 	}
 
+	// TODO gamerforEA code start
+	private static boolean hasPermissionsBypass;
+	// TODO gamerforEA code end
+
 	public static boolean hasPermissions(final DimensionalCoord dc, final EntityPlayer player)
 	{
 		// TODO gamerforEA code start
-		if (EventUtils.cantBreak(player, dc.x, dc.y, dc.z))
+		if (!hasPermissionsBypass && EventUtils.cantBreak(player, dc.x, dc.y, dc.z))
 			return false;
 		// TODO gamerforEA code end
 
@@ -365,7 +393,7 @@ public class Platform
 		if (ta == null && tb == null || ta != null && ta.hasNoTags() && tb == null || tb != null && tb.hasNoTags() && ta == null || ta != null && ta.hasNoTags() && tb != null && tb.hasNoTags())
 			return true;
 
-		if (ta == null && tb != null || ta != null && tb == null)
+		if ((ta == null) == (tb != null))
 			return false;
 
 		// if both tags are shared this is easy...
@@ -1351,6 +1379,10 @@ public class Platform
 		}
 
 		gs.postAlterationOfStoredItems(StorageChannel.ITEMS, itemChanges, src);
+
+		// TODO gamerforEA code start
+		gs.postAlterationOfStoredItems(StorageChannel.FLUIDS, fluidChanges, src);
+		// TODO gamerforEA code end
 	}
 
 	public static <T extends IAEStack<T>> void postListChanges(final IItemList<T> before, final IItemList<T> after, final IMEMonitorHandlerReceiver<T> meMonitorPassthrough, final BaseActionSource source)
@@ -1406,7 +1438,20 @@ public class Platform
 			if (target instanceof ISidedInventory)
 				for (final ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
 				{
-					final int[] sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
+					// TODO gamerforEA code replace, old code:
+					// final int[] sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
+					final int[] sides;
+					try
+					{
+						sides = ((ISidedInventory) target).getAccessibleSlotsFromSide(dir.ordinal());
+					}
+					catch (Exception e)
+					{
+						if (EventHelper.debug)
+							e.printStackTrace();
+						return 0;
+					}
+					// TODO gamerforEA code end
 
 					if (sides == null)
 						return 0;
