@@ -197,43 +197,83 @@ public class TickHandler
 		int chunkZ = chunk.zPosition;
 		for (Grid grid : this.getRepo().networks)
 		{
-			IStorageGrid storageGrid = grid.getCache(IStorageGrid.class);
-			if (storageGrid != null)
-				for (IGridNode node : getMachines(grid, PartStorageBus.class))
-				{
-					IGridHost host = node.getMachine();
-					if (host instanceof PartStorageBus)
-					{
-						PartStorageBus bus = (PartStorageBus) host;
-						if (needUnregister(bus, chunkX, chunkZ))
-							storageGrid.unregisterCellProvider(bus);
-					}
-				}
-
-			for (IGridNode node : getMachines(grid, PartImportBus.class, PartExportBus.class))
-			{
-				IGridHost host = node.getMachine();
-				if (host instanceof PartSharedItemBus)
-				{
-					PartSharedItemBus bus = (PartSharedItemBus) host;
-					if (needUnregister(bus, chunkX, chunkZ))
-						bus.resetCache();
-				}
-			}
+			checkStorageBus(chunkX, chunkZ, grid);
+			if (!EventConfig.fastChunkDupeFix)
+				checkImportExportBus(chunkX, chunkZ, grid);
 		}
 	}
 
-	private static List<IGridNode> getMachines(IGrid grid, Class<? extends IGridHost>... classes)
+	private static void checkStorageBus(int chunkX, int chunkZ, Grid grid)
 	{
-		List<IGridNode> list = new ArrayList<IGridNode>();
-		for (Class<? extends IGridHost> clazz : classes)
+		IStorageGrid storageGrid = grid.getCache(IStorageGrid.class);
+		if (storageGrid != null)
 		{
-			for (IGridNode node : grid.getMachines(clazz))
+			List<PartStorageBus> partsForUnregister = null;
+			for (IGridNode node : getMachines(grid, PartStorageBus.class))
 			{
-				list.add(node);
+				IGridHost host = node.getMachine();
+				if (host instanceof PartStorageBus)
+				{
+					PartStorageBus bus = (PartStorageBus) host;
+					if (needUnregister(bus, chunkX, chunkZ))
+					{
+						if (partsForUnregister == null)
+							partsForUnregister = new ArrayList<PartStorageBus>(1);
+						partsForUnregister.add(bus);
+					}
+				}
+			}
+			if (partsForUnregister != null)
+				for (int i = 0, partsForUnregisterSize = partsForUnregister.size(); i < partsForUnregisterSize; i++)
+				{
+					PartStorageBus bus = partsForUnregister.get(i);
+					storageGrid.unregisterCellProvider(bus);
+				}
+		}
+	}
+
+	private static void checkImportExportBus(int chunkX, int chunkZ, Grid grid)
+	{
+		List<PartSharedItemBus> partsForUnregister = null;
+		for (IGridNode node : getMachines(grid, PartImportBus.class))
+		{
+			IGridHost host = node.getMachine();
+			if (host instanceof PartSharedItemBus)
+			{
+				PartSharedItemBus bus = (PartSharedItemBus) host;
+				if (needUnregister(bus, chunkX, chunkZ))
+				{
+					if (partsForUnregister == null)
+						partsForUnregister = new ArrayList<PartSharedItemBus>(1);
+					partsForUnregister.add(bus);
+				}
 			}
 		}
-		return list;
+		for (IGridNode node : getMachines(grid, PartExportBus.class))
+		{
+			IGridHost host = node.getMachine();
+			if (host instanceof PartSharedItemBus)
+			{
+				PartSharedItemBus bus = (PartSharedItemBus) host;
+				if (needUnregister(bus, chunkX, chunkZ))
+				{
+					if (partsForUnregister == null)
+						partsForUnregister = new ArrayList<PartSharedItemBus>(1);
+					partsForUnregister.add(bus);
+				}
+			}
+		}
+		if (partsForUnregister != null)
+			for (int i = 0, partsForUnregisterSize = partsForUnregister.size(); i < partsForUnregisterSize; i++)
+			{
+				PartSharedItemBus bus = partsForUnregister.get(i);
+				bus.resetCache();
+			}
+	}
+
+	private static Iterable<IGridNode> getMachines(IGrid grid, Class<? extends IGridHost> clazz)
+	{
+		return grid instanceof Grid ? ((Grid) grid).getMachinesFast(clazz) : grid.getMachines(clazz);
 	}
 
 	private static boolean needUnregister(AEBasePart part, int chunkX, int chunkZ)
@@ -246,7 +286,7 @@ public class TickHandler
 
 			if (busChunkX == chunkX && busChunkZ == chunkZ)
 				return true;
-			else if (busChunkX - chunkX + busChunkZ - chunkZ == 1)
+			else if (Math.abs(busChunkX - chunkX) + Math.abs(busChunkZ - chunkZ) == 1)
 			{
 				ForgeDirection side = part.getSide();
 				int targetX = tile.xCoord + side.offsetX;
