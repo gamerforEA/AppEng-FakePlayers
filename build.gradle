@@ -29,6 +29,11 @@ version = "rv3-beta-6"
 group= "appeng"
 archivesBaseName = "appliedenergistics2"
 
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+	sourceCompatibility = targetCompatibility = '1.8'
+}
+
 minecraft {
 	version = "1.7.10-10.13.4.1614-1.7.10"
 	runDir = "eclipse"
@@ -41,6 +46,7 @@ dependencies {
 	compile name: 'CodeChickenCore-1.7.10-1.0.7.47-dev'
 	compile name: 'NotEnoughItems-1.7.10-1.0.5.120-dev'
 	compile name: 'ForgeMultipart-1.7.10-1.2.0.347-dev'
+	compile name: 'Waila-1.5.10_1.7.10-dev'
 	compile name: 'CoFHCore-[1.7.10]3.1.0-323-dev'
 	compile name: 'industrialcraft-2-2.2.817-experimental-dev'
 	compile name: 'buildcraft-7.1.16-dev'
