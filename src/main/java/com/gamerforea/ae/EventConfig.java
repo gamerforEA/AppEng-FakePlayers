@@ -18,6 +18,7 @@ public final class EventConfig
 	public static final Set<String> formationPlaneBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static final Set<String> annihilationPlaneBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static final Set<String> autoCraftBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
+	public static final Set<String> autoCraftForceCheckList = Sets.newHashSet("Botania:blackHoleTalisman", "ThaumicTinkerer:blockTalisman");
 	public static final Set<String> busBlackList = Sets.newHashSet(DEFAULT_BLOCKS);
 	public static String securityBypassPermission = "appeng.security.bypass";
 	public static float chargedStaffDamage = 6F;
@@ -30,7 +31,14 @@ public final class EventConfig
 	public static boolean busSameChunk = false;
 	public static boolean busSameChunkStorageOnly = false;
 	public static boolean busSameChunkMessage = false;
-	public static boolean experimentalChunkDupeFix = true;
+	public static boolean experimentalChunkDupeFix = false;
+	public static boolean fastChunkDupeFix = false;
+
+	public static boolean craftingUnitBlockYOnly = false;
+	public static boolean doubleChestDupeFix = true;
+	public static boolean globalChunkDupeFix = true;
+
+	public static boolean useTreeItemList = false;
 
 	static
 	{
@@ -48,6 +56,7 @@ public final class EventConfig
 			readStringSet(cfg, "formationPlaneBlackList", c, "Чёрный список блоков для Плоскости формирования", formationPlaneBlackList);
 			readStringSet(cfg, "annihilationPlaneBlackList", c, "Чёрный список блоков для Плоскости истребления", annihilationPlaneBlackList);
 			readStringSet(cfg, "autoCraftBlackList", c, "Чёрный список блоков для автокрафта", autoCraftBlackList);
+			readStringSet(cfg, "autoCraftForceCheckList", c, "Список предметов с принудительной проверкой NBT для автокрафта", autoCraftForceCheckList);
 			readStringSet(cfg, "busBlackList", c, "Чёрный список блоков для шин импорта/экспорта и интерфейсов", busBlackList);
 			securityBypassPermission = cfg.getString("securityBypassPermission", c, securityBypassPermission, "Permission для игнорирования защиты AE2-сети");
 			chargedStaffDamage = cfg.getFloat("chargedStaffDamage", c, chargedStaffDamage, 0, Float.MAX_VALUE, "Урон Заряженного посоха");
@@ -61,6 +70,13 @@ public final class EventConfig
 			busSameChunkStorageOnly = cfg.getBoolean("busSameChunkStorageOnly", c, busSameChunkStorageOnly, "Проверять чанки только для Шины хранения");
 			busSameChunkMessage = cfg.getBoolean("busSameChunkMessage", c, busSameChunkMessage, "Отправка сообщений ближайшим игрокам, если шина и блок находятся в разных чанках");
 			experimentalChunkDupeFix = cfg.getBoolean("experimentalChunkDupeFix", c, experimentalChunkDupeFix, "Экспериментальный фикс дюпа с чанками и шинами");
+			fastChunkDupeFix = cfg.getBoolean("fastChunkDupeFix", c, fastChunkDupeFix, "Использовать более оптимальный алгоритм фикса дюпа с чанками (может снизить надёжность)");
+
+			craftingUnitBlockYOnly = cfg.getBoolean("craftingUnitBlockYOnly", c, craftingUnitBlockYOnly, "Блоки создания (монитор, хранилище, *обработки) в многоблочной структуре должны располагаться только по вертикали (защита от дюпа с выгрузкой чанков)");
+			doubleChestDupeFix = cfg.getBoolean("doubleChestDupeFix", c, doubleChestDupeFix, "Фикс дюпа с Шинами хранения и двойными сундуками");
+			globalChunkDupeFix = cfg.getBoolean("globalChunkDupeFix", c, globalChunkDupeFix, "Глобальный фикс дюпа с выгрузкой чанков (может несколько снизиить производительность) (можно выключить experimentalChunkDupeFix и doubleChestDupeFix)");
+
+			useTreeItemList = cfg.getBoolean("useTreeItemList", c, useTreeItemList, "Использовать синхронизированный TreeMap вместо ConcurrentSkipListMap в ItemList (может повысить производительность) (небезопасно)");
 
 			cfg.save();
 		}
@@ -103,7 +119,7 @@ public final class EventConfig
 
 	private static Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final Set<String> def)
 	{
-		return getStringSet(cfg, name, category, comment, def.toArray(new String[def.size()]));
+		return getStringSet(cfg, name, category, comment, def.toArray(new String[0]));
 	}
 
 	private static Set<String> getStringSet(final Configuration cfg, final String name, final String category, final String comment, final String... def)

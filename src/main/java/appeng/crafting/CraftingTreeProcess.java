@@ -28,6 +28,7 @@ import appeng.api.storage.data.IItemList;
 import appeng.container.ContainerNull;
 import appeng.me.cluster.implementations.CraftingCPUCluster;
 import appeng.util.Platform;
+import com.gamerforea.ae.EventConfig;
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -110,7 +111,14 @@ public class CraftingTreeProcess
 					this.limitQty = true;
 
 				if (g.getItem().hasContainerItem(g))
-					this.limitQty = this.containerItems = true;
+				{
+					// TODO gamerforEA code start
+					if (!EventConfig.inList(EventConfig.autoCraftForceCheckList, g))
+						// TODO gamerforEA code end
+						this.containerItems = true;
+
+					this.limitQty = true;
+				}
 			}
 
 			final boolean complicated = false;
