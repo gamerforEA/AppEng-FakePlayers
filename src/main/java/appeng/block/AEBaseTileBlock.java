@@ -34,6 +34,7 @@ import appeng.tile.storage.TileSkyChest;
 import appeng.util.Platform;
 import appeng.util.SettingsFrom;
 import com.gamerforea.ae.EventConfig;
+import com.gamerforea.ae.ModUtils;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import cpw.mods.fml.relauncher.ReflectionHelper;
@@ -144,23 +145,35 @@ public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature,
 		{
 			final ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
 
+			/* TODO gamerforEA code replace, old code:
 			if (te.dropItems())
-			{
 				te.getDrops(w, x, y, z, drops);
-
-				// TODO gamerforEA code start
-				if (EventConfig.clearInvOnBreak && te instanceof IInventory)
-				{
-					final IInventory inv = (IInventory) te;
-					for (int i = 0; i < inv.getSizeInventory(); i++)
-					{
-						inv.setInventorySlotContents(i, null);
-					}
-				}
-				// TODO gamerforEA code end
-			}
 			else
-				te.getNoDrops(w, x, y, z, drops);
+				te.getNoDrops(w, x, y, z, drops); */
+			Boolean prevBreaking = ModUtils.IS_BLOCK_BREAKING.get();
+			ModUtils.IS_BLOCK_BREAKING.set(Boolean.TRUE);
+			try
+			{
+				if (te.dropItems())
+					te.getDrops(w, x, y, z, drops);
+				else
+					te.getNoDrops(w, x, y, z, drops);
+			}
+			finally
+			{
+				ModUtils.IS_BLOCK_BREAKING.set(prevBreaking);
+			}
+
+			if (EventConfig.clearInvOnBreak && te instanceof IInventory)
+			{
+				final IInventory inventory = (IInventory) te;
+				for (int slot = 0; slot < inventory.getSizeInventory(); slot++)
+				{
+					if (inventory.getStackInSlot(slot) != null)
+						inventory.setInventorySlotContents(slot, null);
+				}
+			}
+			// TODO gamerforEA code end
 
 			// Cry ;_; ...
 			Platform.spawnDrops(w, x, y, z, drops);

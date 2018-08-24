@@ -72,6 +72,7 @@ import appeng.util.inv.IInventoryDestination;
 import appeng.util.inv.WrapperInvSlot;
 import appeng.util.item.AEItemStack;
 import com.gamerforea.ae.BusUtils;
+import com.gamerforea.ae.ModUtils;
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
@@ -928,13 +929,25 @@ public class DualityInterface
 
 	public void addDrops(final List<ItemStack> drops)
 	{
+		// TODO gamerforEA code start
+		boolean clearInv = ModUtils.needClearInvOnBreak();
+		// TODO gamerforEA code end
+
 		if (this.waitingToSend != null)
+		{
 			for (final ItemStack is : this.waitingToSend)
 			{
 				if (is != null)
 					drops.add(is);
 			}
 
+			// TODO gamerforEA code start
+			if (clearInv)
+				this.waitingToSend.clear();
+			// TODO gamerforEA code end
+		}
+
+		/* TODO gamerforEA code clear:
 		for (final ItemStack is : this.upgrades)
 		{
 			if (is != null)
@@ -951,7 +964,11 @@ public class DualityInterface
 		{
 			if (is != null)
 				drops.add(is);
-		}
+		} */
+		ModUtils.getInventoryContent(this.upgrades, drops, clearInv, false);
+		ModUtils.getInventoryContent(this.storage, drops, clearInv, false);
+		ModUtils.getInventoryContent(this.patterns, drops, clearInv, false);
+		// TODO gamerforEA code end
 	}
 
 	public IUpgradeableHost getHost()
