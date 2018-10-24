@@ -51,6 +51,7 @@ import appeng.util.InventoryAdaptor;
 import appeng.util.Platform;
 import appeng.util.inv.AdaptorPlayerHand;
 import appeng.util.item.AEItemStack;
+import com.gamerforea.ae.CooldownManager;
 import com.gamerforea.ae.EventConfig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -92,6 +93,7 @@ public abstract class AEBaseContainer extends Container
 	private IAEItemStack clientRequestedTargetItem = null;
 
 	// TODO gamerforEA code start
+	private static final CooldownManager CRAFT_TERM_COOLDOWN_MANAGER = new CooldownManager(EventConfig.craftTermCooldown);
 	private final boolean needClose;
 	private TileEntity partTile;
 
@@ -714,6 +716,11 @@ public abstract class AEBaseContainer extends Container
 					case CRAFT_SHIFT:
 					case CRAFT_ITEM:
 					case CRAFT_STACK:
+						// TODO gamerforEA code start
+						if (!CRAFT_TERM_COOLDOWN_MANAGER.add(player))
+							break;
+						// TODO gamerforEA code end
+
 						((SlotCraftingTerm) s).doClick(action, player);
 						this.updateHeld(player);
 					default:

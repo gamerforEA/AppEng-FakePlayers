@@ -39,6 +39,11 @@ public final class EventConfig
 	public static boolean globalChunkDupeFix = true;
 
 	public static boolean useTreeItemList = false;
+	public static int maxTimesToCraft = Integer.MAX_VALUE;
+	public static int craftTermCooldown = 0;
+
+	public static boolean denySplitCraftingUnitsByChunks = false;
+	public static boolean chestDriveDenyAutoInsertExtract = true;
 
 	static
 	{
@@ -77,6 +82,11 @@ public final class EventConfig
 			globalChunkDupeFix = cfg.getBoolean("globalChunkDupeFix", c, globalChunkDupeFix, "Глобальный фикс дюпа с выгрузкой чанков (может несколько снизиить производительность) (можно выключить experimentalChunkDupeFix и doubleChestDupeFix)");
 
 			useTreeItemList = cfg.getBoolean("useTreeItemList", c, useTreeItemList, "Использовать синхронизированный TreeMap вместо ConcurrentSkipListMap в ItemList (может повысить производительность) (небезопасно)");
+			maxTimesToCraft = cfg.getInt("maxTimesToCraft", c, maxTimesToCraft, 1, Integer.MAX_VALUE, "Максимальное количество попыток крафта предмета за один клик в Терминале создания");
+			craftTermCooldown = cfg.getInt("craftTermCooldown", c, craftTermCooldown, 0, Integer.MAX_VALUE, "Кулдаун для попыток крафта предмета в Терминале создания (в тиках)");
+
+			denySplitCraftingUnitsByChunks = cfg.getBoolean("denySplitCraftingUnitsByChunks", c, denySplitCraftingUnitsByChunks, "Запретить распределять структуру из блоков создания по нескольким чанкам (защита от дюпа)");
+			chestDriveDenyAutoInsertExtract = cfg.getBoolean("chestDriveDenyAutoInsertExtract", c, chestDriveDenyAutoInsertExtract, "Запретить вставлять и извлекать ячейки в МЭ Сундуки и МЭ Накопители с помощью труб, шин и пр.");
 
 			cfg.save();
 		}

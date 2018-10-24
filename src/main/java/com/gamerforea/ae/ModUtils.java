@@ -17,7 +17,6 @@ import java.util.UUID;
 
 public final class ModUtils
 {
-	// TODO Hook codechicken.multipart.BlockMultipart.dropAndDestroy
 	public static final ThreadLocal<Boolean> IS_BLOCK_BREAKING = new ThreadLocal<>();
 	public static final GameProfile profile = new GameProfile(UUID.fromString("2c6e6150-dcf8-4e8c-a6e0-7ea1935eb0cf"), "[AppEng]");
 	private static FakePlayer player = null;
