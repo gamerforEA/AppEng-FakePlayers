@@ -132,7 +132,7 @@ public class SlotCraftingTerm extends AppEngCraftingSlot
 				final ItemStack extra = ia.addItems(this.craftItem(who, rs, inv, all));
 				if (extra != null)
 				{
-					final List<ItemStack> drops = new ArrayList<ItemStack>();
+					final List<ItemStack> drops = new ArrayList<>();
 					drops.add(extra);
 					Platform.spawnDrops(who.worldObj, (int) who.posX, (int) who.posY, (int) who.posZ, drops);
 					return;
@@ -234,7 +234,7 @@ public class SlotCraftingTerm extends AppEngCraftingSlot
 
 	private void postCraft(final EntityPlayer p, final IMEMonitor<IAEItemStack> inv, final ItemStack[] set, final ItemStack result)
 	{
-		final List<ItemStack> drops = new ArrayList<ItemStack>();
+		final List<ItemStack> drops = new ArrayList<>();
 
 		// add one of each item to the items on the board...
 		// set new items onto the crafting table...

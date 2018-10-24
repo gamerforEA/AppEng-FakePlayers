@@ -124,7 +124,7 @@ public class Platform
 	 * random source, use it for item drop locations...
 	 */
 	private static final Random RANDOM_GENERATOR = new Random();
-	private static final WeakHashMap<World, EntityPlayer> FAKE_PLAYERS = new WeakHashMap<World, EntityPlayer>();
+	private static final WeakHashMap<World, EntityPlayer> FAKE_PLAYERS = new WeakHashMap<>();
 	private static Field tagList;
 	private static Class playerInstance;
 	private static Method getOrCreateChunkWatcher;
@@ -515,7 +515,7 @@ public class Platform
 			AELog.debug(t);
 		}
 
-		return new ArrayList<NBTBase>();
+		return new ArrayList<>();
 	}
 
 	/*
@@ -596,7 +596,7 @@ public class Platform
 
 	public static ItemStack[] getBlockDrops(final World w, final int x, final int y, final int z)
 	{
-		List<ItemStack> out = new ArrayList<ItemStack>();
+		List<ItemStack> out = new ArrayList<>();
 		final Block which = w.getBlock(x, y, z);
 
 		if (which != null)
@@ -604,7 +604,7 @@ public class Platform
 
 		if (out == null)
 			return new ItemStack[0];
-		return out.toArray(new ItemStack[out.size()]);
+		return out.toArray(new ItemStack[0]);
 	}
 
 	public static ForgeDirection cycleOrientations(final ForgeDirection dir, final boolean upAndDown)
@@ -1387,7 +1387,7 @@ public class Platform
 
 	public static <T extends IAEStack<T>> void postListChanges(final IItemList<T> before, final IItemList<T> after, final IMEMonitorHandlerReceiver<T> meMonitorPassthrough, final BaseActionSource source)
 	{
-		final LinkedList<T> changes = new LinkedList<T>();
+		final LinkedList<T> changes = new LinkedList<>();
 
 		for (final T is : before)
 		{

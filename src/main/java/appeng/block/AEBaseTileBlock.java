@@ -143,7 +143,7 @@ public abstract class AEBaseTileBlock extends AEBaseBlock implements IAEFeature,
 		final AEBaseTile te = this.getTileEntity(w, x, y, z);
 		if (te != null)
 		{
-			final ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+			final ArrayList<ItemStack> drops = new ArrayList<>();
 
 			/* TODO gamerforEA code replace, old code:
 			if (te.dropItems())

@@ -54,9 +54,9 @@ import java.util.*;
 public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, ICustomNameObject
 {
 
-	private static final ThreadLocal<WeakReference<AEBaseTile>> DROP_NO_ITEMS = new ThreadLocal<WeakReference<AEBaseTile>>();
-	private static final Map<Class<? extends AEBaseTile>, Map<TileEventType, List<AETileEventHandler>>> HANDLERS = new HashMap<Class<? extends AEBaseTile>, Map<TileEventType, List<AETileEventHandler>>>();
-	private static final Map<Class<? extends TileEntity>, IStackSrc> ITEM_STACKS = new HashMap<Class<? extends TileEntity>, IStackSrc>();
+	private static final ThreadLocal<WeakReference<AEBaseTile>> DROP_NO_ITEMS = new ThreadLocal<>();
+	private static final Map<Class<? extends AEBaseTile>, Map<TileEventType, List<AETileEventHandler>>> HANDLERS = new HashMap<>();
+	private static final Map<Class<? extends TileEntity>, IStackSrc> ITEM_STACKS = new HashMap<>();
 	private int renderFragment = 0;
 	@Nullable
 	private String customName;
@@ -321,7 +321,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 
 		if (storedHandlers == null)
 		{
-			final Map<TileEventType, List<AETileEventHandler>> newStoredHandlers = new EnumMap<TileEventType, List<AETileEventHandler>>(TileEventType.class);
+			final Map<TileEventType, List<AETileEventHandler>> newStoredHandlers = new EnumMap<>(TileEventType.class);
 
 			HANDLERS.put(clazz, newStoredHandlers);
 
@@ -345,7 +345,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 
 		if (oldHandlers == null)
 		{
-			final List<AETileEventHandler> newHandlers = new LinkedList<AETileEventHandler>();
+			final List<AETileEventHandler> newHandlers = new LinkedList<>();
 			eventToHandlers.put(event, newHandlers);
 
 			return newHandlers;
@@ -356,13 +356,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 
 	private void addHandler(final Map<TileEventType, List<AETileEventHandler>> handlerSet, final TileEventType value, final Method m)
 	{
-		List<AETileEventHandler> list = handlerSet.get(value);
-
-		if (list == null)
-		{
-			list = new ArrayList<AETileEventHandler>();
-			handlerSet.put(value, list);
-		}
+		List<AETileEventHandler> list = handlerSet.computeIfAbsent(value, k -> new ArrayList<>());
 
 		list.add(new AETileEventHandler(m));
 	}
@@ -527,7 +521,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 
 	public void disableDrops()
 	{
-		DROP_NO_ITEMS.set(new WeakReference<AEBaseTile>(this));
+		DROP_NO_ITEMS.set(new WeakReference<>(this));
 	}
 
 	public void saveChanges()

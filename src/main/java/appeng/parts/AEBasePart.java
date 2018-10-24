@@ -110,7 +110,7 @@ public abstract class AEBasePart implements IPart, IGridProxyable, IActionHost, 
 				return;
 			// TODO gamerforEA code end
 
-			final List<ItemStack> items = new ArrayList<ItemStack>();
+			final List<ItemStack> items = new ArrayList<>();
 			items.add(stack.copy());
 			this.host.removePart(this.getSide(), false);
 			Platform.spawnDrops(this.tile.getWorldObj(), this.tile.xCoord, this.tile.yCoord, this.tile.zCoord, items);

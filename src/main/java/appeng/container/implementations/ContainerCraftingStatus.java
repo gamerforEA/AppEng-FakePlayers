@@ -33,7 +33,7 @@ import java.util.List;
 public class ContainerCraftingStatus extends ContainerCraftingCPU
 {
 
-	private final List<CraftingCPURecord> cpus = new ArrayList<CraftingCPURecord>();
+	private final List<CraftingCPURecord> cpus = new ArrayList<>();
 	@GuiSync(5)
 	public int selectedCpu = -1;
 	@GuiSync(6)

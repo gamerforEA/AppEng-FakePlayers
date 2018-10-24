@@ -67,7 +67,7 @@ public class BlockCraftingUnit extends AEBaseTileBlock
 	@SideOnly(Side.CLIENT)
 	protected RenderBlockCraftingCPU<? extends BlockCraftingUnit, ? extends TileCraftingTile> getRenderer()
 	{
-		return new RenderBlockCraftingCPU<BlockCraftingUnit, TileCraftingTile>();
+		return new RenderBlockCraftingCPU<>();
 	}
 
 	@Override

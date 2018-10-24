@@ -62,40 +62,25 @@ public class CraftingGridCache
 {
 
 	private static final ExecutorService CRAFTING_POOL;
-	private static final Comparator<ICraftingPatternDetails> COMPARATOR = new Comparator<ICraftingPatternDetails>()
-	{
-		@Override
-		public int compare(final ICraftingPatternDetails firstDetail, final ICraftingPatternDetails nextDetail)
-		{
-			return nextDetail.getPriority() - firstDetail.getPriority();
-		}
-	};
+	private static final Comparator<ICraftingPatternDetails> COMPARATOR = (firstDetail, nextDetail) -> nextDetail.getPriority() - firstDetail.getPriority();
 
 	static
 	{
-		final ThreadFactory factory = new ThreadFactory()
-		{
-
-			@Override
-			public Thread newThread(final Runnable ar)
-			{
-				return new Thread(ar, "AE Crafting Calculator");
-			}
-		};
+		final ThreadFactory factory = ar -> new Thread(ar, "AE Crafting Calculator");
 
 		CRAFTING_POOL = Executors.newCachedThreadPool(factory);
 	}
 
-	private final Set<CraftingCPUCluster> craftingCPUClusters = new HashSet<CraftingCPUCluster>();
-	private final Set<ICraftingProvider> craftingProviders = new HashSet<ICraftingProvider>();
-	private final Map<IGridNode, ICraftingWatcher> craftingWatchers = new HashMap<IGridNode, ICraftingWatcher>();
+	private final Set<CraftingCPUCluster> craftingCPUClusters = new HashSet<>();
+	private final Set<ICraftingProvider> craftingProviders = new HashSet<>();
+	private final Map<IGridNode, ICraftingWatcher> craftingWatchers = new HashMap<>();
 	private final IGrid grid;
-	private final Map<ICraftingPatternDetails, List<ICraftingMedium>> craftingMethods = new HashMap<ICraftingPatternDetails, List<ICraftingMedium>>();
-	private final Map<IAEItemStack, ImmutableList<ICraftingPatternDetails>> craftableItems = new HashMap<IAEItemStack, ImmutableList<ICraftingPatternDetails>>();
-	private final Set<IAEItemStack> emitableItems = new HashSet<IAEItemStack>();
-	private final Map<String, CraftingLinkNexus> craftingLinks = new HashMap<String, CraftingLinkNexus>();
+	private final Map<ICraftingPatternDetails, List<ICraftingMedium>> craftingMethods = new HashMap<>();
+	private final Map<IAEItemStack, ImmutableList<ICraftingPatternDetails>> craftableItems = new HashMap<>();
+	private final Set<IAEItemStack> emitableItems = new HashSet<>();
+	private final Map<String, CraftingLinkNexus> craftingLinks = new HashMap<>();
 	private final Multimap<IAEStack, CraftingWatcher> interests = HashMultimap.create();
-	private final GenericInterestManager<CraftingWatcher> interestManager = new GenericInterestManager<CraftingWatcher>(this.interests);
+	private final GenericInterestManager<CraftingWatcher> interestManager = new GenericInterestManager<>(this.interests);
 	private IStorageGrid storageGrid;
 	private IEnergyGrid energyGrid;
 	private boolean updateList = false;
@@ -123,12 +108,7 @@ public class CraftingGridCache
 			this.updateCPUClusters();
 		}
 
-		final Iterator<CraftingLinkNexus> craftingLinkIterator = this.craftingLinks.values().iterator();
-		while (craftingLinkIterator.hasNext())
-		{
-			if (craftingLinkIterator.next().isDead(this.grid, this))
-				craftingLinkIterator.remove();
-		}
+		this.craftingLinks.values().removeIf(craftingLinkNexus -> craftingLinkNexus.isDead(this.grid, this));
 
 		for (final CraftingCPUCluster cpu : this.craftingCPUClusters)
 		{
@@ -229,7 +209,7 @@ public class CraftingGridCache
 			provider.provideCrafting(this);
 		}
 
-		final Map<IAEItemStack, Set<ICraftingPatternDetails>> tmpCraft = new HashMap<IAEItemStack, Set<ICraftingPatternDetails>>();
+		final Map<IAEItemStack, Set<ICraftingPatternDetails>> tmpCraft = new HashMap<>();
 
 		// new craftables!
 		for (final ICraftingPatternDetails details : this.craftingMethods.keySet())
@@ -247,10 +227,7 @@ public class CraftingGridCache
 				out.reset();
 				out.setCraftable(true);
 
-				Set<ICraftingPatternDetails> methods = tmpCraft.get(out);
-
-				if (methods == null)
-					tmpCraft.put(out, methods = new TreeSet<ICraftingPatternDetails>(COMPARATOR));
+				Set<ICraftingPatternDetails> methods = tmpCraft.computeIfAbsent(out, k -> new TreeSet<>(COMPARATOR));
 
 				methods.add(details);
 			}
@@ -326,7 +303,7 @@ public class CraftingGridCache
 		List<ICraftingMedium> details = this.craftingMethods.get(api);
 		if (details == null)
 		{
-			details = new ArrayList<ICraftingMedium>();
+			details = new ArrayList<>();
 			details.add(medium);
 			this.craftingMethods.put(api, details);
 		}
@@ -343,7 +320,7 @@ public class CraftingGridCache
 	@Override
 	public List<IMEInventoryHandler> getCellArray(final StorageChannel channel)
 	{
-		final List<IMEInventoryHandler> list = new ArrayList<IMEInventoryHandler>(1);
+		final List<IMEInventoryHandler> list = new ArrayList<>(1);
 
 		if (channel == StorageChannel.ITEMS)
 			list.add(this);
@@ -478,31 +455,26 @@ public class CraftingGridCache
 
 		if (target == null)
 		{
-			final List<CraftingCPUCluster> validCpusClusters = new ArrayList<CraftingCPUCluster>();
+			final List<CraftingCPUCluster> validCpusClusters = new ArrayList<>();
 			for (final CraftingCPUCluster cpu : this.craftingCPUClusters)
 			{
 				if (cpu.isActive() && !cpu.isBusy() && cpu.getAvailableStorage() >= job.getByteTotal())
 					validCpusClusters.add(cpu);
 			}
 
-			Collections.sort(validCpusClusters, new Comparator<CraftingCPUCluster>()
-			{
-				@Override
-				public int compare(final CraftingCPUCluster firstCluster, final CraftingCPUCluster nextCluster)
+			validCpusClusters.sort((firstCluster, nextCluster) -> {
+				if (prioritizePower)
 				{
-					if (prioritizePower)
-					{
-						final int comparison = ItemSorters.compareLong(nextCluster.getCoProcessors(), firstCluster.getCoProcessors());
-						if (comparison != 0)
-							return comparison;
-						return ItemSorters.compareLong(nextCluster.getAvailableStorage(), firstCluster.getAvailableStorage());
-					}
-
-					final int comparison = ItemSorters.compareLong(firstCluster.getCoProcessors(), nextCluster.getCoProcessors());
+					final int comparison = ItemSorters.compareLong(nextCluster.getCoProcessors(), firstCluster.getCoProcessors());
 					if (comparison != 0)
 						return comparison;
-					return ItemSorters.compareLong(firstCluster.getAvailableStorage(), nextCluster.getAvailableStorage());
+					return ItemSorters.compareLong(nextCluster.getAvailableStorage(), firstCluster.getAvailableStorage());
 				}
+
+				final int comparison = ItemSorters.compareLong(firstCluster.getCoProcessors(), nextCluster.getCoProcessors());
+				if (comparison != 0)
+					return comparison;
+				return ItemSorters.compareLong(firstCluster.getAvailableStorage(), nextCluster.getAvailableStorage());
 			});
 
 			if (!validCpusClusters.isEmpty())

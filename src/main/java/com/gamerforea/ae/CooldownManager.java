@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class CooldownManager
 {
-	private final TObjectLongMap<UUID> cooldowns = new TObjectLongHashMap<UUID>();
+	private final TObjectLongMap<UUID> cooldowns = new TObjectLongHashMap<>();
 	private final long cooldown;
 
 	public CooldownManager(long cooldown, TimeUnit timeUnit)

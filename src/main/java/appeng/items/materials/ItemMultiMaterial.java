@@ -64,7 +64,7 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 
 	private static final int KILO_SCALAR = 1024;
 
-	private final Map<Integer, MaterialType> dmgToMaterial = new HashMap<Integer, MaterialType>();
+	private final Map<Integer, MaterialType> dmgToMaterial = new HashMap<>();
 	private final NameResolver nameResolver;
 
 	public ItemMultiMaterial()
@@ -93,7 +93,7 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 		final Upgrades u = this.getType(stack);
 		if (u != null)
 		{
-			final List<String> textList = new LinkedList<String>();
+			final List<String> textList = new LinkedList<>();
 			for (final Entry<ItemStack, Integer> j : u.getSupported().entrySet())
 			{
 				String name = null;
@@ -117,7 +117,7 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 
 			final Pattern p = Pattern.compile("(\\d+)[^\\d]");
 			final SlightlyBetterSort s = new SlightlyBetterSort(p);
-			Collections.sort(textList, s);
+			textList.sort(s);
 			lines.addAll(textList);
 		}
 	}
@@ -260,15 +260,7 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 	protected void getCheckedSubItems(final Item sameItem, final CreativeTabs creativeTab, final List<ItemStack> itemStacks)
 	{
 		final List<MaterialType> types = Arrays.asList(MaterialType.values());
-		Collections.sort(types, new Comparator<MaterialType>()
-		{
-
-			@Override
-			public int compare(final MaterialType o1, final MaterialType o2)
-			{
-				return o1.name().compareTo(o2.name());
-			}
-		});
+		types.sort(Comparator.comparing(Enum::name));
 
 		for (final MaterialType mat : types)
 		{

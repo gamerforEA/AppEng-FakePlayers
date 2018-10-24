@@ -563,7 +563,7 @@ public class TileChest extends AENetworkPowerTile
 			{
 				// :P
 			}
-		return new ArrayList<IMEInventoryHandler>();
+		return new ArrayList<>();
 	}
 
 	@Override

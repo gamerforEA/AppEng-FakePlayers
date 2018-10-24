@@ -105,7 +105,7 @@ public class PartToggleBus extends PartBasicState
 				return;
 			// TODO gamerforEA code end
 
-			final List<ItemStack> items = new ArrayList<ItemStack>();
+			final List<ItemStack> items = new ArrayList<>();
 			items.add(stack.copy());
 			this.getHost().removePart(this.getSide(), false);
 			Platform.spawnDrops(this.getTile().getWorldObj(), this.getTile().xCoord, this.getTile().yCoord, this.getTile().zCoord, items);

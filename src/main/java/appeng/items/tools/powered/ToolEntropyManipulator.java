@@ -59,8 +59,8 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 
 		this.setFeature(EnumSet.of(AEFeature.EntropyManipulator, AEFeature.PoweredTools));
 
-		this.heatUp = new HashMap<InWorldToolOperationIngredient, InWorldToolOperationResult>();
-		this.coolDown = new HashMap<InWorldToolOperationIngredient, InWorldToolOperationResult>();
+		this.heatUp = new HashMap<>();
+		this.coolDown = new HashMap<>();
 
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.stone, 0), new InWorldToolOperationResult(new ItemStack(Blocks.cobblestone)));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.stonebrick, 0), new InWorldToolOperationResult(new ItemStack(Blocks.stonebrick, 1, 2)));
@@ -68,7 +68,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.flowing_lava, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(new ItemStack(Blocks.obsidian)));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.grass, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(new ItemStack(Blocks.dirt)));
 
-		final List<ItemStack> snowBalls = new ArrayList<ItemStack>();
+		final List<ItemStack> snowBalls = new ArrayList<>();
 		snowBalls.add(new ItemStack(Items.snowball));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.flowing_water, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(null, snowBalls));
 		this.coolDown.put(new InWorldToolOperationIngredient(Blocks.water, OreDictionary.WILDCARD_VALUE), new InWorldToolOperationResult(new ItemStack(Blocks.ice)));
@@ -249,7 +249,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 				}
 
 				final ItemStack[] stack = Platform.getBlockDrops(w, x, y, z);
-				final List<ItemStack> out = new ArrayList<ItemStack>();
+				final List<ItemStack> out = new ArrayList<>();
 				boolean hasFurnaceable = false;
 				boolean canFurnaceable = true;
 
@@ -275,7 +275,7 @@ public class ToolEntropyManipulator extends AEBasePoweredItem implements IBlockT
 				if (hasFurnaceable && canFurnaceable)
 				{
 					this.extractAEPower(item, 1600);
-					final InWorldToolOperationResult or = InWorldToolOperationResult.getBlockOperationResult(out.toArray(new ItemStack[out.size()]));
+					final InWorldToolOperationResult or = InWorldToolOperationResult.getBlockOperationResult(out.toArray(new ItemStack[0]));
 					w.playSoundEffect(x + 0.5D, y + 0.5D, z + 0.5D, "fire.ignite", 1.0F, itemRand.nextFloat() * 0.4F + 0.8F);
 
 					if (or.getBlockItem() == null)

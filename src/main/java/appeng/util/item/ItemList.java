@@ -31,7 +31,7 @@ public final class ItemList implements IItemList<IAEItemStack>
 {
 	// TODO gamerforEA code replace, old code:
 	// private final NavigableMap<IAEItemStack, IAEItemStack> records = new ConcurrentSkipListMap<IAEItemStack, IAEItemStack>();
-	private final NavigableMap<IAEItemStack, IAEItemStack> records = EventConfig.useTreeItemList ? Collections.synchronizedNavigableMap(new TreeMap<IAEItemStack, IAEItemStack>()) : new ConcurrentSkipListMap<IAEItemStack, IAEItemStack>();
+	private final NavigableMap<IAEItemStack, IAEItemStack> records = EventConfig.useTreeItemList ? Collections.synchronizedNavigableMap(new TreeMap<IAEItemStack, IAEItemStack>()) : new ConcurrentSkipListMap<>();
 	// TODO gamerforEA code end
 
 	@Override
@@ -82,7 +82,7 @@ public final class ItemList implements IItemList<IAEItemStack>
 			}
 			else
 			{
-				final Collection<IAEItemStack> output = new LinkedList<IAEItemStack>();
+				final Collection<IAEItemStack> output = new LinkedList<>();
 
 				for (final IAEItemStack is : or.getAEEquivalents())
 				{
@@ -189,7 +189,7 @@ public final class ItemList implements IItemList<IAEItemStack>
 	@Override
 	public Iterator<IAEItemStack> iterator()
 	{
-		return new MeaningfulItemIterator<IAEItemStack>(this.records.values().iterator());
+		return new MeaningfulItemIterator<>(this.records.values().iterator());
 	}
 
 	@Override
