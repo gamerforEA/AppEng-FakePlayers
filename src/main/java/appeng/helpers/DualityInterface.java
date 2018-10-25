@@ -112,8 +112,8 @@ public class DualityInterface
 	private final AppEngInternalInventory storage = new AppEngInternalInventory(this, NUMBER_OF_STORAGE_SLOTS);
 	private final AppEngInternalInventory patterns = new AppEngInternalInventory(this, NUMBER_OF_PATTERN_SLOTS);
 	private final WrapperInvSlot slotInv = new WrapperInvSlot(this.storage);
-	private final MEMonitorPassThrough<IAEItemStack> items = new MEMonitorPassThrough<>(new NullInventory<>(), StorageChannel.ITEMS);
-	private final MEMonitorPassThrough<IAEFluidStack> fluids = new MEMonitorPassThrough<>(new NullInventory<>(), StorageChannel.FLUIDS);
+	private final MEMonitorPassThrough<IAEItemStack> items = new MEMonitorPassThrough<>(new NullInventory<IAEItemStack>(), StorageChannel.ITEMS);
+	private final MEMonitorPassThrough<IAEFluidStack> fluids = new MEMonitorPassThrough<>(new NullInventory<IAEFluidStack>(), StorageChannel.FLUIDS);
 	private final UpgradeInventory upgrades;
 	private boolean hasConfig = false;
 	private int priority;
