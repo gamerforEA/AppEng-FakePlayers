@@ -211,9 +211,20 @@ public abstract class AEBaseContainer extends Container
 
 	public void postPartial(final PacketPartialItem packetPartialItem)
 	{
+		/* TODO gamerforEA code replace, old code:
 		this.dataChunks.add(packetPartialItem);
 		if (packetPartialItem.getPageCount() == this.dataChunks.size())
+			this.parsePartials(); */
+		if (packetPartialItem.getPage() != this.dataChunks.size())
+		{
+			this.dataChunks.clear();
+			return;
+		}
+
+		this.dataChunks.add(packetPartialItem);
+		if (packetPartialItem.getPageCount() <= this.dataChunks.size())
 			this.parsePartials();
+		// TODO gamerforEA code end
 	}
 
 	private void parsePartials()
