@@ -423,11 +423,12 @@ public class CraftingGridCache
 		if (res == null)
 		{
 			if (details != null && details.isCraftable())
-				for (final IAEItemStack ais : this.craftableItems.keySet())
+				for (final Entry<IAEItemStack, ImmutableList<ICraftingPatternDetails>> entry : this.craftableItems.entrySet())
 				{
+					final IAEItemStack ais = entry.getKey();
 					if (ais.getItem() == whatToCraft.getItem() && (!ais.getItem().getHasSubtypes() || ais.getItemDamage() == whatToCraft.getItemDamage()))
 						if (details.isValidItemForSlot(slotIndex, ais.getItemStack(), world))
-							return this.craftableItems.get(ais);
+							return entry.getValue();
 				}
 
 			return ImmutableSet.of();

@@ -25,13 +25,15 @@ import com.gamerforea.ae.EventConfig;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public final class ItemList implements IItemList<IAEItemStack>
 {
-	// TODO gamerforEA code replace, old code:
-	// private final NavigableMap<IAEItemStack, IAEItemStack> records = new ConcurrentSkipListMap<IAEItemStack, IAEItemStack>();
-	private final NavigableMap<IAEItemStack, IAEItemStack> records = EventConfig.useTreeItemList ? Collections.synchronizedNavigableMap(new TreeMap<IAEItemStack, IAEItemStack>()) : new ConcurrentSkipListMap<>();
+	private final NavigableMap<IAEItemStack, IAEItemStack> records = new ConcurrentSkipListMap<>();
+
+	// TODO gamerforEA code start
+	private final Map<IAEItemStack, IAEItemStack> unorderedRecords = EventConfig.useHybridItemList ? new ConcurrentHashMap<>() : this.records;
 	// TODO gamerforEA code end
 
 	@Override
@@ -40,7 +42,10 @@ public final class ItemList implements IItemList<IAEItemStack>
 		if (option == null)
 			return;
 
-		final IAEItemStack st = this.records.get(option);
+		// TODO gamerforEA code replace, old code:
+		// final IAEItemStack st = this.records.get(option);
+		final IAEItemStack st = this.unorderedRecords.get(option);
+		// TODO gamerforEA code end
 
 		if (st != null)
 		{
@@ -49,7 +54,6 @@ public final class ItemList implements IItemList<IAEItemStack>
 		}
 
 		final IAEItemStack opt = option.copy();
-
 		this.putItemRecord(opt);
 	}
 
@@ -59,7 +63,10 @@ public final class ItemList implements IItemList<IAEItemStack>
 		if (itemStack == null)
 			return null;
 
-		return this.records.get(itemStack);
+		// TODO gamerforEA code replace, old code:
+		// return this.records.get(itemStack);
+		return this.unorderedRecords.get(itemStack);
+		// TODO gamerforEA code end
 	}
 
 	@Override
@@ -73,24 +80,22 @@ public final class ItemList implements IItemList<IAEItemStack>
 		if (ais.isOre())
 		{
 			final OreReference or = ais.getDefinition().getIsOre();
+			final List<IAEItemStack> aeEquivalents = or.getAEEquivalents();
 
-			if (or.getAEEquivalents().size() == 1)
+			if (aeEquivalents.size() == 1)
 			{
-				final IAEItemStack is = or.getAEEquivalents().get(0);
-
+				final IAEItemStack is = aeEquivalents.get(0);
 				return this.findFuzzyDamage((AEItemStack) is, fuzzy, is.getItemDamage() == OreDictionary.WILDCARD_VALUE);
 			}
-			else
+
+			final Collection<IAEItemStack> output = new LinkedList<>();
+
+			for (final IAEItemStack is : aeEquivalents)
 			{
-				final Collection<IAEItemStack> output = new LinkedList<>();
-
-				for (final IAEItemStack is : or.getAEEquivalents())
-				{
-					output.addAll(this.findFuzzyDamage((AEItemStack) is, fuzzy, is.getItemDamage() == OreDictionary.WILDCARD_VALUE));
-				}
-
-				return output;
+				output.addAll(this.findFuzzyDamage((AEItemStack) is, fuzzy, is.getItemDamage() == OreDictionary.WILDCARD_VALUE));
 			}
+
+			return output;
 		}
 
 		return this.findFuzzyDamage(ais, fuzzy, false);
@@ -108,7 +113,10 @@ public final class ItemList implements IItemList<IAEItemStack>
 		if (option == null)
 			return;
 
-		final IAEItemStack st = this.records.get(option);
+		// TODO gamerforEA code replace, old code:
+		// final IAEItemStack st = this.records.get(option);
+		final IAEItemStack st = this.unorderedRecords.get(option);
+		// TODO gamerforEA code end
 
 		if (st != null)
 		{
@@ -132,7 +140,10 @@ public final class ItemList implements IItemList<IAEItemStack>
 		if (option == null)
 			return;
 
-		final IAEItemStack st = this.records.get(option);
+		// TODO gamerforEA code replace, old code:
+		// final IAEItemStack st = this.records.get(option);
+		final IAEItemStack st = this.unorderedRecords.get(option);
+		// TODO gamerforEA code end
 
 		if (st != null)
 		{
@@ -153,7 +164,10 @@ public final class ItemList implements IItemList<IAEItemStack>
 		if (option == null)
 			return;
 
-		final IAEItemStack st = this.records.get(option);
+		// TODO gamerforEA code replace, old code:
+		// final IAEItemStack st = this.records.get(option);
+		final IAEItemStack st = this.unorderedRecords.get(option);
+		// TODO gamerforEA code end
 
 		if (st != null)
 		{
@@ -189,6 +203,11 @@ public final class ItemList implements IItemList<IAEItemStack>
 	@Override
 	public Iterator<IAEItemStack> iterator()
 	{
+		// TODO gamerforEA code start
+		if (this.unorderedRecords != this.records)
+			return new MeaningfulItemHybridIterator<>(this.records, this.unorderedRecords);
+		// TODO gamerforEA code end
+
 		return new MeaningfulItemIterator<>(this.records.values().iterator());
 	}
 
@@ -203,6 +222,11 @@ public final class ItemList implements IItemList<IAEItemStack>
 
 	private IAEItemStack putItemRecord(final IAEItemStack itemStack)
 	{
+		// TODO gamerforEA code start
+		if (this.unorderedRecords != this.records)
+			this.unorderedRecords.put(itemStack, itemStack);
+		// TODO gamerforEA code end
+
 		return this.records.put(itemStack, itemStack);
 	}
 
@@ -210,7 +234,71 @@ public final class ItemList implements IItemList<IAEItemStack>
 	{
 		final IAEItemStack low = filter.getLow(fuzzy, ignoreMeta);
 		final IAEItemStack high = filter.getHigh(fuzzy, ignoreMeta);
+		final Collection<IAEItemStack> values = this.records.subMap(low, true, high, true).descendingMap().values();
 
-		return this.records.subMap(low, true, high, true).descendingMap().values();
+		// TODO gamerforEA code start
+		if (this.unorderedRecords != this.records)
+			return Collections.unmodifiableCollection(values);
+		// TODO gamerforEA code start
+
+		return values;
 	}
+
+	// TODO gamerforEA code start
+	private static final class MeaningfulItemHybridIterator<T extends IAEItemStack> implements Iterator<T>
+	{
+		// private final Map<T, T> parentPrimary;
+		private final Map<T, T> parentSecondary;
+		private final Iterator<T> parentPrimaryIterator;
+		private T next;
+
+		public MeaningfulItemHybridIterator(Map<T, T> parentPrimary, Map<T, T> parentSecondary)
+		{
+			// this.parentPrimary = parentPrimary;
+			this.parentSecondary = parentSecondary;
+			this.parentPrimaryIterator = parentPrimary.values().iterator();
+		}
+
+		@Override
+		public boolean hasNext()
+		{
+			while (this.parentPrimaryIterator.hasNext())
+			{
+				this.next = this.parentPrimaryIterator.next();
+
+				if (this.next.isMeaningful())
+					return true;
+
+				this.parentPrimaryIterator.remove(); // self cleaning :3
+				this.parentSecondary.remove(this.next);
+			}
+
+			this.next = null;
+			return false;
+		}
+
+		@Override
+		public T next()
+		{
+			if (this.next == null)
+				throw new NoSuchElementException();
+			return this.next;
+		}
+
+		@Override
+		public void remove()
+		{
+			if (this.next == null)
+			{
+				if (this.parentPrimaryIterator.hasNext())
+					this.next = this.parentPrimaryIterator.next();
+				else
+					throw new NoSuchElementException();
+			}
+
+			this.parentPrimaryIterator.remove();
+			this.parentSecondary.remove(this.next);
+		}
+	}
+	// TODO gamerforEA code end
 }

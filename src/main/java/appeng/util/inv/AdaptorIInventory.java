@@ -56,12 +56,13 @@ public class AdaptorIInventory extends InventoryAdaptor
 	@Override
 	public ItemStack removeItems(int amount, ItemStack filter, final IInventoryDestination destination)
 	{
+		final int s = this.i.getSizeInventory();
+
 		// TODO gamerforEA code start
-		if (!this.isValidInventory())
+		if (s > 0 && !this.isValidInventory())
 			return null;
 		// TODO gamerforEA code end
 
-		final int s = this.i.getSizeInventory();
 		ItemStack rv = null;
 
 		for (int x = 0; x < s && amount > 0; x++)
@@ -115,12 +116,13 @@ public class AdaptorIInventory extends InventoryAdaptor
 	@Override
 	public ItemStack simulateRemove(int amount, final ItemStack filter, final IInventoryDestination destination)
 	{
+		final int s = this.i.getSizeInventory();
+
 		// TODO gamerforEA code start
-		if (!this.isValidInventory())
+		if (s > 0 && !this.isValidInventory())
 			return null;
 		// TODO gamerforEA code end
 
-		final int s = this.i.getSizeInventory();
 		ItemStack rv = null;
 
 		for (int x = 0; x < s && amount > 0; x++)
@@ -155,12 +157,13 @@ public class AdaptorIInventory extends InventoryAdaptor
 	@Override
 	public ItemStack removeSimilarItems(final int amount, final ItemStack filter, final FuzzyMode fuzzyMode, final IInventoryDestination destination)
 	{
+		final int s = this.i.getSizeInventory();
+
 		// TODO gamerforEA code start
-		if (!this.isValidInventory())
+		if (s > 0 && !this.isValidInventory())
 			return null;
 		// TODO gamerforEA code end
 
-		final int s = this.i.getSizeInventory();
 		for (int x = 0; x < s; x++)
 		{
 			final ItemStack is = this.i.getStackInSlot(x);
@@ -203,12 +206,13 @@ public class AdaptorIInventory extends InventoryAdaptor
 	@Override
 	public ItemStack simulateSimilarRemove(final int amount, final ItemStack filter, final FuzzyMode fuzzyMode, final IInventoryDestination destination)
 	{
+		final int s = this.i.getSizeInventory();
+
 		// TODO gamerforEA code start
-		if (!this.isValidInventory())
+		if (s > 0 && !this.isValidInventory())
 			return null;
 		// TODO gamerforEA code end
 
-		final int s = this.i.getSizeInventory();
 		for (int x = 0; x < s; x++)
 		{
 			final ItemStack is = this.i.getStackInSlot(x);
@@ -247,12 +251,13 @@ public class AdaptorIInventory extends InventoryAdaptor
 	@Override
 	public boolean containsItems()
 	{
+		final int s = this.i.getSizeInventory();
+
 		// TODO gamerforEA code start
-		if (!this.isValidInventory())
+		if (s > 0 && !this.isValidInventory())
 			return false;
 		// TODO gamerforEA code end
 
-		final int s = this.i.getSizeInventory();
 		for (int x = 0; x < s; x++)
 		{
 			if (this.i.getStackInSlot(x) != null)
@@ -274,30 +279,60 @@ public class AdaptorIInventory extends InventoryAdaptor
 	 */
 	private ItemStack addItems(final ItemStack itemsToAdd, final boolean modulate)
 	{
-		// TODO gamerforEA code start
-		if (!this.isValidInventory())
-			return null;
-		// TODO gamerforEA code end
-
 		if (itemsToAdd == null || itemsToAdd.stackSize == 0)
 			return null;
 
+		final int inventorySize = this.i.getSizeInventory();
 		final ItemStack left = itemsToAdd.copy();
+
+		// TODO gamerforEA code start
+		if (inventorySize <= 0 || !this.isValidInventory())
+			return left;
+
+		final boolean optimize = EventConfig.speculativeOptimizations;
+		// TODO gamerforEA code end
+
 		final int stackLimit = itemsToAdd.getMaxStackSize();
 		final int perOperationLimit = Math.min(this.i.getInventoryStackLimit(), stackLimit);
-		final int inventorySize = this.i.getSizeInventory();
 
 		for (int slot = 0; slot < inventorySize; slot++)
 		{
-			final ItemStack next = left.copy();
-			next.stackSize = Math.min(perOperationLimit, next.stackSize);
+			final int prevLeftStackSize = left.stackSize;
 
-			if (this.i.isItemValidForSlot(slot, next))
+			/* TODO gamerforEA code replace, old code:
+			final ItemStack next = left.copy();
+			next.stackSize = Math.min(perOperationLimit, prevLeftStackSize);
+			boolean validForSlot = this.i.isItemValidForSlot(slot, next); */
+			final int nextStackSize = Math.min(perOperationLimit, prevLeftStackSize);
+			ItemStack next = optimize ? left : left.copy();
+			next.stackSize = nextStackSize;
+
+			final boolean validForSlot = this.i.isItemValidForSlot(slot, next);
+
+			if (left == next)
+				left.stackSize = prevLeftStackSize;
+			// TODO gamerforEA code end
+
+			if (validForSlot)
 			{
 				final ItemStack is = this.i.getStackInSlot(slot);
 				if (is == null)
 				{
-					left.stackSize -= next.stackSize;
+					// TODO gamerforEA code replace, old code:
+					// left.stackSize -= next.stackSize;
+					if (left == next)
+					{
+						left.stackSize -= nextStackSize;
+
+						if (modulate)
+						{
+							next = left.copy();
+							next.stackSize = nextStackSize;
+						}
+					}
+					else
+						left.stackSize -= next.stackSize;
+					// TODO gamerforEA code end
 
 					if (modulate)
 					{

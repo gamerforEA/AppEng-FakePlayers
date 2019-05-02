@@ -45,6 +45,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class CraftingJob implements Runnable, ICraftingJob
@@ -160,10 +161,10 @@ public class CraftingJob implements Runnable, ICraftingJob
 				this.getTree().request(craftingInventory, this.output.getStackSize(), this.actionSrc);
 				this.getTree().dive(this);
 
-				for (final String s : this.opsAndMultiplier.keySet())
+				for (final Map.Entry<String, TwoIntegers> entry : this.opsAndMultiplier.entrySet())
 				{
-					final TwoIntegers ti = this.opsAndMultiplier.get(s);
-					AELog.crafting(s + " * " + ti.times + " = " + ti.perOp * ti.times);
+					final TwoIntegers ti = entry.getValue();
+					AELog.crafting(entry.getKey() + " * " + ti.times + " = " + ti.perOp * ti.times);
 				}
 
 				this.logCraftingJob("real", timer);
@@ -186,10 +187,10 @@ public class CraftingJob implements Runnable, ICraftingJob
 					this.getTree().request(craftingInventory, this.output.getStackSize(), this.actionSrc);
 					this.getTree().dive(this);
 
-					for (final String s : this.opsAndMultiplier.keySet())
+					for (final Map.Entry<String, TwoIntegers> entry : this.opsAndMultiplier.entrySet())
 					{
-						final TwoIntegers ti = this.opsAndMultiplier.get(s);
-						AELog.crafting(s + " * " + ti.times + " = " + ti.perOp * ti.times);
+						final TwoIntegers ti = entry.getValue();
+						AELog.crafting(entry.getKey() + " * " + ti.times + " = " + ti.perOp * ti.times);
 					}
 
 					this.logCraftingJob("simulate", timer);
