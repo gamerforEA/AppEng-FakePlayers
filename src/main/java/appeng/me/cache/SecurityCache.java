@@ -30,7 +30,7 @@ import appeng.api.networking.security.ISecurityProvider;
 import appeng.core.worlddata.WorldData;
 import appeng.me.GridNode;
 import com.gamerforea.ae.EventConfig;
-import com.gamerforea.ae.ModUtils;
+import com.gamerforea.eventhelper.util.EventUtils;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.EntityPlayer;
@@ -140,10 +140,15 @@ public class SecurityCache implements ISecurityGrid
 		Preconditions.checkNotNull(player);
 		Preconditions.checkNotNull(perm);
 
+		// TODO gamerforEA code start
+		if (EventConfig.securityForceAllowBuild && perm == SecurityPermissions.BUILD)
+			return true;
+		// TODO gamerforEA code end
+
 		final GameProfile profile = player.getGameProfile();
 
 		// TODO gamerforEA code start
-		if (ModUtils.hasPermission(player, EventConfig.securityBypassPermission))
+		if (EventUtils.hasPermission(player, EventConfig.securityBypassPermission))
 			return true;
 		// TODO gamerforEA code end
 
@@ -155,15 +160,21 @@ public class SecurityCache implements ISecurityGrid
 	@Override
 	public boolean hasPermission(final int playerID, final SecurityPermissions perm)
 	{
+		// TODO gamerforEA code start
+		if (EventConfig.securityForceAllowBuild && perm == SecurityPermissions.BUILD)
+			return true;
+		// TODO gamerforEA code end
+
 		if (this.isAvailable())
 		{
 			final EnumSet<SecurityPermissions> perms = this.playerPerms.get(playerID);
 
 			if (perms == null)
+			{
 				if (playerID == -1)
 					return false;
-				else
-					return this.hasPermission(-1, perm);
+				return this.hasPermission(-1, perm);
+			}
 
 			return perms.contains(perm);
 		}

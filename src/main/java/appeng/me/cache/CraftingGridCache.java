@@ -47,6 +47,7 @@ import appeng.me.helpers.GenericInterestManager;
 import appeng.tile.crafting.TileCraftingStorageTile;
 import appeng.tile.crafting.TileCraftingTile;
 import appeng.util.ItemSorters;
+import com.gamerforea.ae.EventConfig;
 import com.google.common.collect.*;
 import net.minecraft.world.World;
 
@@ -198,7 +199,10 @@ public class CraftingGridCache
 
 	private void updatePatterns()
 	{
-		final Map<IAEItemStack, ImmutableList<ICraftingPatternDetails>> oldItems = this.craftableItems;
+		// TODO gamerforEA code replace, old code:
+		// final Map<IAEItemStack, ImmutableList<ICraftingPatternDetails>> oldItems = this.craftableItems;
+		final Map<IAEItemStack, ImmutableList<ICraftingPatternDetails>> oldItems = EventConfig.fixCraftGridUpdating ? ImmutableMap.copyOf(this.craftableItems) : this.craftableItems;
+		// TODO gamerforEA code end
 
 		// erase list.
 		this.craftingMethods.clear();
