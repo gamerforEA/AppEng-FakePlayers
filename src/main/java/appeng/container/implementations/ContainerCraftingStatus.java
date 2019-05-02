@@ -112,7 +112,7 @@ public class ContainerCraftingStatus extends ContainerCraftingCPU
 		else if (this.selectedCpu != -1)
 			this.myName = this.cpus.get(this.selectedCpu).getName();
 
-		if (this.selectedCpu == -1 && this.cpus.size() > 0)
+		if (this.selectedCpu == -1 && !this.cpus.isEmpty())
 			this.selectedCpu = 0;
 
 		if (this.selectedCpu != -1)
@@ -136,7 +136,7 @@ public class ContainerCraftingStatus extends ContainerCraftingCPU
 		else if (this.selectedCpu >= this.cpus.size())
 			this.selectedCpu = -1;
 
-		if (this.selectedCpu == -1 && this.cpus.size() > 0)
+		if (this.selectedCpu == -1 && !this.cpus.isEmpty())
 			this.selectedCpu = 0;
 
 		if (this.selectedCpu == -1)

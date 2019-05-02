@@ -374,9 +374,7 @@ public abstract class AEBaseContainer extends Container
 			return this.tileEntity;
 		if (this.part != null)
 			return this.part;
-		if (this.obj != null)
-			return this.obj;
-		return null;
+		return this.obj;
 	}
 
 	public InventoryPlayer getPlayerInv()

@@ -252,7 +252,7 @@ public class SlotCraftingTerm extends AppEngCraftingSlot
 				}
 			}
 
-		if (drops.size() > 0)
+		if (!drops.isEmpty())
 			Platform.spawnDrops(p.worldObj, (int) p.posX, (int) p.posY, (int) p.posZ, drops);
 	}
 

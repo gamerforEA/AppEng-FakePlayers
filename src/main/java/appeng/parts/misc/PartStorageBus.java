@@ -73,7 +73,6 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -498,7 +497,7 @@ public class PartStorageBus extends PartUpgradeable
 			if (out != null)
 				return Collections.singletonList(out);
 		}
-		return Arrays.asList(new IMEInventoryHandler[] {});
+		return Collections.emptyList();
 	}
 
 	@Override

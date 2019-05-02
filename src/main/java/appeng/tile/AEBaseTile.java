@@ -308,9 +308,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 	private List<AETileEventHandler> getHandlerListFor(final TileEventType type)
 	{
 		final Map<TileEventType, List<AETileEventHandler>> eventToHandlers = this.getEventToHandlers();
-		final List<AETileEventHandler> handlers = this.getHandlers(eventToHandlers, type);
-
-		return handlers;
+		return this.getHandlers(eventToHandlers, type);
 	}
 
 	@Nonnull
@@ -510,7 +508,7 @@ public class AEBaseTile extends TileEntity implements IOrientable, ICommonTile, 
 	@Override
 	public boolean hasCustomName()
 	{
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 
 	public void securityBreak()

@@ -201,7 +201,7 @@ public final class ItemMultiMaterial extends AEBaseItem implements IStorageCompo
 						break;
 
 					final List<ItemStack> options = OreDictionary.getOres(name);
-					if (options != null && options.size() > 0)
+					if (options != null && !options.isEmpty())
 						for (final ItemStack is : options)
 						{
 							if (is != null && is.getItem() != null)

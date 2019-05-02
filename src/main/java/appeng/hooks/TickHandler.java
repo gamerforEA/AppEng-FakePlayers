@@ -165,10 +165,8 @@ public class TickHandler
 	@SubscribeEvent
 	public void onChunkUnload(ChunkEvent.Unload event)
 	{
-		// TODO gamerforEA code start
 		if (!EventConfig.experimentalChunkDupeFix)
 			return;
-		// TODO gamerforEA code end
 
 		Chunk chunk = event.getChunk();
 		int chunkX = chunk.xPosition;
