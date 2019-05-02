@@ -88,12 +88,17 @@ public class GridStorageCache implements IStorageGrid
 
 		if (machine instanceof IStackWatcherHost)
 		{
+			/* TODO gamerforEA code replace, old code:
 			final IStackWatcher myWatcher = this.watchers.get(machine);
 			if (myWatcher != null)
 			{
 				myWatcher.clear();
 				this.watchers.remove(machine);
-			}
+			} */
+			final IStackWatcher myWatcher = this.watchers.remove(node);
+			if (myWatcher != null)
+				myWatcher.clear();
+			// TODO gamerforEA code end
 		}
 	}
 

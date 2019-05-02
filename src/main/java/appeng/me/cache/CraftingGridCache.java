@@ -121,12 +121,17 @@ public class CraftingGridCache
 	{
 		if (machine instanceof ICraftingWatcherHost)
 		{
+			/* TODO gamerforEA code replace, old code:
 			final ICraftingWatcher craftingWatcher = this.craftingWatchers.get(machine);
 			if (craftingWatcher != null)
 			{
 				craftingWatcher.clear();
 				this.craftingWatchers.remove(machine);
-			}
+			} */
+			final ICraftingWatcher craftingWatcher = this.craftingWatchers.remove(gridNode);
+			if (craftingWatcher != null)
+				craftingWatcher.clear();
+			// TODO gamerforEA code end
 		}
 
 		if (machine instanceof ICraftingRequester)
