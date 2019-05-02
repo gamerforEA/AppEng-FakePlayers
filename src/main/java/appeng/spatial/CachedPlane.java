@@ -218,13 +218,13 @@ public class CachedPlane
 		final Block srcBlock = this.world.getBlock(x + this.x_offset, src_y, z + this.z_offset);
 		final int srcMeta = this.world.getBlockMetadata(x + this.x_offset, src_y, z + this.z_offset);
 
-		if (EventConfig.inList(EventConfig.pilonBlackList, srcBlock, srcMeta))
+		if (EventConfig.pilonBlackList.contains(srcBlock, srcMeta))
 			return true;
 
 		final Block dstBlock = dst.world.getBlock(x + dst.x_offset, dst_y, z + dst.z_offset);
 		final int dstMeta = dst.world.getBlockMetadata(x + dst.x_offset, dst_y, z + dst.z_offset);
 
-		return EventConfig.inList(EventConfig.pilonBlackList, dstBlock, dstMeta);
+		return EventConfig.pilonBlackList.contains(dstBlock, dstMeta);
 
 	}
 

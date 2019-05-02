@@ -22,36 +22,32 @@ import appeng.api.implementations.guiobjects.INetworkTool;
 import appeng.container.AEBaseContainer;
 import appeng.container.guisync.GuiSync;
 import appeng.container.slot.SlotRestrictedInput;
+import appeng.items.tools.ToolNetworkTool;
 import appeng.util.Platform;
+import com.gamerforea.eventhelper.util.ItemInventoryValidator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import java.util.UUID;
-
 public class ContainerNetworkTool extends AEBaseContainer
 {
 	private final INetworkTool toolInv;
 
 	// TODO gamerforEA code start
-	private static final String NBT_KEY_UID = "UID";
-	private final ItemStack stack;
-	private final int stackSlot;
+	public final ItemInventoryValidator validator;
 
 	@Override
 	public boolean isValidContainer()
 	{
-		return super.isValidContainer() && isSameItemInventory(this.stack, this.getInventoryPlayer().getCurrentItem());
+		return super.isValidContainer() && this.validator.canInteractWith(this.getInventoryPlayer().player);
 	}
 
 	@Override
 	public ItemStack slotClick(int slot, int button, int buttonType, EntityPlayer player)
 	{
-		if (slot == this.stackSlot)
-			return null;
-		if (buttonType == 2 && button == this.stackSlot)
+		if (!this.validator.canSlotClick(slot, button, buttonType, player))
 			return null;
 		if (!this.isValidContainer())
 			return null;
@@ -61,23 +57,7 @@ public class ContainerNetworkTool extends AEBaseContainer
 	@Override
 	public ItemStack transferStackInSlot(EntityPlayer player, int slot)
 	{
-		return slot == this.stackSlot || !this.isValidContainer() ? null : super.transferStackInSlot(player, slot);
-	}
-
-	private static boolean isSameItemInventory(ItemStack base, ItemStack comparison)
-	{
-		if (base == null || comparison == null)
-			return false;
-
-		if (base.getItem() != comparison.getItem())
-			return false;
-
-		if (!base.hasTagCompound() || !comparison.hasTagCompound())
-			return false;
-
-		String baseUID = base.getTagCompound().getString(NBT_KEY_UID);
-		String comparisonUID = comparison.getTagCompound().getString(NBT_KEY_UID);
-		return baseUID != null && baseUID.equals(comparisonUID);
+		return slot == this.validator.getSlotNumber() || !this.isValidContainer() ? null : super.transferStackInSlot(player, slot);
 	}
 	// TODO gamerforEA code end
 
@@ -88,21 +68,14 @@ public class ContainerNetworkTool extends AEBaseContainer
 	{
 		super(ip, null, null);
 		this.toolInv = te;
-
 		int currentItem = ip.currentItem;
-		this.lockPlayerInventorySlot(currentItem);
 
 		// TODO gamerforEA code start
-		this.stack = ip.getStackInSlot(currentItem);
-		if (this.stack != null && this.stack.getItem() instanceof INetworkTool)
-		{
-			if (!this.stack.hasTagCompound())
-				this.stack.setTagCompound(new NBTTagCompound());
-			NBTTagCompound nbt = this.stack.getTagCompound();
-			if (!nbt.hasKey(NBT_KEY_UID))
-				nbt.setString(NBT_KEY_UID, UUID.randomUUID().toString());
-		}
+		this.validator = new ItemInventoryValidator(ip.getStackInSlot(currentItem), ToolNetworkTool.class::isInstance);
+		this.validator.setSlotIndex(currentItem, true);
 		// TODO gamerforEA code end
+
+		this.lockPlayerInventorySlot(currentItem);
 
 		for (int y = 0; y < 3; y++)
 		{
@@ -115,16 +88,11 @@ public class ContainerNetworkTool extends AEBaseContainer
 		this.bindPlayerInventory(ip, 0, 166 - /* height of player inventory */82);
 
 		// TODO gamerforEA code start
-		int stackSlot = -1;
 		for (Slot slot : (Iterable<? extends Slot>) this.inventorySlots)
 		{
-			if (slot.getSlotIndex() == currentItem)
-			{
-				stackSlot = slot.slotNumber;
+			if (this.validator.tryGetSlotNumberFromPlayerSlot(slot))
 				break;
-			}
 		}
-		this.stackSlot = stackSlot;
 		// TODO gamerforEA code end
 	}
 

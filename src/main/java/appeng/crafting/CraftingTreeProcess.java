@@ -113,7 +113,7 @@ public class CraftingTreeProcess
 				if (g.getItem().hasContainerItem(g))
 				{
 					// TODO gamerforEA code start
-					if (!EventConfig.inList(EventConfig.autoCraftForceCheckList, g))
+					if (!EventConfig.autoCraftForceCheckList.contains(g))
 						// TODO gamerforEA code end
 						this.containerItems = true;
 

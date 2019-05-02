@@ -27,7 +27,6 @@ import appeng.helpers.Reflected;
 import appeng.util.Platform;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.fake.FakePlayerContainerEntity;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
@@ -47,7 +46,7 @@ import net.minecraft.world.World;
 public final class EntityTinyTNTPrimed extends EntityTNTPrimed implements IEntityAdditionalSpawnData
 {
 	// TODO gamerforEA code start
-	public final FakePlayerContainer fake = new FakePlayerContainerEntity(ModUtils.profile, this);
+	public final FakePlayerContainer fake = ModUtils.NEXUS_FACTORY.wrapFake(this);
 
 	@Override
 	protected void writeEntityToNBT(NBTTagCompound nbt)

@@ -79,7 +79,7 @@ public class PartFormationPlane extends PartUpgradeable
 	private boolean blocked = false;
 
 	// TODO gamerforEA code start
-	public FakePlayerContainer fake = new FakePlayerContainerUpgradeableHost(ModUtils.profile, this);
+	public final FakePlayerContainer fake = new FakePlayerContainerUpgradeableHost(ModUtils.NEXUS_FACTORY.getProfile(), this);
 
 	@Override
 	public void onPlacement(final EntityPlayer player, final ItemStack held, final ForgeDirection side)
@@ -409,7 +409,7 @@ public class PartFormationPlane extends PartUpgradeable
 		final int z = te.zCoord + side.offsetZ;
 
 		// TODO gamerforEA code start
-		if (i != null && EventConfig.inList(EventConfig.formationPlaneBlackList, is))
+		if (i != null && EventConfig.formationPlaneBlackList.contains(is))
 			return input;
 
 		if (this.fake.cantBreak(x, y, z))

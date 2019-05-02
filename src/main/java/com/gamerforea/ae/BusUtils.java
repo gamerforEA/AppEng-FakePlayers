@@ -30,7 +30,7 @@ public final class BusUtils
 		{
 			Block targetBlock = targetTile.getBlockType();
 			int targetMeta = targetTile.getBlockMetadata();
-			if (EventConfig.inList(EventConfig.busBlackList, targetBlock, targetMeta))
+			if (EventConfig.busBlackList.contains(targetBlock, targetMeta))
 				return false;
 
 			if (!isValidTile(busTile) || !isValidTile(targetTile))

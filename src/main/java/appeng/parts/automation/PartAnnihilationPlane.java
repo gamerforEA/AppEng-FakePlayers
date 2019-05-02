@@ -84,7 +84,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 	private boolean breaking = false;
 
 	// TODO gamerforEA code start
-	public FakePlayerContainer fake = new FakePlayerContainerUpgradeableHost(ModUtils.profile, this);
+	public final FakePlayerContainer fake = new FakePlayerContainerUpgradeableHost(ModUtils.NEXUS_FACTORY.getProfile(), this);
 
 	@Override
 	public void onPlacement(final EntityPlayer player, final ItemStack held, final ForgeDirection side)
@@ -438,7 +438,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
 
 							Block block = w.getBlock(x, y, z);
 							int meta = w.getBlockMetadata(x, y, z);
-							if (EventConfig.inList(EventConfig.annihilationPlaneBlackList, block, meta))
+							if (EventConfig.annihilationPlaneBlackList.contains(block, meta))
 								return TickRateModulation.URGENT;
 
 							if (this.fake.cantBreak(x, y, z))

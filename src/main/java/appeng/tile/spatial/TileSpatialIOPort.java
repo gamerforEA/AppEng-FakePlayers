@@ -43,7 +43,6 @@ import appeng.util.IWorldCallable;
 import appeng.util.Platform;
 import com.gamerforea.ae.ModUtils;
 import com.gamerforea.eventhelper.fake.FakePlayerContainer;
-import com.gamerforea.eventhelper.fake.FakePlayerContainerTileEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -57,7 +56,7 @@ public class TileSpatialIOPort extends AENetworkInvTile implements IWorldCallabl
 	private YesNo lastRedstoneState = YesNo.UNDECIDED;
 
 	// TODO gamerforEA code start
-	public final FakePlayerContainer fake = new FakePlayerContainerTileEntity(ModUtils.profile, this);
+	public final FakePlayerContainer fake = ModUtils.NEXUS_FACTORY.wrapFake(this);
 	// TODO gamerforEA code end
 
 	public TileSpatialIOPort()
