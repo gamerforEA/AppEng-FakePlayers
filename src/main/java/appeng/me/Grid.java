@@ -26,6 +26,7 @@ import appeng.api.util.IReadOnlyCollection;
 import appeng.core.worlddata.WorldData;
 import appeng.hooks.TickHandler;
 import appeng.util.ReadOnlyCollection;
+import com.gamerforea.ae.util.LongRingBuffer;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -38,6 +39,21 @@ public class Grid implements IGrid
 	private GridNode pivot;
 	private int priority; // how import is this network?
 	private GridStorage myStorage;
+
+	// TODO gamerforEA code start
+	private static final int UPDATE_TIME_LIST_SIZE = 20;
+	private final LongRingBuffer updateTimeList = new LongRingBuffer(UPDATE_TIME_LIST_SIZE);
+
+	public long getAverageUpdateTime()
+	{
+		return this.updateTimeList.getAverage();
+	}
+
+	public void pushUpdateTime(long updateTime)
+	{
+		this.updateTimeList.push(updateTime);
+	}
+	// TODO gamerforEA code end
 
 	public Grid(final GridNode center)
 	{

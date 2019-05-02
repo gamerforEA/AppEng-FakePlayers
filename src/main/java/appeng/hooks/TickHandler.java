@@ -337,10 +337,23 @@ public class TickHandler
 					bt.onReady();
 			}
 
+			// TODO gamerforEA code start
+			boolean gridProfiling = EventConfig.gridProfiling;
+			// TODO gamerforEA code end
+
 			// tick networks.
 			for (final Grid g : this.getRepo().networks)
 			{
+				// TODO gamerforEA code start
+				long startTime = gridProfiling ? System.nanoTime() : 0;
+				// TODO gamerforEA code end
+
 				g.update();
+
+				// TODO gamerforEA code start
+				if (gridProfiling)
+					g.pushUpdateTime(System.nanoTime() - startTime);
+				// TODO gamerforEA code end
 			}
 
 			// cross world queue.
